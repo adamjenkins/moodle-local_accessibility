@@ -176,7 +176,7 @@ html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd):where(:no
 html[data-a11y-links="on"] body :where(a:not(.btn, .qnbutton)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     text-decoration: underline 2px !important; /* stylelint-disable-line declaration-no-important */
     text-underline-offset: 0.2em;
-    outline: 2px solid var(--a11y-link, var(--bs-link-color));
+    outline: 2px solid var(--a11y-link, var(--bs-link-color, #0f6cbf));
     outline-offset: 2px;
 }
 
@@ -239,7 +239,9 @@ html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-acces
 
 /* stylelint-enable max-line-length */
 /* 13. Panel: core tokens only (spec §4.2). Isolated from every user setting except saturation (R19):
-   sections 3-9 and 11-12 exclude it, and all sizes here are px so root font scaling cannot inflate it. */
+   sections 3-9 and 11-12 exclude it, and all sizes here are px so root font scaling cannot inflate it.
+   Every var(--bs-*) in sections 8 and 13-14 has Boost's value as a literal fallback, because Moodle 4.5 (Bootstrap 4)
+   defines no --bs-* properties. */
 .la-visually-hidden {
     position: absolute;
     width: 1px;
@@ -266,10 +268,10 @@ html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-acces
     font-kerning: auto;
     text-align: start;
     cursor: auto;
-    font-family: var(--bs-body-font-family, system-ui, sans-serif);
-    background: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    border: 1px solid var(--bs-primary);
+    font-family: var(--bs-body-font-family, var(--font-family-sans-serif, system-ui, sans-serif));
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #1d2125);
+    border: 1px solid var(--bs-primary, #0f6cbf);
     border-radius: 10px;
     box-shadow: 0 4px 18px rgb(0 0 0 / 25%);
 }
@@ -282,9 +284,9 @@ html[data-a11y-colour] .local-accessibility-panel {
     --bs-secondary-bg: #e9ecef;
     --bs-tertiary-bg: #f8f9fa;
     --bs-border-color: #dee2e6;
-    --bs-link-color: var(--bs-primary);
-    --bs-link-hover-color: var(--bs-primary);
-    --bs-link-color-rgb: var(--bs-primary-rgb);
+    --bs-link-color: var(--bs-primary, #0f6cbf);
+    --bs-link-hover-color: var(--bs-primary, #0f6cbf);
+    --bs-link-color-rgb: var(--bs-primary-rgb, 15, 108, 191);
     --bs-card-bg: #fff;
 }
 html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
@@ -302,7 +304,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    background: var(--bs-primary);
+    background: var(--bs-primary, #0f6cbf);
     color: #fff;
 }
 .local-accessibility-panel .la-title {
@@ -330,7 +332,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 }
 .local-accessibility-panel .la-profile {
     white-space: nowrap;
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid var(--bs-border-color, #dee2e6);
     border-radius: 16px;
     background: transparent;
     color: inherit;
@@ -356,7 +358,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     align-items: center;
     justify-content: center;
     gap: 3px;
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid var(--bs-border-color, #dee2e6);
     border-radius: 8px;
     background: transparent;
     color: inherit;
@@ -373,8 +375,8 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 }
 .local-accessibility-panel .la-tile[aria-pressed="true"],
 .local-accessibility-panel .la-tile:has(.la-dots .la-on) {
-    border-color: var(--bs-primary);
-    box-shadow: inset 0 0 0 1px var(--bs-primary);
+    border-color: var(--bs-primary, #0f6cbf);
+    box-shadow: inset 0 0 0 1px var(--bs-primary, #0f6cbf);
 }
 .local-accessibility-panel .la-colour {
     grid-column: span 3;
@@ -405,7 +407,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     block-size: auto;
 }
 .local-accessibility-panel .la-swatch[aria-pressed="true"] {
-    outline: 2px solid var(--bs-primary);
+    outline: 2px solid var(--bs-primary, #0f6cbf);
     outline-offset: 1px;
 }
 /* Keyboard focus: a ring in the panel's text colour, so it shows on the light and the dark panel and differs from the
@@ -432,10 +434,10 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     inline-size: 5px;
     block-size: 5px;
     border-radius: 50%;
-    background: var(--bs-border-color);
+    background: var(--bs-border-color, #dee2e6);
 }
 .local-accessibility-panel .la-dots i.la-on {
-    background: var(--bs-primary);
+    background: var(--bs-primary, #0f6cbf);
 }
 .local-accessibility-panel .la-lock,
 .local-accessibility-panel .la-warn {
@@ -483,7 +485,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 .local-accessibility-panel .la-editor .la-preview {
     margin: 0;
     padding: 10px;
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid var(--bs-border-color, #dee2e6);
     border-radius: 6px;
     font-size: 14px;
 }
@@ -584,9 +586,9 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     max-inline-size: calc(100vw - 24px);
     padding: 6px 10px;
     font-size: 16px;
-    background: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    border: 1px solid var(--bs-primary);
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #1d2125);
+    border: 1px solid var(--bs-primary, #0f6cbf);
     border-radius: 10px;
 }
 .la-readbar[hidden],
