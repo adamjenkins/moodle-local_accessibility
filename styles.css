@@ -441,6 +441,25 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 .local-accessibility-panel .la-dots i.la-on {
     background: var(--bs-primary, #0f6cbf);
 }
+
+/* Forced colours replace backgrounds and border colours and drop shadows, which hid the dots and the pressed look.
+   System colours are kept, so tile state uses them: hollow CanvasText dots, filled Highlight dots, a Highlight border. */
+@media (forced-colors: active) {
+    .local-accessibility-panel .la-dots i {
+        inline-size: 7px;
+        block-size: 7px;
+        border: 1px solid CanvasText; /* stylelint-disable-line csstree/validator -- CSS Color 4 system colour. */
+        background: Canvas; /* stylelint-disable-line csstree/validator -- CSS Color 4 system colour. */
+    }
+    .local-accessibility-panel .la-dots i.la-on {
+        border-color: Highlight;
+        background: Highlight;
+    }
+    .local-accessibility-panel .la-tile[aria-pressed="true"],
+    .local-accessibility-panel .la-tile:has(.la-dots .la-on) {
+        border: 3px solid Highlight;
+    }
+}
 .local-accessibility-panel .la-lock,
 .local-accessibility-panel .la-warn {
     position: absolute;

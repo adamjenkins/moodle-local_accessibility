@@ -471,13 +471,19 @@ class behat_local_accessibility extends behat_base {
     }
 
     /**
-     * Stop forced-colours emulation after a scenario that started it.
+     * Stop forced-colours emulation after a scenario that started it, if its browser session is still open.
+     *
+     * When Moodle has already closed the session the emulation ended with it.
      *
      * @AfterScenario
      */
     public function stop_emulating_forced_colours(): void {
-        if ($this->forcedcolours) {
-            $this->forcedcolours = false;
+        if (!$this->forcedcolours) {
+            return;
+        }
+        $this->forcedcolours = false;
+        $session = $this->getSession();
+        if ($session->isStarted() && $session->getDriver()->getWebDriver()) {
             $this->set_forced_colours('');
         }
     }
