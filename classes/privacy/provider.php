@@ -24,12 +24,17 @@ use core_privacy\local\request\core_userlist_provider;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use local_accessibility\feature\registry;
 
 /**
- * Privacy Subsystem implementation for local_accessibility.
+ * Privacy provider: settings are user preferences; guests keep a browser cookie.
+ *
+ * The legacy local_accessibility_configs table is still declared, exported and deleted here until the
+ * upgrade step that drops it; remove that handling together with the table.
  *
  * @package     local_accessibility
  * @copyright   2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
+ * @copyright   2026 Adam Jenkins <adam@wisecat.net>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
@@ -37,6 +42,7 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\plugin\provider,
     // This plugin has some sitewide user preferences to export.
+    \core_privacy\local\request\user_preference_provider,
     core_userlist_provider {
     /**
      * Get the list of contexts that contain user information for the specified user.
@@ -164,6 +170,39 @@ class provider implements
             ],
             'privacy:metadata:configs'
         );
+        foreach (array_keys(registry::all()) as $id) {
+            $collection->add_user_preference('local_accessibility_' . $id, 'privacy:metadata:preference');
+        }
+        $collection->add_user_preference('local_accessibility_colourcustom', 'privacy:metadata:colourcustom');
+        $collection->add_user_preference('local_accessibility_initialised', 'privacy:metadata:initialised');
+        // Core 4.5 has no cookie-specific metadata type; an external location link is the closest.
+        $collection->add_external_location_link(
+            'local_accessibility',
+            ['settings' => 'privacy:metadata:cookie:settings'],
+            'privacy:metadata:cookie'
+        );
         return $collection;
+    }
+
+    /**
+     * Export the user's accessibility preferences.
+     *
+     * @param int $userid
+     * @return void
+     */
+    public static function export_user_preferences(int $userid) {
+        $names = array_map(fn($id) => 'local_accessibility_' . $id, array_keys(registry::all()));
+        $names[] = 'local_accessibility_colourcustom';
+        foreach ($names as $name) {
+            $v = get_user_preferences($name, null, $userid);
+            if ($v !== null) {
+                writer::export_user_preference(
+                    'local_accessibility',
+                    $name,
+                    $v,
+                    get_string('privacy:metadata:preference', 'local_accessibility')
+                );
+            }
+        }
     }
 }
