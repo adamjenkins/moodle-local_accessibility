@@ -26,3 +26,18 @@ Feature: Content styles leave structure, maths and theme behaviour alone
     And I log in as "student1"
     When the page has the extra style ":root { scroll-behavior: smooth; }"
     Then the computed "scroll-behavior" of "html" should be "auto"
+
+  Scenario: The panel's contrast warnings stay readable on the dark panel
+    Given the following "user preferences" exist:
+      | user     | preference                 | value       |
+      | student1 | local_accessibility_colour | yellowblack |
+    And I log in as "student1"
+    When I click on "Accessibility settings" "button"
+    Then the "#local-accessibility-panel .la-warn" element should have a text contrast of at least 3:1
+    And the "#local-accessibility-panel .la-protest" element should have a text contrast of at least 4.5:1
+
+  Scenario: The panel's contrast warnings stay readable on the light panel
+    Given I log in as "student1"
+    When I click on "Accessibility settings" "button"
+    Then the "#local-accessibility-panel .la-warn" element should have a text contrast of at least 3:1
+    And the "#local-accessibility-panel .la-protest" element should have a text contrast of at least 4.5:1

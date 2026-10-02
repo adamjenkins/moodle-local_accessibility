@@ -281,6 +281,11 @@ html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-acces
     border: 1px solid var(--bs-primary, #0f6cbf);
     border-radius: 10px;
     box-shadow: 0 4px 18px rgb(0 0 0 / 25%);
+    /* Warning red per panel mode: 6.5:1 on the light panel, 6.4:1 on the dark one (Bootstrap's dark-mode danger text). */
+    --la-warn: #b3261e;
+}
+html[data-bs-theme="dark"] .local-accessibility-panel {
+    --la-warn: #ea868f;
 }
 html[data-a11y-colour] .local-accessibility-panel {
     /* Keep the panel off the user's scheme: re-point every token section 7 sets to Boost's light values. */
@@ -476,7 +481,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     margin: 0;
 }
 .local-accessibility-panel .la-warn {
-    color: #b3261e;
+    color: var(--la-warn);
 }
 /* Custom colour editor (Task 11): a sub-view of the dialog, shown instead of the grid. */
 .local-accessibility-panel .la-editor {
@@ -521,7 +526,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     font-size: 12px;
 }
 .local-accessibility-panel .la-editor .la-protest {
-    color: #b3261e;
+    color: var(--la-warn);
     font-weight: 600;
 }
 
