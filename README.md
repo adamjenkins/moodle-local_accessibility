@@ -36,6 +36,9 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 - The Moodle mobile app does not load the plugin.
 - The colour contrast guarantee covers only the surfaces the plugin recolours. Content with its own
   colours, such as images or embedded media, is not guaranteed.
+- At 200% text with extra spacing on a very narrow screen (320 px), some Moodle controls that never wrap
+  (dropdown buttons, badges, Timeline event names on the Dashboard) can make the page scroll sideways.
+- Read aloud uses the browser's own voices. In a browser with no voices installed the tile is hidden.
 
 ## Upgrading from 2.x ##
 
