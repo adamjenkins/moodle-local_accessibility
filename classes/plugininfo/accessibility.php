@@ -40,16 +40,23 @@ class accessibility extends base {
     }
 
     /**
-     * Function to cleanup database values after widget uninstallation
+     * Clean up after a legacy widget subplugin is uninstalled.
+     *
+     * Only the widget's own row in local_accessibility_widgets is removed. Users' saved settings in
+     * local_accessibility_configs are never touched here: from 3.0 they belong to the built-in features,
+     * and deleting them by old widget name would wipe settings users still rely on.
      *
      * @return void
      */
     public function uninstall_cleanup() {
         global $DB;
 
-        /** @var \moodle_database $DB */
-        $DB->delete_records('local_accessibility_widgets', ['name' => $this->name]);
-        $DB->delete_records('local_accessibility_configs', ['widget' => $this->name]);
+        // A legacy widget name that matches a 3.0 feature id is the feature's row, not the widget's: keep it.
+        if (\local_accessibility\feature\registry::get((string) $this->name) === null) {
+            /** @var \moodle_database $DB */
+            $DB->delete_records('local_accessibility_widgets', ['name' => $this->name]);
+        }
+        \cache::make('local_accessibility', 'enabled')->purge();
 
         parent::uninstall_cleanup();
     }
