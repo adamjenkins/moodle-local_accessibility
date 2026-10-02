@@ -18,3 +18,11 @@ Feature: Content styles leave structure, maths and theme behaviour alone
     And the page has the extra style ".MathJax, .MathJax span { letter-spacing: normal; word-spacing: normal; }"
     Then the computed "letter-spacing" of "#la-test-maths" should be "normal"
     And the computed "letter-spacing" of "#la-test-controls p" should not be "normal"
+
+  Scenario: Stop motion also stops smooth scrolling of the page itself
+    Given the following "user preferences" exist:
+      | user     | preference                 | value |
+      | student1 | local_accessibility_motion | on    |
+    And I log in as "student1"
+    When the page has the extra style ":root { scroll-behavior: smooth; }"
+    Then the computed "scroll-behavior" of "html" should be "auto"

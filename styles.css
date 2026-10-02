@@ -229,7 +229,11 @@ html[data-a11y-focus="cursor"] :where(*:not(input, textarea, select, [contentedi
     cursor: url(../../../../local/accessibility/pix/cursor.svg) 4 4, auto !important; /* stylelint-disable-line declaration-no-important */
 }
 
-/* 12. Motion. */
+/* 12. Motion. The root needs its own rule: the descendant selectors below never match it, and the page's smooth
+   scrolling (Bootstrap 5 reboot, :root) comes from the root. */
+html[data-a11y-motion="on"] {
+    scroll-behavior: auto !important; /* stylelint-disable-line declaration-no-important */
+}
 html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)),
 html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *))::before,
 html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *))::after {
