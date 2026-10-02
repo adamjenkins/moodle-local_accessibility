@@ -23,6 +23,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['accessibilitysettings'] = 'Accessibility settings';
 $string['accessibilitywidgets'] = 'Accessibility Widgets';
 $string['addwidget'] = 'Add Widget';
 $string['cachedef_enabled'] = 'Enabled accessibility features';
@@ -90,6 +91,7 @@ $string['privacy:metadata:configs:userid'] = 'The user who is assigned to the co
 $string['privacy:metadata:configs:widget'] = 'Widget name';
 $string['reset'] = 'Reset';
 $string['resetall'] = 'Reset All';
+$string['sitepreset'] = 'Site scheme';
 $string['subplugintype_accessibility'] = 'Accessibility Widget';
 $string['subplugintype_accessibility_plural'] = 'Accessibility Widgets';
 $string['widget'] = 'Widget';

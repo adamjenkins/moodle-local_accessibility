@@ -32,4 +32,21 @@ final class colour_mode {
     public static function core_dark_available(): bool {
         return false;
     }
+
+    /**
+     * Cookie attributes matching the site's cookie path, domain and secure settings.
+     *
+     * @return string beginning with ';'
+     */
+    public static function cookie_attributes(): string {
+        global $CFG;
+        $a = ['Path=' . (($CFG->sessioncookiepath ?? '') ?: '/'), 'SameSite=Lax', 'Max-Age=31536000'];
+        if (!empty($CFG->sessioncookiedomain)) {
+            $a[] = 'Domain=' . $CFG->sessioncookiedomain;
+        }
+        if (is_moodle_cookie_secure()) {
+            $a[] = 'Secure';
+        }
+        return '; ' . implode('; ', $a);
+    }
 }

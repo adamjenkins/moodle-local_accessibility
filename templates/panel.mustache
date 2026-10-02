@@ -1,70 +1,52 @@
 {{!
     This file is part of Moodle - http://moodle.org/
+
     Moodle is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
+
     Moodle is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
     @template local_accessibility/panel
 
-    Accessibility panel
+    The launcher and the accessibility settings dialog (minimal; the full template comes in Task 10).
 
     Context variables required for this template:
-    * resetallurl - URL to resetall.php
-    * widgets - widget object
+    * floating - whether to show the floating launcher button
+    * tiles - one entry per enabled feature: id, label
 
     Example context (json):
     {
-        "resetallurl": "https://my.moodle/local/accessibility/resetall.php?returnurl=...",
-        "widgets": [
-            {
-                "class": "col-6",
-                "name": "widgetnamewithoutprefix",
-                "title": "Widget Name",
-                "content": "<div></div>"
-            }
+        "floating": true,
+        "tiles": [
+            {"id": "size", "label": "Text size"},
+            {"id": "font", "label": "Readable font"}
         ]
     }
 }}
-<div class="local-accessibility-panel border-primary p-0 card col-10 col-lg-8">
-    <div class="card-header bg-primary text-light">
-        <i class="fa fa-universal-access"></i>
-        {{#str}} pluginname, local_accessibility {{/str}}
-        <a href="javascript:void(0);" id="local-accessibility-closebtn" class="float-right text-light text-decoration-none">
-            <i class="fa fa-times"></i>
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="container">
-            <div class="row">
-                <div class="container-fluid text-right mb-2">
-                    <a href="{{resetallurl}}" class="btn btn-secondary">
-                        {{#str}} resetall, local_accessibility {{/str}}
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                {{#widgets}}
-                    <div class="{{class}} card">
-                        <div class="card-body {{name}}-container">
-                            <p>
-                                <strong>
-                                    {{#hasicon}}{{#pix}} icon, accessibility_{{name}}, {{title}} {{/pix}}{{/hasicon}}
-                                    {{title}}
-                                </strong>
-                            </p>
-                            {{{content}}}
-                        </div>
-                    </div>
-                {{/widgets}}
-            </div>
+<div class="local-accessibility">
+    {{#floating}}
+    <button type="button" class="la-launcher" aria-expanded="false" aria-controls="local-accessibility-panel">
+        {{#str}} accessibilitysettings, local_accessibility {{/str}}
+    </button>
+    {{/floating}}
+    <div id="local-accessibility-panel" class="la-panel" role="dialog" aria-modal="true"
+        aria-labelledby="local-accessibility-panel-title" hidden>
+        <h2 id="local-accessibility-panel-title" class="la-panel-title">
+            {{#str}} accessibilitysettings, local_accessibility {{/str}}
+        </h2>
+        <div class="la-tiles">
+            {{#tiles}}
+            <button type="button" class="la-tile" data-feature="{{id}}">{{label}}</button>
+            {{/tiles}}
         </div>
     </div>
 </div>

@@ -14,32 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace local_accessibility;
+
 /**
- * Hook callbacks.
+ * Saved settings profiles (stub; filled in by Task 17).
  *
  * @package    local_accessibility
- * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$callbacks = [
-    [
-        'hook' => \core\hook\output\before_html_attributes::class,
-        'callback' => [\local_accessibility\hook_callbacks::class, 'html_attributes'],
-    ],
-    [
-        'hook' => \core\hook\output\before_http_headers::class,
-        'callback' => [\local_accessibility\hook_callbacks::class, 'before_http_headers'],
-    ],
-    [
-        'hook' => \core\hook\output\before_footer_html_generation::class,
-        'callback' => [\local_accessibility\hook_callbacks::class, 'footer'],
-    ],
-    [
-        'hook' => \core_user\hook\extend_user_menu::class,
-        'callback' => [\local_accessibility\hook_callbacks::class, 'user_menu'],
-    ],
-];
+final class profiles {
+    /**
+     * Template context for the profiles section of the panel.
+     *
+     * @return array
+     */
+    public static function for_template(): array {
+        return [];
+    }
+}
