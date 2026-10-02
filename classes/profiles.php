@@ -68,14 +68,23 @@ final class profiles {
     }
 
     /**
-     * Template context.
+     * Template context: profiles reduced to the values the user can actually change (not locked, not disabled).
+     * A profile left with nothing to apply is omitted.
      *
      * @return array
      */
     public static function for_template(): array {
         $out = [];
         foreach (self::all() as $id => $p) {
-            $out[] = ['id' => $id, 'name' => $p['name'], 'values' => json_encode($p['values'])];
+            // Applying a profile saves each value, and saving a locked or disabled feature fails.
+            $values = array_filter(
+                $p['values'],
+                fn($v, $fid) => preferences::is_enabled((string) $fid) && !preferences::is_locked((string) $fid),
+                ARRAY_FILTER_USE_BOTH
+            );
+            if ($values) {
+                $out[] = ['id' => $id, 'name' => $p['name'], 'values' => json_encode($values)];
+            }
         }
         return $out;
     }

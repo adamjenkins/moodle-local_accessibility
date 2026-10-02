@@ -58,6 +58,7 @@ final class profiles_test extends \advanced_testcase {
      */
     public function test_for_template(): void {
         $this->resetAfterTest();
+        preferences::sync_features_table();
         $t = profiles::for_template();
         $this->assertSame('dyslexia', $t[0]['id']);
         $this->assertSame(profiles::all()['dyslexia']['values'], json_decode($t[0]['values'], true));
@@ -75,5 +76,26 @@ final class profiles_test extends \advanced_testcase {
         $this->assertNotTrue($s->validate('{"a":"b"}'));
         $this->assertNotTrue($s->validate('{"a":{"name":"A"}}'));
         $this->assertNotTrue($s->validate('{"a":{"name":"","values":{}}}'));
+    }
+
+    /**
+     * Locked and disabled features are left out of the buttons' values, and an emptied profile is omitted.
+     */
+    public function test_for_template_skips_locked_and_disabled(): void {
+        global $DB;
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        set_config('lock_font', 1, 'local_accessibility');
+        $DB->set_field('local_accessibility_widgets', 'enabled', 0, ['name' => 'colour']);
+        \cache::make('local_accessibility', 'enabled')->purge();
+        $t = array_column(profiles::for_template(), null, 'id');
+        $this->assertSame(['spacing' => 'extra', 'guide' => 'ruler'], json_decode($t['dyslexia']['values'], true));
+        $this->assertSame(['size' => '175', 'links' => 'on', 'focus' => 'ring'], json_decode($t['lowvision']['values'], true));
+        set_config(
+            'profiles',
+            json_encode(['only' => ['name' => 'Only', 'values' => ['font' => 'dyslexic']]]),
+            'local_accessibility'
+        );
+        $this->assertSame([], profiles::for_template());
     }
 }

@@ -207,10 +207,37 @@ const applyProfile = async(profile) => {
         return;
     }
     const values = JSON.parse(profile.dataset.values);
+    let saved = 0;
+    let failure = null;
     for (const [feature, value] of Object.entries(values)) {
-        await save(feature, value);
+        if (!isChangeable(feature)) {
+            continue;
+        }
+        try {
+            await save(feature, value);
+            saved++;
+        } catch (error) {
+            // One refused value (for example a lock set after the page loaded) must not abort the rest.
+            failure = failure || error;
+        }
     }
-    window.location.reload();
+    if (saved) {
+        window.location.reload();
+    } else if (failure) {
+        Notification.exception(failure);
+    }
+};
+
+/**
+ * Whether the panel shows a feature as one the user may change: it has a tile (so it is enabled) and the
+ * server did not render that tile as locked. Forced-colours disabling, set by this script, is not a lock.
+ *
+ * @param {string} feature
+ * @returns {boolean}
+ */
+const isChangeable = (feature) => {
+    const tile = panel.querySelector('.la-tile[data-feature="' + feature + '"]');
+    return !!tile && (tile.getAttribute('aria-disabled') !== 'true' || tile.hasAttribute('data-la-forced'));
 };
 
 /**
@@ -257,11 +284,15 @@ const initDeviceSettings = async(config) => {
         if (Object.keys(wants).length && flag('local_accessibility_devicetried', '1')) {
             let saved = 0;
             for (const [feature, value] of Object.entries(wants)) {
+                if (!isChangeable(feature)) {
+                    continue;
+                }
                 try {
                     await save(feature, value);
                     saved++;
                 } catch (error) {
-                    Notification.exception(error);
+                    // Silent on purpose: the visitor did nothing, so a locked or disabled feature is not an error.
+                    continue;
                 }
             }
             if (saved && flag('local_accessibility_fromdevice', '1')) {
