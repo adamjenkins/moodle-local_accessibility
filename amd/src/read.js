@@ -80,8 +80,10 @@ const speak = (rate, chosen) => {
         u.lang = chosen.lang;
         u.rate = rate;
         u.onend = () => {
-            index++;
-            next();
+            if (mine === token) {
+                index++;
+                next();
+            }
         };
         u.onerror = () => {
             if (mine === token) {
