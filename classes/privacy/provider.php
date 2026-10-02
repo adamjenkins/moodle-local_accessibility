@@ -64,15 +64,17 @@ class provider implements
      */
     public static function export_user_preferences(int $userid) {
         $names = array_map(fn($id) => 'local_accessibility_' . $id, array_keys(registry::all()));
-        $names[] = 'local_accessibility_colourcustom';
-        foreach ($names as $name) {
+        $descriptions = array_fill_keys($names, 'privacy:metadata:preference');
+        $descriptions['local_accessibility_colourcustom'] = 'privacy:metadata:colourcustom';
+        $descriptions['local_accessibility_initialised'] = 'privacy:metadata:initialised';
+        foreach ($descriptions as $name => $description) {
             $v = get_user_preferences($name, null, $userid);
             if ($v !== null) {
                 writer::export_user_preference(
                     'local_accessibility',
                     $name,
                     $v,
-                    get_string('privacy:metadata:preference', 'local_accessibility')
+                    get_string($description, 'local_accessibility')
                 );
             }
         }

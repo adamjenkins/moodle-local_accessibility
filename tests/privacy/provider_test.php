@@ -37,9 +37,14 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
         $u = $this->getDataGenerator()->create_user();
         $this->setUser($u);
         \local_accessibility\preferences::set('size', '150');
+        $scheme = \local_accessibility\colour\scheme::custom('#fbf3df', '#1f1f1f', '#0b4f8a', false);
+        \local_accessibility\preferences::set_custom_scheme($scheme);
         provider::export_user_preferences($u->id);
         $prefs = writer::with_context(\context_system::instance())->get_user_preferences('local_accessibility');
         $this->assertSame('150', $prefs->local_accessibility_size->value);
+        // Every declared preference that is set is exported.
+        $this->assertObjectHasProperty('local_accessibility_colourcustom', $prefs);
+        $this->assertObjectHasProperty('local_accessibility_initialised', $prefs);
     }
 
     /**
