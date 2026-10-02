@@ -39,7 +39,6 @@ final class preferences_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->savedcookie = $_COOKIE;
         preferences::sync_features_table();
-        \cache::make('local_accessibility', 'enabled')->purge();
         $_COOKIE = [];
     }
 
@@ -150,6 +149,19 @@ final class preferences_test extends \advanced_testcase {
         $this->assertSame('custom', $attrs['data-a11y-colour']);
         $this->assertSame('dark', $attrs['data-bs-theme']);
         $this->assertStringStartsWith('--a11y-page:#', $attrs['style']);
+    }
+
+    /**
+     * Adding features purges the cached enabled list, even when an empty list was cached.
+     */
+    public function test_sync_purges_enabled_cache(): void {
+        global $DB;
+        $DB->delete_records('local_accessibility_widgets');
+        \cache::make('local_accessibility', 'enabled')->purge();
+        $this->assertSame([], preferences::enabled_ids());
+        preferences::sync_features_table();
+        $this->assertSame(array_keys(\local_accessibility\feature\registry::all()), preferences::enabled_ids());
+        $this->assertCount(13, preferences::enabled_ids());
     }
 
     /**

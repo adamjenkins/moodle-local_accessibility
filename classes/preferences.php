@@ -55,11 +55,16 @@ final class preferences {
         global $DB;
         $existing = $DB->get_records_menu('local_accessibility_widgets', null, '', 'name, id');
         $seq = (int) $DB->get_field_sql('SELECT MAX(sequence) FROM {local_accessibility_widgets}');
+        $added = false;
         foreach (array_keys(registry::all()) as $id) {
             if (!isset($existing[$id])) {
                 $DB->insert_record('local_accessibility_widgets', (object) ['name' => $id, 'enabled' => 1,
                     'sequence' => ++$seq]);
+                $added = true;
             }
+        }
+        if ($added) {
+            \cache::make('local_accessibility', 'enabled')->purge();
         }
     }
 
