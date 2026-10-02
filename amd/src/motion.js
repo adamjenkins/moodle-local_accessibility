@@ -22,6 +22,14 @@
  */
 const frozen = new Map();
 
+/** Most HEAD requests one stop-motion pass may send; images beyond it are left animated. */
+const MAX_HEADS = 30;
+
+/** Answers by URL, so a repeated image is asked about once. @type {Map<string, Promise<boolean>>} */
+const verdicts = new Map();
+
+let headsSent = 0;
+
 /**
  * Whether the image comes from this site; a canvas drawn from any other origin would taint, and we never
  * fetch cross-origin images.
@@ -44,18 +52,23 @@ const isSameOrigin = (img) => {
  * @returns {Promise<boolean>}
  */
 const isGif = async(img) => {
-    if (!img.currentSrc || !isSameOrigin(img)) {
+    if (!img.currentSrc || !img.complete || !img.naturalWidth || !isSameOrigin(img)) {
         return false;
     }
     if (/\.gif(\?|#|$)/i.test(img.currentSrc)) {
         return true;
     }
-    try {
-        const r = await fetch(img.currentSrc, {method: 'HEAD', credentials: 'same-origin'});
-        return (r.headers.get('Content-Type') || '').startsWith('image/gif');
-    } catch (e) {
-        return false;
+    const url = img.currentSrc;
+    if (!verdicts.has(url)) {
+        if (headsSent >= MAX_HEADS) {
+            return false;
+        }
+        headsSent++;
+        verdicts.set(url, fetch(url, {method: 'HEAD', credentials: 'same-origin'})
+            .then((r) => (r.headers.get('Content-Type') || '').startsWith('image/gif'))
+            .catch(() => false));
     }
+    return verdicts.get(url);
 };
 
 /**
@@ -72,8 +85,12 @@ const freeze = (img) => {
     c.height = img.naturalHeight;
     c.style.width = img.width + 'px';
     c.style.height = img.height + 'px';
-    c.setAttribute('role', 'img');
-    c.setAttribute('aria-label', img.alt || '');
+    if (img.alt) {
+        c.setAttribute('role', 'img');
+        c.setAttribute('aria-label', img.alt);
+    } else {
+        c.setAttribute('aria-hidden', 'true');
+    }
     try {
         c.getContext('2d').drawImage(img, 0, 0);
     } catch (e) {
@@ -107,6 +124,7 @@ const set = async(stop) => {
         v.autoplay = !stop && v.hasAttribute('autoplay');
     });
     if (stop) {
+        headsSent = 0;
         for (const img of document.querySelectorAll('#page img')) {
             // Motion may have been switched off while a HEAD request was in flight.
             if (await isGif(img) && isOn()) {
