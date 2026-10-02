@@ -346,6 +346,39 @@ final class hook_callbacks_test extends \advanced_testcase {
     }
 
     /**
+     * Site colour presets carry the admin's name into the tile's value label and each swatch's accessible name.
+     */
+    public function test_panel_site_preset_labels(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        set_config('sitepresets', json_encode([
+            ['name' => 'Navy & <b>Gold</b>', 'bg' => '#0b1f3a', 'text' => '#ffffff', 'link' => '#ffe08a'],
+            ['name' => 'Forest', 'bg' => '#0d2b1a', 'text' => '#ffffff', 'link' => '#ffe08a'],
+            ['bg' => '#000000', 'text' => '#ffffff', 'link' => '#ffff00'],
+        ]), 'local_accessibility');
+        $this->setUser($this->getDataGenerator()->create_user());
+        preferences::set('colour', 'site_1');
+        $PAGE->set_url('/');
+        $renderer = $PAGE->get_renderer('core');
+        $context = (new output\panel())->export_for_template($renderer);
+
+        $tile = array_values(array_filter($context['tiles'], fn($t) => $t['id'] === 'colour'))[0];
+        $this->assertSame('Forest', $tile['valuelabel']);
+        $labels = array_column($context['swatches'], 'label', 'id');
+        $this->assertSame('Navy & Gold', $labels['site_0']);
+        $this->assertSame('Forest', $labels['site_1']);
+        $this->assertSame('Site scheme 3', $labels['site_2']);
+        $this->assertCount(count($labels), array_unique($labels));
+
+        $html = $renderer->render_from_template('local_accessibility/panel', $context);
+        $this->assertStringNotContainsString('[[', $html);
+        $this->assertMatchesRegularExpression('/la-colourlabel">\s*Forest\s*</', $html);
+        $this->assertMatchesRegularExpression('/data-scheme="site_0"[^>]*aria-label="Navy &amp; Gold"/', $html);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
      * The shortcut is on unless explicitly turned off.
      */
     public function test_shortcut_enabled(): void {

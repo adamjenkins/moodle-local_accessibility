@@ -64,8 +64,7 @@ class panel implements \renderable, \templatable {
             'selected' => preferences::get('colour') === 'default']];
         foreach (scheme::presets() + colour::site_presets() as $id => $s) {
             $swatches[] = ['id' => $id, 'bg' => $s->ramp['page'], 'text' => $s->text,
-                'label' => str_starts_with($id, 'site_') ? get_string('sitepreset', 'local_accessibility')
-                    : get_string('feature_colour_' . $id, 'local_accessibility'),
+                'label' => registry::get('colour')->value_label($id),
                 'selected' => in_array('colour', preferences::enabled_ids(), true) && preferences::get('colour') === $id];
         }
         $custom = preferences::custom_scheme();

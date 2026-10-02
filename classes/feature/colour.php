@@ -65,17 +65,65 @@ class colour extends base {
     }
 
     /**
+     * Label of one value: the admin's name for a site preset, else the built-in string.
+     *
+     * @param string $value
+     * @return string
+     */
+    public function value_label(string $value): string {
+        if (str_starts_with($value, 'site_')) {
+            return self::parse_site_presets()['names'][$value]
+                ?? get_string('sitepreset', 'local_accessibility', (int) substr($value, 5) + 1);
+        }
+        return parent::value_label($value);
+    }
+
+    /**
      * Admin-defined presets, keyed site_<n>.
      *
      * @return array<string, scheme>
      */
     public static function site_presets(): array {
+        return self::parse_site_presets()['schemes'];
+    }
+
+    /**
+     * Display names of the admin-defined presets, keyed like site_presets(): the admin's name, or "Site scheme <n>"
+     * when a preset has none.
+     *
+     * @return array<string, string>
+     */
+    public static function site_preset_names(): array {
+        return self::parse_site_presets()['names'];
+    }
+
+    /**
+     * Parse the sitepresets setting: valid presets and their names, both keyed site_<n>. Memoised per setting value
+     * for the request, as the panel asks once per swatch.
+     *
+     * @return array{schemes: array<string, scheme>, names: array<string, string>}
+     */
+    private static function parse_site_presets(): array {
+        static $memo = [];
         $raw = (string) get_config('local_accessibility', 'sitepresets');
+        if (!isset($memo[$raw])) {
+            $memo = [$raw => self::parse_site_presets_json($raw)];
+        }
+        return $memo[$raw];
+    }
+
+    /**
+     * Parse a sitepresets setting value.
+     *
+     * @param string $raw JSON list of {name, bg, text, link}
+     * @return array{schemes: array<string, scheme>, names: array<string, string>}
+     */
+    private static function parse_site_presets_json(string $raw): array {
+        $out = ['schemes' => [], 'names' => []];
         $list = json_decode($raw, true);
         if (!is_array($list)) {
-            return [];
+            return $out;
         }
-        $out = [];
         foreach ($list as $i => $p) {
             if (!is_int($i) || !is_array($p)) {
                 continue;
@@ -87,10 +135,12 @@ class colour extends base {
                 continue;
             }
             try {
-                $out['site_' . $i] = scheme::custom($bg, $text, $link, true, 'site_' . $i);
+                $out['schemes']['site_' . $i] = scheme::custom($bg, $text, $link, true, 'site_' . $i);
             } catch (\invalid_parameter_exception $e) {
                 continue;
             }
+            $name = is_string($p['name'] ?? null) ? trim(clean_param($p['name'], PARAM_TEXT)) : '';
+            $out['names']['site_' . $i] = $name !== '' ? $name : get_string('sitepreset', 'local_accessibility', $i + 1);
         }
         return $out;
     }
