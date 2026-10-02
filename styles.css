@@ -154,6 +154,11 @@ html[data-a11y-narrow="60"] #region-main :where(p, blockquote, dd, li:not([class
     html[data-a11y-colour] body :where(#page-content, #region-main, .main-inner):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
     }
+    /* Bootstrap 4 (Moodle 4.5) paints body from SCSS, not --bs-body-*, so set it directly. */
+    html[data-a11y-colour] body {
+        background-color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
     /* Theme-coloured controls (Task 22 browser pass): secondary, outline and icon buttons take the scheme. */
     html[data-a11y-colour] body :where(.btn-secondary, .btn-light, .btn-outline-secondary, .btn-outline-primary, .btn-icon, .btn-footer-popover, .icons-collapse-expand, .mds-nav-pill--selected, .mds-nav-pill.active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
