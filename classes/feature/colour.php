@@ -71,16 +71,23 @@ class colour extends base {
      */
     public static function site_presets(): array {
         $raw = (string) get_config('local_accessibility', 'sitepresets');
+        $list = json_decode($raw, true);
+        if (!is_array($list)) {
+            return [];
+        }
         $out = [];
-        foreach (json_decode($raw, true) ?: [] as $i => $p) {
+        foreach ($list as $i => $p) {
+            if (!is_int($i) || !is_array($p)) {
+                continue;
+            }
+            $bg = $p['bg'] ?? null;
+            $text = $p['text'] ?? null;
+            $link = $p['link'] ?? null;
+            if (!is_string($bg) || !is_string($text) || !is_string($link)) {
+                continue;
+            }
             try {
-                $out['site_' . (int) $i] = scheme::custom(
-                    (string) ($p['bg'] ?? ''),
-                    (string) ($p['text'] ?? ''),
-                    (string) ($p['link'] ?? ''),
-                    true,
-                    'site_' . (int) $i
-                );
+                $out['site_' . $i] = scheme::custom($bg, $text, $link, true, 'site_' . $i);
             } catch (\invalid_parameter_exception $e) {
                 continue;
             }

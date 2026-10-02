@@ -84,4 +84,58 @@ final class registry_test extends \advanced_testcase {
             }
         }
     }
+
+    /**
+     * Malformed admin config is skipped silently.
+     *
+     * @dataProvider malformed_provider
+     * @param string $raw
+     */
+    public function test_malformed_site_presets(string $raw): void {
+        $this->resetAfterTest();
+        set_config('sitepresets', $raw, 'local_accessibility');
+        $warnings = [];
+        set_error_handler(function ($no, $str) use (&$warnings) {
+            $warnings[] = $str;
+            return true;
+        });
+        try {
+            $valid = registry::get('colour')->validate('site_0');
+            $presets = colour::site_presets();
+        } finally {
+            restore_error_handler();
+        }
+        $this->assertSame([], $warnings);
+        $this->assertFalse($valid);
+        $this->assertSame([], $presets);
+    }
+
+    /**
+     * Malformed config shapes.
+     *
+     * @return array
+     */
+    public static function malformed_provider(): array {
+        return [
+            'scalar number' => ['5'],
+            'scalar string' => ['"x"'],
+            'bad elements' => ['[1,{"bg":["x"]}]'],
+            'string keys' => ['{"a":{"bg":"#000000","text":"#ffffff","link":"#ffff00"}}'],
+            'invalid json' => ['{'],
+        ];
+    }
+
+    /**
+     * A valid site preset validates and does not change values().
+     */
+    public function test_valid_site_preset(): void {
+        $this->resetAfterTest();
+        $json = json_encode([['bg' => '#000000', 'text' => '#ffffff', 'link' => '#ffff00']]);
+        set_config('sitepresets', $json, 'local_accessibility');
+        $colour = registry::get('colour');
+        $this->assertTrue($colour->validate('site_0'));
+        $this->assertFalse($colour->validate('site_1'));
+        $expected = ['default', 'highcontrast', 'yellowblack', 'blackwhite', 'cream', 'dark', 'custom'];
+        $this->assertSame($expected, $colour->values());
+    }
 }

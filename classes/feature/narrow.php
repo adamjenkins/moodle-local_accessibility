@@ -49,6 +49,6 @@ class narrow extends base {
      * @return string
      */
     public function icon(): string {
-        return 'fa-arrows-left-right-to-line';
+        return 'fa-arrows-left-right';
     }
 }
