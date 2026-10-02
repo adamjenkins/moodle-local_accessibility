@@ -189,6 +189,9 @@ final class preferences {
             set_user_preference(self::PREFIX . $id, $value);
         }
         set_user_preference(self::PREFIX . 'initialised', 1);
+        if ($id === 'colour') {
+            colour_mode::sync($value);
+        }
     }
 
     /**

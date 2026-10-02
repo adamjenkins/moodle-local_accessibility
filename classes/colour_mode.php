@@ -17,7 +17,7 @@
 namespace local_accessibility;
 
 /**
- * Bridge to core's Boost colour mode (filled in by Task 12).
+ * Bridge to core's Boost colour mode.
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
@@ -25,12 +25,41 @@ namespace local_accessibility;
  */
 final class colour_mode {
     /**
-     * Whether core's dark colour mode can render the Dark preset.
+     * Whether core's dark colour mode can render the Dark preset (spec section 6.5).
+     *
+     * True only when core has the feature (Moodle 5.3+), the site has enabled it and the theme is Boost-based.
      *
      * @return bool
      */
     public static function core_dark_available(): bool {
-        return false;
+        global $CFG;
+        if (!class_exists(\theme_boost\colour_mode::class) || !\theme_boost\colour_mode::is_enabled()) {
+            return false;
+        }
+        $name = $CFG->theme ?? '';
+        if ($name === 'boost') {
+            return true;
+        }
+        $theme = $name === '' ? null : \theme_config::load($name);
+        return $theme !== null && in_array('boost', $theme->parents ?? [], true);
+    }
+
+    /**
+     * Mirror the colour choice into core's preference: dark when the value is dark, otherwise unset so the
+     * site default applies. A no-op when core dark is unavailable.
+     *
+     * @param string $colourvalue the colour feature value just saved
+     * @return void
+     */
+    public static function sync(string $colourvalue): void {
+        if (!self::core_dark_available()) {
+            return;
+        }
+        if ($colourvalue === 'dark') {
+            set_user_preference(\theme_boost\colour_mode::PREFERENCE, 'dark');
+        } else {
+            unset_user_preference(\theme_boost\colour_mode::PREFERENCE);
+        }
     }
 
     /**

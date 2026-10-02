@@ -34,6 +34,7 @@ $string['contrastadjusted'] = 'Adjusted to reach 7:1: {$a}';
 $string['contrastok'] = 'Text {$a->text}:1 · Links {$a->link}:1';
 $string['contrastrefused'] = 'These colours are almost invisible together ({$a}:1). Choose colours further apart.';
 $string['contrastwarning'] = 'Text {$a->text}:1, links {$a->link}:1: below the 7:1 recommended for readability. Your exact colours will be used.';
+$string['controlledbydevice'] = 'Controlled by your device';
 $string['customcolours'] = 'Custom colours';
 $string['feature_align'] = 'Align left';
 $string['feature_align_off'] = 'Off';

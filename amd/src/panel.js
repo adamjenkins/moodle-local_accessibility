@@ -143,6 +143,32 @@ const cycle = async(tile) => {
 };
 
 /**
+ * Mark the colour, saturation and links controls as controlled by the device while forced colours are active,
+ * and show "Controlled by your device" as the colour tile's label.
+ */
+const initForcedColours = async() => {
+    const forced = window.matchMedia('(forced-colors: active)');
+    const label = panel.querySelector('.la-colourlabel');
+    let original = '';
+    let showing = false;
+    const message = await getString('controlledbydevice', 'local_accessibility');
+    const mark = () => {
+        panel.querySelectorAll('.la-colour .la-swatch, [data-feature="saturation"], [data-feature="links"]')
+            .forEach((el) => el.setAttribute('aria-disabled', forced.matches ? 'true' : 'false'));
+        if (label && forced.matches && !showing) {
+            original = label.textContent;
+            label.textContent = message;
+            showing = true;
+        } else if (label && !forced.matches && showing) {
+            label.textContent = original;
+            showing = false;
+        }
+    };
+    mark();
+    forced.addEventListener('change', mark);
+};
+
+/**
  * Initialise.
  *
  * @param {Object} config from hook_callbacks::before_http_headers
@@ -228,4 +254,5 @@ export const init = (config) => {
         });
     }
     initColour(panel);
+    initForcedColours().catch(Notification.exception);
 };

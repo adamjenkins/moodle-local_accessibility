@@ -98,6 +98,7 @@ final class hook_callbacks {
             'guest' => preferences::uses_cookie(),
             'cookie' => preferences::COOKIE,
             'cookieattributes' => colour_mode::cookie_attributes(),
+            'coredark' => colour_mode::core_dark_available(),
             'shortcut' => self::shortcut_enabled(),
             'initialised' => !preferences::uses_cookie() && get_user_preferences('local_accessibility_initialised'),
         ]]);

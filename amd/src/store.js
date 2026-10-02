@@ -34,6 +34,13 @@ export const configure = (c) => {
 };
 
 /**
+ * The runtime configuration.
+ *
+ * @returns {Object}
+ */
+export const getConfig = () => config;
+
+/**
  * Read the guest cookie.
  *
  * @returns {Object}

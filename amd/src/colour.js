@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import {custom, normalise, ramp, worst, AAA} from 'local_accessibility/contrast';
-import {save, saveCustom} from 'local_accessibility/store';
+import {save, saveCustom, getConfig} from 'local_accessibility/store';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 
@@ -261,6 +261,13 @@ export const init = (panel) => {
                 panel.querySelectorAll('.la-swatch[data-scheme]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
                 swatch.setAttribute('aria-pressed', 'true');
                 await save('colour', swatch.dataset.scheme);
+                const config = getConfig();
+                if (config.guest && config.coredark) {
+                    // Guests have no preference to sync: write core's cookie so core's dark mode follows.
+                    // A non-dark choice writes 'light', which undoes an earlier dark.
+                    document.cookie = 'theme_boost_colourmode=' + (swatch.dataset.scheme === 'dark' ? 'dark' : 'light')
+                        + config.cookieattributes;
+                }
                 window.location.reload();
                 return;
             }
