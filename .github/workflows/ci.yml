@@ -244,7 +244,7 @@ jobs:
       - name: Checkout Accessibility Plugin
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-local_accessibility
+          repository: adamjenkins/moodle-local_accessibility
           path: plugin
           ref: ${{ inputs.accessibility-branch }}
 
@@ -252,77 +252,77 @@ jobs:
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'backgroundcolour' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_backgroundcolour
+          repository: adamjenkins/moodle-accessibility_backgroundcolour
           path: plugin/widgets/backgroundcolour
           ref: ${{ inputs.widget-backgroundcolour-branch }}
       - name: 'Checkout Widget: fontface'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'fontface' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_fontface
+          repository: adamjenkins/moodle-accessibility_fontface
           path: plugin/widgets/fontface
           ref: ${{ inputs.widget-fontface-branch }}
       - name: 'Checkout Widget: fontkerning'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'fontkerning' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_fontkerning
+          repository: adamjenkins/moodle-accessibility_fontkerning
           path: plugin/widgets/fontkerning
           ref: ${{ inputs.widget-fontkerning-branch }}
       - name: 'Checkout Widget: fontsize'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'fontsize' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_fontsize
+          repository: adamjenkins/moodle-accessibility_fontsize
           path: plugin/widgets/fontsize
           ref: ${{ inputs.widget-fontsize-branch }}
       - name: 'Checkout Widget: imagevisibility'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'imagevisibility' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_imagevisibility
+          repository: adamjenkins/moodle-accessibility_imagevisibility
           path: plugin/widgets/imagevisibility
           ref: ${{ inputs.widget-imagevisibility-branch }}
       - name: 'Checkout Widget: letterspacing'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'letterspacing' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_letterspacing
+          repository: adamjenkins/moodle-accessibility_letterspacing
           path: plugin/widgets/letterspacing
           ref: ${{ inputs.widget-letterspacing-branch }}
       - name: 'Checkout Widget: lineheight'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'lineheight' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_lineheight
+          repository: adamjenkins/moodle-accessibility_lineheight
           path: plugin/widgets/lineheight
           ref: ${{ inputs.widget-lineheight-branch }}
       - name: 'Checkout Widget: linkhighlight'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'linkhighlight' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_linkhighlight
+          repository: adamjenkins/moodle-accessibility_linkhighlight
           path: plugin/widgets/linkhighlight
           ref: ${{ inputs.widget-linkhighlight-branch }}
       - name: 'Checkout Widget: paragraphwidth'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'paragraphwidth' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_paragraphwidth
+          repository: adamjenkins/moodle-accessibility_paragraphwidth
           path: plugin/widgets/paragraphwidth
           ref: ${{ inputs.widget-paragraphwidth-branch }}
       - name: 'Checkout Widget: textalignment'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'textalignment' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_textalignment
+          repository: adamjenkins/moodle-accessibility_textalignment
           path: plugin/widgets/textalignment
           ref: ${{ inputs.widget-textalignment-branch }}
       - name: 'Checkout Widget: textcolour'
         uses: actions/checkout@v4
         if: ${{ inputs.widget-additional-name != 'textcolour' }}
         with:
-          repository: ponlawat-w/moodle-accessibility_textcolour
+          repository: adamjenkins/moodle-accessibility_textcolour
           path: plugin/widgets/textcolour
           ref: ${{ inputs.widget-textcolour-branch }}
       

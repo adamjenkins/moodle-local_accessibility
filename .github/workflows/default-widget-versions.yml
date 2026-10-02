@@ -57,17 +57,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo WIDGET_BACKGROUNDCOLOUR_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_backgroundcolour || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_FONTFACE_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_fontface || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_FONTKERNING_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_fontkerning || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_FONTSIZE_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_fontsize || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_IMAGEVISIBILITY_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_imagevisibility || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_LETTERSPACING_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_letterspacing || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_LINEHEIGHT_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_lineheight || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_LINKHIGHLIGHT_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_linkhighlight || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_PARAGRAPHWIDTH_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_paragraphwidth || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_TEXTALIGNMENT_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_textalignment || echo '{"name":"release"}') >> $GITHUB_OUTPUT
-          echo WIDGET_TEXTCOLOUR_VERSION_JSON=$(gh release view --json name -R ponlawat-w/moodle-accessibility_textcolour || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_BACKGROUNDCOLOUR_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_backgroundcolour || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_FONTFACE_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_fontface || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_FONTKERNING_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_fontkerning || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_FONTSIZE_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_fontsize || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_IMAGEVISIBILITY_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_imagevisibility || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_LETTERSPACING_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_letterspacing || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_LINEHEIGHT_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_lineheight || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_LINKHIGHLIGHT_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_linkhighlight || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_PARAGRAPHWIDTH_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_paragraphwidth || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_TEXTALIGNMENT_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_textalignment || echo '{"name":"release"}') >> $GITHUB_OUTPUT
+          echo WIDGET_TEXTCOLOUR_VERSION_JSON=$(gh release view --json name -R adamjenkins/moodle-accessibility_textcolour || echo '{"name":"release"}') >> $GITHUB_OUTPUT
       - name: Get widget branch names
         id: widget-branches
         run: |

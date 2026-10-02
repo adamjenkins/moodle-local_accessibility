@@ -46,67 +46,67 @@ jobs:
       - name: 'Checkout Widget: backgroundcolour'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_backgroundcolour
+          repository: adamjenkins/moodle-accessibility_backgroundcolour
           path: widgets/backgroundcolour
           ref: ${{ needs.ci.outputs.widget-backgroundcolour-branch }}
       - name: 'Checkout Widget: fontface'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_fontface
+          repository: adamjenkins/moodle-accessibility_fontface
           path: widgets/fontface
           ref: ${{ needs.ci.outputs.widget-fontface-branch }}
       - name: 'Checkout Widget: fontkerning'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_fontkerning
+          repository: adamjenkins/moodle-accessibility_fontkerning
           path: widgets/fontkerning
           ref: ${{ needs.ci.outputs.widget-fontkerning-branch }}
       - name: 'Checkout Widget: fontsize'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_fontsize
+          repository: adamjenkins/moodle-accessibility_fontsize
           path: widgets/fontsize
           ref: ${{ needs.ci.outputs.widget-fontsize-branch }}
       - name: 'Checkout Widget: imagevisibility'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_imagevisibility
+          repository: adamjenkins/moodle-accessibility_imagevisibility
           path: widgets/imagevisibility
           ref: ${{ needs.ci.outputs.widget-imagevisibility-branch }}
       - name: 'Checkout Widget: letterspacing'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_letterspacing
+          repository: adamjenkins/moodle-accessibility_letterspacing
           path: widgets/letterspacing
           ref: ${{ needs.ci.outputs.widget-letterspacing-branch }}
       - name: 'Checkout Widget: lineheight'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_lineheight
+          repository: adamjenkins/moodle-accessibility_lineheight
           path: widgets/lineheight
           ref: ${{ needs.ci.outputs.widget-lineheight-branch }}
       - name: 'Checkout Widget: linkhighlight'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_linkhighlight
+          repository: adamjenkins/moodle-accessibility_linkhighlight
           path: widgets/linkhighlight
           ref: ${{ needs.ci.outputs.widget-linkhighlight-branch }}
       - name: 'Checkout Widget: paragraphwidth'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_paragraphwidth
+          repository: adamjenkins/moodle-accessibility_paragraphwidth
           path: widgets/paragraphwidth
           ref: ${{ needs.ci.outputs.widget-paragraphwidth-branch }}
       - name: 'Checkout Widget: textalignment'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_textalignment
+          repository: adamjenkins/moodle-accessibility_textalignment
           path: widgets/textalignment
           ref: ${{ needs.ci.outputs.widget-textalignment-branch }}
       - name: 'Checkout Widget: textcolour'
         uses: actions/checkout@v4
         with:
-          repository: ponlawat-w/moodle-accessibility_textcolour
+          repository: adamjenkins/moodle-accessibility_textcolour
           path: widgets/textcolour
           ref: ${{ needs.ci.outputs.widget-textcolour-branch }}
       - name: Add widgets
@@ -180,6 +180,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Make latest version
-        run: gh release edit --repo ponlawat-w/moodle-local_accessibility v${{ needs.push-branches.outputs.release }}-with-widgets --latest
+        run: gh release edit --repo adamjenkins/moodle-local_accessibility v${{ needs.push-branches.outputs.release }}-with-widgets --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
