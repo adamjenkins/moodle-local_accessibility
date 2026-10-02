@@ -129,6 +129,7 @@ $string['readspeed'] = 'Speed';
 $string['readstop'] = 'Stop';
 $string['reset'] = 'Reset';
 $string['resetall'] = 'Reset All';
+$string['savefailed'] = 'Your change to {$a} could not be saved.';
 $string['settingchanged'] = '{$a->feature}: {$a->value}';
 $string['shortcut'] = 'Keyboard shortcut Alt+A';
 $string['shortcut_desc'] = 'Open and close the panel with Alt+A.';

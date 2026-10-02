@@ -95,3 +95,13 @@ Feature: Accessibility panel
     Given I log in as "student1"
     When I click on "Accessibility settings" "button"
     Then the focused element is "Text size, 100%" "button"
+
+  Scenario: A save the server refuses puts the tile back and says so
+    Given I log in as "student1"
+    And I click on "Accessibility settings" "button"
+    And the following config values are set as admin:
+      | lock_size | 1 | local_accessibility |
+    When I click on "Text size, 100%" "button"
+    Then "//div[contains(@class, 'la-live')][contains(., 'could not be saved')]" "xpath_element" should exist
+    And "Text size, 100%" "button" should exist
+    And the page root should not have attribute "data-a11y-size"

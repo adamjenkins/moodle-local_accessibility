@@ -133,7 +133,36 @@ const close = (returnFocus = true) => {
 };
 
 /**
- * Advance a tile to its next value.
+ * Write a message into the dialog's polite live region.
+ *
+ * @param {string} message
+ */
+const announce = (message) => {
+    panel.querySelector('.la-live').textContent = message;
+};
+
+/**
+ * Show one of a tile's values: its label, pressed state, dots and the <html> attribute.
+ *
+ * @param {HTMLElement} tile
+ * @param {number} index position in the tile's values
+ */
+const showValue = (tile, index) => {
+    const values = JSON.parse(tile.dataset.values);
+    const labels = JSON.parse(tile.dataset.labels);
+    tile.dataset.value = values[index];
+    tile.setAttribute('aria-label', tile.dataset.label + ', ' + labels[index]);
+    if (tile.hasAttribute('aria-pressed')) {
+        tile.setAttribute('aria-pressed', index > 0 ? 'true' : 'false');
+    }
+    tile.querySelectorAll('.la-dots i').forEach((dot, i) => dot.classList.toggle('la-on', i < index));
+    apply(tile.dataset.feature, values[index], values[0]);
+};
+
+/**
+ * Advance a tile to its next value. The change shows at once; it is announced once saved, and put back and
+ * announced as not saved when the save fails (offline, a lock set after the page loaded). The live region is used
+ * rather than an error modal, which would open behind this dialog.
  *
  * @param {HTMLElement} tile
  */
@@ -143,18 +172,17 @@ const cycle = async(tile) => {
     }
     const values = JSON.parse(tile.dataset.values);
     const labels = JSON.parse(tile.dataset.labels);
-    const next = (values.indexOf(tile.dataset.value) + 1) % values.length;
-    const value = values[next];
-    tile.dataset.value = value;
-    tile.setAttribute('aria-label', tile.dataset.label + ', ' + labels[next]);
-    if (tile.hasAttribute('aria-pressed')) {
-        tile.setAttribute('aria-pressed', next > 0 ? 'true' : 'false');
+    const before = Math.max(values.indexOf(tile.dataset.value), 0);
+    const next = (before + 1) % values.length;
+    showValue(tile, next);
+    try {
+        await save(tile.dataset.feature, values[next]);
+    } catch (error) {
+        showValue(tile, before);
+        announce(await getString('savefailed', 'local_accessibility', tile.dataset.label));
+        return;
     }
-    tile.querySelectorAll('.la-dots i').forEach((dot, i) => dot.classList.toggle('la-on', i < next));
-    apply(tile.dataset.feature, value, values[0]);
-    panel.querySelector('.la-live').textContent =
-        await getString('settingchanged', 'local_accessibility', {feature: tile.dataset.label, value: labels[next]});
-    await save(tile.dataset.feature, value);
+    announce(await getString('settingchanged', 'local_accessibility', {feature: tile.dataset.label, value: labels[next]}));
 };
 
 /**

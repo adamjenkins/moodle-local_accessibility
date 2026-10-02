@@ -258,9 +258,24 @@ export const init = (panel) => {
                 if (swatch.getAttribute('aria-disabled') === 'true') {
                     return;
                 }
-                panel.querySelectorAll('.la-swatch[data-scheme]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
-                swatch.setAttribute('aria-pressed', 'true');
-                await save('colour', swatch.dataset.scheme);
+                const pressed = [...panel.querySelectorAll('.la-swatch[data-scheme]')].map((b) => {
+                    const was = b.getAttribute('aria-pressed');
+                    b.setAttribute('aria-pressed', b === swatch ? 'true' : 'false');
+                    return [b, was];
+                });
+                try {
+                    await save('colour', swatch.dataset.scheme);
+                } catch (error) {
+                    // Put the pressed swatch back and say so in the dialog's live region (an error modal would
+                    // open behind the dialog).
+                    pressed.forEach(([b, was]) => b.setAttribute('aria-pressed', was));
+                    const live = panel.querySelector('.la-live');
+                    if (live) {
+                        live.textContent = await getString('savefailed', 'local_accessibility',
+                            swatch.closest('.la-colour')?.getAttribute('aria-label') || '');
+                    }
+                    return;
+                }
                 const config = getConfig();
                 if (config.guest && config.coredark) {
                     // Guests have no preference to sync: write core's cookie so core's dark mode follows.
