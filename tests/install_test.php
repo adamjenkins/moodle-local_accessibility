@@ -54,4 +54,14 @@ final class install_test extends \advanced_testcase {
         $this->assertEquals(0, $DB->get_field('local_accessibility_widgets', 'enabled', ['name' => 'links']));
         $this->assertEquals(1, $DB->get_field('local_accessibility_widgets', 'sequence', ['name' => 'links']));
     }
+
+    /**
+     * The shipped widgets/ folder keeps the accessibility plugin type registered, which the 2.x upgrade needs to
+     * uninstall the old widgets. Core skips a declared type whose folder is missing.
+     */
+    public function test_subplugin_type_stays_registered(): void {
+        global $CFG;
+        $this->assertFileExists($CFG->dirroot . '/local/accessibility/widgets/README.md');
+        $this->assertArrayHasKey('accessibility', \core_component::get_plugin_types());
+    }
 }
