@@ -90,3 +90,8 @@ Feature: Accessibility panel
     And I click on "Images, Hidden" "button"
     Then the page root should not have attribute "data-a11y-images"
     And the alt text of each content image should reach assistive technology exactly once
+
+  Scenario: Opening the panel focuses the first setting, not Reset All
+    Given I log in as "student1"
+    When I click on "Accessibility settings" "button"
+    Then the focused element is "Text size, 100%" "button"

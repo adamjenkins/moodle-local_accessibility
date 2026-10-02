@@ -92,7 +92,17 @@ const isShortcut = (e) => {
 };
 
 /**
- * Open the dialog.
+ * The first visible control in a container that the user can operate.
+ *
+ * @param {Element|null} root
+ * @returns {HTMLElement|undefined}
+ */
+const firstOperable = (root) => root ? [...root.querySelectorAll(FOCUSABLE)].find((el) =>
+    el.getAttribute('aria-disabled') !== 'true' && isVisible(el)) : undefined;
+
+/**
+ * Open the dialog. Focus goes to the first setting, not to 'Reset All' in the head, which would wipe every
+ * setting on a repeated Enter.
  *
  * @param {HTMLElement|null} from the control that opened it
  */
@@ -100,11 +110,12 @@ const open = (from) => {
     opener = from || document.activeElement;
     panel.hidden = false;
     document.querySelectorAll(CONTROLS).forEach((b) => b.setAttribute('aria-expanded', 'true'));
-    const first = [...panel.querySelectorAll(FOCUSABLE)].find((el) => el.getAttribute('aria-disabled') !== 'true');
+    // First, so colour.js puts the grid back (closing a colour editor left open) before focus is placed.
+    document.dispatchEvent(new CustomEvent('local_accessibility:open'));
+    const first = firstOperable(panel.querySelector('.la-grid')) || firstOperable(panel);
     if (first) {
         first.focus();
     }
-    document.dispatchEvent(new CustomEvent('local_accessibility:open'));
 };
 
 /**
