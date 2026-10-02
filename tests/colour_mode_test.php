@@ -61,6 +61,64 @@ final class colour_mode_test extends \advanced_testcase {
     }
 
     /**
+     * Reset after the plugin's Dark was handed to core turns core's dark mode off again.
+     */
+    public function test_reset_clears_core_dark(): void {
+        if (!class_exists(\theme_boost\colour_mode::class)) {
+            $this->markTestSkipped('Core colour mode needs Moodle 5.3');
+        }
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        set_config('enablecolourmodes', 1, 'theme_boost');
+        preferences::set('colour', 'dark');
+        $this->assertSame('dark', get_user_preferences(\theme_boost\colour_mode::PREFERENCE));
+        preferences::reset();
+        $this->assertNull(get_user_preferences(\theme_boost\colour_mode::PREFERENCE));
+        $this->assertFalse(colour_mode::core_is_dark());
+        $this->assertSame('default', preferences::get('colour'));
+    }
+
+    /**
+     * Reset follows a dark site default, and leaves alone a core mode the user chose with core's own switcher.
+     */
+    public function test_reset_follows_site_default_and_keeps_core_choice(): void {
+        if (!class_exists(\theme_boost\colour_mode::class)) {
+            $this->markTestSkipped('Core colour mode needs Moodle 5.3');
+        }
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        set_config('enablecolourmodes', 1, 'theme_boost');
+        // Cream, then dark through core's own switcher: Reset does not undo core's choice.
+        preferences::set('colour', 'cream');
+        set_user_preference(\theme_boost\colour_mode::PREFERENCE, 'dark');
+        preferences::reset();
+        $this->assertSame('dark', get_user_preferences(\theme_boost\colour_mode::PREFERENCE));
+        // A dark site default is handed to core on Reset, as choosing Dark would be.
+        unset_user_preference(\theme_boost\colour_mode::PREFERENCE);
+        set_config('default_colour', 'dark', 'local_accessibility');
+        preferences::set('colour', 'cream');
+        preferences::reset();
+        $this->assertSame('dark', get_user_preferences(\theme_boost\colour_mode::PREFERENCE));
+    }
+
+    /**
+     * Without core colour mode, Reset touches no core preference.
+     */
+    public function test_reset_without_core_colour_mode(): void {
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        set_config('enablecolourmodes', 0, 'theme_boost');
+        set_user_preference('theme_boost_colourmode', 'dark');
+        preferences::set('colour', 'dark');
+        preferences::reset();
+        $this->assertSame('default', preferences::get('colour'));
+        $this->assertSame('dark', get_user_preferences('theme_boost_colourmode'));
+    }
+
+    /**
      * Dark chosen while core colour modes were off keeps the plugin's own Dark after an admin turns them on.
      */
     public function test_dark_chosen_before_core_enabled_is_kept(): void {

@@ -233,10 +233,18 @@ final class preferences {
         if (self::uses_cookie()) {
             return;
         }
+        $wascolour = get_user_preferences(self::PREFIX . 'colour');
         foreach (array_keys(registry::all()) as $id) {
             unset_user_preference(self::PREFIX . $id);
         }
         unset_user_preference(self::PREFIX . 'colourcustom');
+        // Core's colour mode follows the colour after the reset, as if the user had chosen it: the plugin's Dark
+        // handed to core must not leave the page dark. A core mode chosen with core's own switcher is left alone
+        // unless the plugin had set it (its colour was Dark) or the site default is Dark.
+        $nowcolour = self::site_default('colour');
+        if ($wascolour === 'dark' || ($nowcolour === 'dark' && self::is_enabled('colour'))) {
+            colour_mode::sync($nowcolour);
+        }
         // The 'initialised' marker is deliberately kept (spec §7.3: device settings apply on the first visit only).
         // The panel's "Undo" after device settings calls this, and clearing the marker would re-apply the device
         // settings on the next load, undoing the undo in a loop.

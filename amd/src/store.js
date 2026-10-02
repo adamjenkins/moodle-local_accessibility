@@ -104,7 +104,13 @@ export const saveCustom = (scheme) => {
  */
 export const reset = () => {
     if (config.guest) {
+        const wasdark = readCookie().colour === 'dark';
         writeCookie({});
+        if (wasdark && config.coredark) {
+            // The plugin's Dark wrote core's cookie (colour.js): set it back to light, as a non-dark swatch does,
+            // so core's dark mode does not outlive the reset.
+            document.cookie = 'theme_boost_colourmode=light' + config.cookieattributes;
+        }
         return Promise.resolve();
     }
     return call([{methodname: 'local_accessibility_reset_preferences', args: {}}])[0];
