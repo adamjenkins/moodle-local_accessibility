@@ -273,6 +273,11 @@ final class preferences {
                 unset($attrs['data-a11y-colour']);
             } else {
                 $attrs['data-bs-theme'] = $s->mode;
+                if (colour_mode::core_dark_available()) {
+                    // Core's colour mode (5.3+) also sets data-colourmode, and its head script resolves "auto" from
+                    // it in the browser: name the scheme's own mode so that script cannot flip data-bs-theme.
+                    $attrs['data-colourmode'] = $s->mode;
+                }
                 $attrs['style'] = $s->css_properties();
                 if ($s->exact && ($s->worst_text() < contrast::AAA || $s->worst_link() < contrast::AAA)) {
                     $attrs['data-a11y-lowcontrast'] = '1';

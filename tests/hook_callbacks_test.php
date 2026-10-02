@@ -53,6 +53,76 @@ final class hook_callbacks_test extends \advanced_testcase {
     }
 
     /**
+     * Dispatch before_html_attributes through core's hook manager, so every listener runs in core's order.
+     *
+     * @return array<string, string> the resulting attributes
+     */
+    private function dispatch_html_attributes(): array {
+        global $PAGE;
+        $PAGE->set_url('/');
+        $hook = new \core\hook\output\before_html_attributes($PAGE->get_renderer('core'), ['lang' => 'en']);
+        \core\di::get(\core\hook\manager::class)->dispatch($hook);
+        return $hook->get_attributes();
+    }
+
+    /**
+     * A plugin scheme's mode stands through the hook manager. Without core colour modes nothing else sets it.
+     */
+    public function test_scheme_mode_through_hook_manager(): void {
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        set_config('enablecolourmodes', 0, 'theme_boost');
+        preferences::set('colour', 'yellowblack');
+        $attrs = $this->dispatch_html_attributes();
+        $this->assertSame('yellowblack', $attrs['data-a11y-colour']);
+        $this->assertSame('dark', $attrs['data-bs-theme']);
+        $this->assertSame('en', $attrs['lang']);
+    }
+
+    /**
+     * On 5.3 with core colour modes on, the plugin's scheme mode wins over theme_boost's listener (which sets
+     * data-bs-theme and data-colourmode on the same hook), and data-colourmode matches so core's auto script agrees.
+     */
+    public function test_scheme_mode_wins_over_core_colour_mode(): void {
+        if (!class_exists(\theme_boost\colour_mode::class)) {
+            $this->markTestSkipped('Core colour mode needs Moodle 5.3');
+        }
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        set_config('enablecolourmodes', 1, 'theme_boost');
+        set_config('defaultcolourmode', 'light', 'theme_boost');
+
+        // Without a plugin scheme, core's listener is active and sets its own mode (proves the test is not vacuous).
+        $attrs = $this->dispatch_html_attributes();
+        $this->assertSame('light', $attrs['data-bs-theme']);
+        $this->assertSame('light', $attrs['data-colourmode']);
+
+        foreach (['yellowblack' => 'dark', 'highcontrast' => 'dark', 'cream' => 'light'] as $colour => $mode) {
+            preferences::set('colour', $colour);
+            $attrs = $this->dispatch_html_attributes();
+            $this->assertSame($colour, $attrs['data-a11y-colour'], $colour);
+            $this->assertSame($mode, $attrs['data-bs-theme'], $colour);
+            $this->assertSame($mode, $attrs['data-colourmode'], $colour);
+        }
+
+        // A light scheme on a site whose default mode is dark (or auto) stays light.
+        set_config('defaultcolourmode', 'auto', 'theme_boost');
+        preferences::set('colour', 'cream');
+        $attrs = $this->dispatch_html_attributes();
+        $this->assertSame('light', $attrs['data-bs-theme']);
+        $this->assertSame('light', $attrs['data-colourmode']);
+
+        // Dark handed to core: core's own attributes stand.
+        preferences::set('colour', 'dark');
+        $attrs = $this->dispatch_html_attributes();
+        $this->assertArrayNotHasKey('data-a11y-colour', $attrs);
+        $this->assertSame('dark', $attrs['data-bs-theme']);
+        $this->assertSame('dark', $attrs['data-colourmode']);
+    }
+
+    /**
      * Embedded and popup layouts get nothing (spec §4.1).
      */
     public function test_suppressed_layouts(): void {

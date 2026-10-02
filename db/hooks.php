@@ -29,6 +29,9 @@ $callbacks = [
     [
         'hook' => \core\hook\output\before_html_attributes::class,
         'callback' => [\local_accessibility\hook_callbacks::class, 'html_attributes'],
+        // Below the default 100 so it runs after theme_boost's listener (higher priorities run first): on 5.3 that
+        // listener sets data-bs-theme and data-colourmode, and the plugin's scheme must be the last to set them.
+        'priority' => 50,
     ],
     [
         'hook' => \core\hook\output\before_http_headers::class,
