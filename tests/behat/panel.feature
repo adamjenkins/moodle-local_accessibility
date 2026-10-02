@@ -60,3 +60,12 @@ Feature: Accessibility panel
     Then the page root should have attribute "data-a11y-colour" with value "highcontrast"
     And the page root should have attribute "data-a11y-size" with value "175"
     And the page root should have attribute "data-a11y-links" with value "on"
+
+  Scenario: Without an on-device voice a saved Read aloud does not leave the read bar on screen
+    Given the following "user preferences" exist:
+      | user     | preference               | value |
+      | student1 | local_accessibility_read | on    |
+    And I log in as "student1"
+    And the page root should have attribute "data-a11y-read" with value "on"
+    When the browser has no on-device voices
+    Then ".la-readbar" "css_element" should not be visible

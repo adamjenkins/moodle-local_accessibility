@@ -124,29 +124,38 @@ export const init = (panel) => {
         return;
     }
     const message = bar?.querySelector('[data-read="message"]');
-    const check = () => {
-        if (tile) {
-            tile.hidden = !voice();
-        }
-    };
-    window.speechSynthesis.addEventListener('voiceschanged', check);
-    window.setTimeout(check, 1500);
+    let on = document.documentElement.getAttribute('data-a11y-read') === 'on';
+    // Not known until the voice list has loaded; until then a saved Read=on shows the bar.
+    let novoice = false;
     const halt = () => {
         token++;
         window.speechSynthesis.cancel();
     };
-    const show = (on) => {
+    // Without an on-device voice the tile is hidden, so the bar is hidden too: a saved Read=on would otherwise leave
+    // a bar on screen that nothing in the panel can turn off.
+    const show = () => {
+        const visible = on && !novoice;
         if (bar) {
-            bar.hidden = !on;
+            bar.hidden = !visible;
         }
-        if (!on) {
+        if (!visible) {
             halt();
         }
     };
-    show(document.documentElement.getAttribute('data-a11y-read') === 'on');
+    const check = () => {
+        novoice = !voice();
+        if (tile) {
+            tile.hidden = novoice;
+        }
+        show();
+    };
+    window.speechSynthesis.addEventListener('voiceschanged', check);
+    window.setTimeout(check, 1500);
+    show();
     document.addEventListener('local_accessibility:changed', (e) => {
         if (e.detail.feature === 'read') {
-            show(e.detail.value === 'on');
+            on = e.detail.value === 'on';
+            show();
         }
     });
     window.addEventListener('pagehide', halt);
