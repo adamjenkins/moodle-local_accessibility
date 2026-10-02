@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<libraries>
+  <library>
+    <location>fonts/opendyslexic-regular.woff2</location>
+    <name>OpenDyslexic</name>
+    <version>OpenDyslexic 3 (main @ 1824da5, 2025-08-11)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/antijingoist/opendyslexic</repository>
+  </library>
+  <library>
+    <location>fonts/opendyslexic-bold.woff2</location>
+    <name>OpenDyslexic Bold</name>
+    <version>OpenDyslexic 3 (main @ 1824da5, 2025-08-11)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/antijingoist/opendyslexic</repository>
+  </library>
+  <library>
+    <location>fonts/atkinsonhyperlegible-regular.woff2</location>
+    <name>Atkinson Hyperlegible</name>
+    <version>1.393 (googlefonts main @ 1cb3116, 2021-04-30)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/googlefonts/atkinson-hyperlegible</repository>
+  </library>
+  <library>
+    <location>fonts/atkinsonhyperlegible-bold.woff2</location>
+    <name>Atkinson Hyperlegible Bold</name>
+    <version>1.393 (googlefonts main @ 1cb3116, 2021-04-30)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/googlefonts/atkinson-hyperlegible</repository>
+  </library>
+</libraries>
