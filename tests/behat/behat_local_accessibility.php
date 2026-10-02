@@ -142,4 +142,36 @@ class behat_local_accessibility extends behat_base {
             window.speechSynthesis.dispatchEvent(new Event("voiceschanged"));
         }');
     }
+
+    /**
+     * Check that each content image's alt text reaches assistive technology exactly once.
+     *
+     * It reaches it from the image itself while the image is shown, or from the plugin's replacement text while Images
+     * hides it. An element counts when no ancestor is aria-hidden and it is rendered: display:none and visibility:hidden
+     * both take an element out of the accessibility tree.
+     *
+     * @Then the alt text of each content image should reach assistive technology exactly once
+     */
+    public function the_alt_text_should_reach_assistive_technology_once(): void {
+        $script = 'return (function() {
+            const exposed = (el) => !el.closest("[aria-hidden=\'true\']") && el.checkVisibility({visibilityProperty: true});
+            const imgs = [...document.querySelectorAll("#region-main img")].filter((i) => i.alt);
+            if (!imgs.length) {
+                return "No content image with alt text on this page";
+            }
+            for (const img of imgs) {
+                const next = img.nextElementSibling;
+                const alt = next && next.classList.contains("la-alt") && next.textContent === img.alt ? next : null;
+                const count = (exposed(img) ? 1 : 0) + (alt && exposed(alt) ? 1 : 0);
+                if (count !== 1) {
+                    return "\"" + img.alt + "\" reaches assistive technology " + count + " times";
+                }
+            }
+            return "";
+        })();';
+        $error = $this->evaluate_script($script);
+        if ($error !== '') {
+            throw new ExpectationException($error, $this->getSession());
+        }
+    }
 }

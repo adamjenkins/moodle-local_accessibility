@@ -69,3 +69,24 @@ Feature: Accessibility panel
     And the page root should have attribute "data-a11y-read" with value "on"
     When the browser has no on-device voices
     Then ".la-readbar" "css_element" should not be visible
+
+  Scenario: Hidden images keep their alt text for screen readers, once
+    Given the following "courses" exist:
+      | fullname | shortname |
+      | Course 1 | C1        |
+    And the following "course enrolments" exist:
+      | user     | course | role    |
+      | student1 | C1     | student |
+    And the following "activities" exist:
+      | activity | course | name         | content                                                   |
+      | page     | C1     | Picture page | <p><img src="/pix/moodlelogo.png" alt="Moodle logo"></p> |
+    And the following "user preferences" exist:
+      | user     | preference                 | value |
+      | student1 | local_accessibility_images | on    |
+    When I am on the "Picture page" "page activity" page logged in as "student1"
+    Then the page root should have attribute "data-a11y-images" with value "on"
+    And the alt text of each content image should reach assistive technology exactly once
+    When I click on "Accessibility settings" "button"
+    And I click on "Images, Hidden" "button"
+    Then the page root should not have attribute "data-a11y-images"
+    And the alt text of each content image should reach assistive technology exactly once

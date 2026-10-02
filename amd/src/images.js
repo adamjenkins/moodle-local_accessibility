@@ -16,6 +16,10 @@
 /**
  * Show alt text in place of hidden images (spec §5).
  *
+ * The text must reach assistive technology exactly once. While Images is on, styles.css hides the image with
+ * visibility:hidden, which takes it (and its alt) out of the accessibility tree, so the span is left exposed.
+ * While Images is off, the span is display:none and the image carries the alt itself.
+ *
  * @module     local_accessibility/images
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -32,7 +36,6 @@ const addAlts = () => {
         }
         const span = document.createElement('span');
         span.className = 'la-alt';
-        span.setAttribute('aria-hidden', 'true');
         span.textContent = img.alt;
         img.after(span);
         img.dataset.laAlt = '1';
