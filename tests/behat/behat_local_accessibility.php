@@ -128,4 +128,18 @@ class behat_local_accessibility extends behat_base {
             throw new ExpectationException('Focus is not inside the accessibility dialog', $this->getSession());
         }
     }
+
+    /**
+     * Make the page see no on-device voice, as in a browser without local speech, then tell it the voice list changed.
+     *
+     * Headless browsers differ in the voices they report, so the page's own list is replaced rather than relied on.
+     *
+     * @Given the browser has no on-device voices
+     */
+    public function the_browser_has_no_on_device_voices(): void {
+        $this->execute_script('if ("speechSynthesis" in window) {
+            window.speechSynthesis.getVoices = () => [];
+            window.speechSynthesis.dispatchEvent(new Event("voiceschanged"));
+        }');
+    }
 }

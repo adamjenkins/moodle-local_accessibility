@@ -452,7 +452,7 @@ export const init = (config) => {
     initGuide();
     initImages();
     initMotion();
-    initRead();
+    initRead(panel);
     // Last, so every listener above is attached before the first await.
     initDeviceSettings(config).catch(Notification.exception);
 };

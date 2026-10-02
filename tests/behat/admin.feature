@@ -37,3 +37,9 @@ Feature: Admin controls
     When I visit "/h5p/embed.php?url=/pluginfile.php/1/none/none/0/missing.h5p"
     Then ".local-accessibility-launcher" "css_element" should not exist
     And "#local-accessibility-panel" "css_element" should not exist
+
+  Scenario: The panel's Read aloud check leaves the Manage features table alone
+    Given I log in as "admin"
+    When I visit "/local/accessibility/admin/features.php"
+    And the browser has no on-device voices
+    Then "tr[data-feature='read']" "css_element" should be visible
