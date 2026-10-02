@@ -74,47 +74,47 @@ html[data-a11y-size="200"] {
 
 /* stylelint-disable max-line-length, selector-type-no-unknown -- long :where() lists; mjx-container is a custom element. */
 /* 3. Font: content only; icons, code and maths excluded. */
-html[data-a11y-font="readable"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
+html[data-a11y-font="readable"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     font-family: local_accessibility_readable, system-ui, sans-serif !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-font="dyslexic"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
+html[data-a11y-font="dyslexic"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     font-family: local_accessibility_dyslexic, system-ui, sans-serif !important; /* stylelint-disable-line declaration-no-important */
 }
 
-/* stylelint-enable max-line-length, selector-type-no-unknown */
+/* stylelint-enable selector-type-no-unknown */
 /* 4. Spacing: WCAG 1.4.12 values, em units. */
-html[data-a11y-spacing="wcag"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div) {
+html[data-a11y-spacing="wcag"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     line-height: 1.5 !important; /* stylelint-disable-line declaration-no-important */
     letter-spacing: 0.12em !important; /* stylelint-disable-line declaration-no-important */
     word-spacing: 0.16em !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-spacing="wcag"] body :where(p) {
+html[data-a11y-spacing="wcag"] body :where(p):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     margin-block-end: 2em !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-spacing="extra"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div) {
+html[data-a11y-spacing="extra"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     line-height: 1.8 !important; /* stylelint-disable-line declaration-no-important */
     letter-spacing: 0.16em !important; /* stylelint-disable-line declaration-no-important */
     word-spacing: 0.24em !important; /* stylelint-disable-line declaration-no-important */
     font-kerning: none;
 }
-html[data-a11y-spacing="extra"] body :where(p) {
+html[data-a11y-spacing="extra"] body :where(p):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     margin-block-end: 2.5em !important; /* stylelint-disable-line declaration-no-important */
 }
 
 /* 5. Align left: content text in the main region only. */
-html[data-a11y-align="on"] #region-main :where(p, li, td, th, blockquote, div:not(.text-center)) {
+html[data-a11y-align="on"] #region-main :where(p, li, td, th, blockquote, div:not(.text-center)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     text-align: start !important; /* stylelint-disable-line declaration-no-important */
 }
 
 /* 6. Narrow lines. */
-html[data-a11y-narrow="70"] #region-main :where(p, li, blockquote, dd) {
+html[data-a11y-narrow="70"] #region-main :where(p, li, blockquote, dd):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     max-inline-size: 70ch;
 }
-html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd) {
+html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     max-inline-size: 60ch;
 }
 
-/* stylelint-disable max-line-length, selector-type-no-unknown -- long :where() lists; mjx-container is a custom element. */
+/* stylelint-disable selector-type-no-unknown -- mjx-container is a custom element. */
 /* 7. Colour schemes: custom properties onto Bootstrap/MDS surfaces (spec §6.3), only when not forced. */
 @media (forced-colors: none) {
     html[data-a11y-colour] {
@@ -132,35 +132,35 @@ html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd) {
         background-color: var(--a11y-page);
         color: var(--a11y-text);
     }
-    html[data-a11y-colour] body :where(a:not(.btn, .qnbutton, .nav-link.active)) {
+    html[data-a11y-colour] body :where(a:not(.btn, .qnbutton, .nav-link.active)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         color: var(--a11y-link) !important; /* stylelint-disable-line declaration-no-important */
         text-decoration: underline !important; /* stylelint-disable-line declaration-no-important */
     }
     /* Mop-up: hardcoded surfaces (spec §6.4). Grows during Task 22's manual pass. */
-    html[data-a11y-colour] body :where(#page, #page-wrapper, .drawer, .navbar, .card, .list-group-item, .dropdown-menu, .modal-content, .popover, .table, .form-control, .form-select, .custom-select, .activity-item, .course-content .section):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
+    html[data-a11y-colour] body :where(#page, #page-wrapper, .drawer, .navbar, .card, .list-group-item, .dropdown-menu, .modal-content, .popover, .table, .form-control, .form-select, .custom-select, .activity-item, .course-content .section):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-surface1) !important; /* stylelint-disable-line declaration-no-important */
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
     }
-    html[data-a11y-colour] body :where(.drawer, .navbar, .secondary-navigation):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
+    html[data-a11y-colour] body :where(.drawer, .navbar, .secondary-navigation):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
     }
-    html[data-a11y-colour] body :where(.form-control, .form-select, .custom-select, textarea, input):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
+    html[data-a11y-colour] body :where(.form-control, .form-select, .custom-select, textarea, input):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-field) !important; /* stylelint-disable-line declaration-no-important */
     }
-    html[data-a11y-colour] body :where(#page-content, #region-main, .main-inner):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
+    html[data-a11y-colour] body :where(#page-content, #region-main, .main-inner):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
     }
     /* Exclusions (spec §6.4): media, icons, maths and quiz state are never matched, via the :not() guard below. */
     /* Pasted content colours lose to the scheme (spec §6.2, CSS only). */
-    html[data-a11y-colour] #region-main [style*="color"]:where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
+    html[data-a11y-colour] #region-main [style*="color"]:where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
         background-color: transparent !important; /* stylelint-disable-line declaration-no-important */
     }
 }
 
-/* stylelint-enable max-line-length, selector-type-no-unknown */
+/* stylelint-enable selector-type-no-unknown */
 /* 8. Links highlight: underline + outline, no layout shift. */
-html[data-a11y-links="on"] body :where(a:not(.btn, .qnbutton)) {
+html[data-a11y-links="on"] body :where(a:not(.btn, .qnbutton)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     text-decoration: underline 2px !important; /* stylelint-disable-line declaration-no-important */
     text-underline-offset: 0.2em;
     outline: 2px solid var(--a11y-link, var(--bs-link-color));
@@ -168,10 +168,10 @@ html[data-a11y-links="on"] body :where(a:not(.btn, .qnbutton)) {
 }
 
 /* 9. Hide images; alt text shown by images.js (Task 13) as a sibling span. */
-html[data-a11y-images="on"] #page :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]) {
+html[data-a11y-images="on"] #page :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     visibility: hidden;
 }
-html[data-a11y-images="on"] #page img:not(.icon, .activityicon, .userpicture) {
+html[data-a11y-images="on"] #page img:not(.icon, .activityicon, .userpicture):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     background-image: none !important; /* stylelint-disable-line declaration-no-important */
 }
 .la-alt {
@@ -197,28 +197,26 @@ html[data-a11y-images="on"] .la-alt {
 }
 
 /* 11. Focus ring (C40 two-colour) and large cursor (64px max). */
-html[data-a11y-focus] :focus-visible {
+html[data-a11y-focus] :focus-visible:where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     outline: 3px solid #000 !important; /* stylelint-disable-line declaration-no-important */
     outline-offset: 2px !important; /* stylelint-disable-line declaration-no-important */
     box-shadow: 0 0 0 5px #fff !important; /* stylelint-disable-line declaration-no-important */
 }
 
 @media (forced-colors: active) {
-    html[data-a11y-focus] :focus-visible {
+    html[data-a11y-focus] :focus-visible:where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         outline: 3px solid CanvasText !important; /* stylelint-disable-line declaration-no-important, csstree/validator */
     }
 }
-/* stylelint-disable max-line-length */
 html[data-a11y-focus="cursor"],
-html[data-a11y-focus="cursor"] :where(*:not(input, textarea, select, [contenteditable], input *, textarea *, select *, [contenteditable] *)) {
+html[data-a11y-focus="cursor"] :where(*:not(input, textarea, select, [contenteditable], input *, textarea *, select *, [contenteditable] *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     cursor: url(../../../../local/accessibility/pix/cursor.svg) 4 4, auto !important; /* stylelint-disable-line declaration-no-important */
 }
-/* stylelint-enable max-line-length */
 
 /* 12. Motion. */
-html[data-a11y-motion="on"] *,
-html[data-a11y-motion="on"] *::before,
-html[data-a11y-motion="on"] *::after {
+html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)),
+html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *))::before,
+html[data-a11y-motion="on"] :where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *))::after {
     animation-duration: 0.001ms !important; /* stylelint-disable-line declaration-no-important, time-min-milliseconds */
     animation-delay: 0s !important; /* stylelint-disable-line declaration-no-important */
     animation-iteration-count: 1 !important; /* stylelint-disable-line declaration-no-important */
@@ -226,7 +224,9 @@ html[data-a11y-motion="on"] *::after {
     scroll-behavior: auto !important; /* stylelint-disable-line declaration-no-important */
 }
 
-/* 13. Panel: core tokens only (spec §4.2). */
+/* stylelint-enable max-line-length */
+/* 13. Panel: core tokens only (spec §4.2). Isolated from every user setting except saturation (R19):
+   sections 3-9 and 11-12 exclude it, and all sizes here are px so root font scaling cannot inflate it. */
 .la-visually-hidden {
     position: absolute;
     width: 1px;
@@ -240,92 +240,117 @@ html[data-a11y-motion="on"] *::after {
 }
 .local-accessibility-panel {
     position: fixed;
-    inset-block-end: 6.5rem;
-    inset-inline-end: 1.5rem;
+    inset-block-end: 104px;
+    inset-inline-end: 24px;
     z-index: 1060;
     inline-size: 316px;
-    max-block-size: calc(100vh - 8rem);
+    max-block-size: calc(100vh - 128px);
     overflow: auto;
     font-size: 16px;
     line-height: 1.25;
     letter-spacing: normal;
     word-spacing: normal;
+    font-kerning: auto;
+    text-align: start;
+    cursor: auto;
     font-family: var(--bs-body-font-family, system-ui, sans-serif);
     background: var(--bs-body-bg);
     color: var(--bs-body-color);
     border: 1px solid var(--bs-primary);
-    border-radius: 0.6rem;
+    border-radius: 10px;
     box-shadow: 0 4px 18px rgb(0 0 0 / 25%);
 }
 html[data-a11y-colour] .local-accessibility-panel {
-    /* Keep the panel off the user's scheme: re-point to Boost's light tokens. */
+    /* Keep the panel off the user's scheme: re-point every token section 7 sets to Boost's light values. */
     --bs-body-bg: #fff;
     --bs-body-color: #1d2125;
+    --bs-emphasis-color: #000;
+    --bs-secondary-color: rgb(29 33 37 / 75%);
+    --bs-secondary-bg: #e9ecef;
+    --bs-tertiary-bg: #f8f9fa;
     --bs-border-color: #dee2e6;
+    --bs-link-color: var(--bs-primary);
+    --bs-link-hover-color: var(--bs-primary);
+    --bs-link-color-rgb: var(--bs-primary-rgb);
+    --bs-card-bg: #fff;
 }
 html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     --bs-body-bg: #1d2125;
     --bs-body-color: #e9ecef;
+    --bs-emphasis-color: #fff;
+    --bs-secondary-color: rgb(222 226 230 / 75%);
+    --bs-secondary-bg: #343a40;
+    --bs-tertiary-bg: #2b3035;
+    --bs-border-color: #495057;
+    --bs-card-bg: #1d2125;
 }
 .local-accessibility-panel .la-head {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.4rem 0.6rem;
+    gap: 6px;
+    padding: 6px 10px;
     background: var(--bs-primary);
     color: #fff;
 }
 .local-accessibility-panel .la-title {
-    font-size: 0.85rem;
+    font-size: 14px;
+    line-height: 1.25;
     font-weight: 600;
     margin: 0 auto 0 0;
 }
 .local-accessibility-panel .la-head .btn {
     color: #fff;
     border: 1px solid rgb(255 255 255 / 70%);
-    padding: 0 0.4rem;
+    padding: 0 6px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 .local-accessibility-panel .la-head .icon {
     margin: 0;
+    font-size: 14px;
 }
 .local-accessibility-panel .la-profiles {
     display: flex;
-    gap: 0.3rem;
+    gap: 5px;
     overflow-x: auto;
-    padding: 0.45rem 0.5rem 0;
+    padding: 7px 8px 0;
 }
 .local-accessibility-panel .la-profile {
     white-space: nowrap;
     border: 1px solid var(--bs-border-color);
-    border-radius: 1rem;
+    border-radius: 16px;
     background: transparent;
     color: inherit;
-    font-size: 0.7rem;
-    padding: 0.1rem 0.5rem;
+    font-size: 11px;
+    padding: 2px 8px;
 }
 .local-accessibility-panel .la-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 0.375rem;
-    padding: 0.5rem;
+    gap: 6px;
+    padding: 8px;
 }
 .local-accessibility-panel .la-tile {
     position: relative;
-    block-size: 3.75rem;
+    block-size: 60px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.2rem;
+    gap: 3px;
     border: 1px solid var(--bs-border-color);
-    border-radius: 0.5rem;
+    border-radius: 8px;
     background: transparent;
     color: inherit;
-    font-size: 0.7rem;
+    font-size: 11px;
+    line-height: 1.2;
+    text-align: center;
     padding: 0;
 }
 .local-accessibility-panel .la-tile .icon {
-    font-size: 1.15rem;
+    font-size: 18px;
+    inline-size: auto;
+    block-size: auto;
     margin: 0;
 }
 .local-accessibility-panel .la-tile[aria-pressed="true"],
@@ -342,19 +367,23 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 }
 .local-accessibility-panel .la-swatches {
     display: flex;
-    gap: 0.25rem;
+    gap: 4px;
 }
 .local-accessibility-panel .la-swatch {
-    inline-size: 1.4rem;
-    block-size: 1.3rem;
+    inline-size: 22px;
+    block-size: 21px;
     border: 1px solid #8f959e;
-    border-radius: 0.3rem;
-    font-size: 0.6rem;
+    border-radius: 5px;
+    font-size: 10px;
+    line-height: 1;
     font-weight: 700;
     padding: 0;
 }
 .local-accessibility-panel .la-swatch .icon {
     margin: 0;
+    font-size: 10px;
+    inline-size: auto;
+    block-size: auto;
 }
 .local-accessibility-panel .la-swatch[aria-pressed="true"] {
     outline: 2px solid var(--bs-primary);
@@ -362,13 +391,13 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 }
 .local-accessibility-panel .la-dots {
     position: absolute;
-    inset-block-end: 0.25rem;
+    inset-block-end: 4px;
     display: flex;
-    gap: 0.2rem;
+    gap: 3px;
 }
 .local-accessibility-panel .la-dots i {
-    inline-size: 0.3rem;
-    block-size: 0.3rem;
+    inline-size: 5px;
+    block-size: 5px;
     border-radius: 50%;
     background: var(--bs-border-color);
 }
@@ -378,9 +407,12 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 .local-accessibility-panel .la-lock,
 .local-accessibility-panel .la-warn {
     position: absolute;
-    inset-block-start: 0.2rem;
-    inset-inline-end: 0.3rem;
-    font-size: 0.7rem;
+    inset-block-start: 3px;
+    inset-inline-end: 5px;
+    font-size: 11px;
+    inline-size: auto;
+    block-size: auto;
+    margin: 0;
 }
 .local-accessibility-panel .la-warn {
     color: #b3261e;
@@ -389,27 +421,36 @@ html[data-a11y-lowcontrast] .local-accessibility-panel .la-warn {
     display: inline;
 }
 
-/* 14. Launcher. */
-.local-accessibility-launcher {
+/* 14. Launcher (px, like the panel; .btn doubled for specificity over the theme's .btn). */
+.btn.local-accessibility-launcher {
     position: fixed;
-    inset-block-end: 5rem;
-    inset-inline-end: 1.5rem;
+    inset-block-end: 80px;
+    inset-inline-end: 24px;
     z-index: 1050;
-    inline-size: 2.75rem;
-    block-size: 2.75rem;
+    inline-size: 44px;
+    block-size: 44px;
     border-radius: 50%;
     padding: 0;
-    font-size: 1.25rem;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
 }
-.local-accessibility-launcher .icon {
+.btn.local-accessibility-launcher .icon {
     margin: 0;
+    font-size: 20px;
+    inline-size: auto;
+    block-size: auto;
 }
-.local-accessibility-launcher.la-launcher-shifted {
-    inset-block-end: 9rem;
+.btn.local-accessibility-launcher.la-launcher-shifted {
+    inset-block-end: 144px;
 }
-#page.drawers.show-drawer-right ~ .local-accessibility-launcher,
-#page.drawers.show-drawer-right ~ .local-accessibility-panel {
-    inset-inline-end: calc(315px + 1.5rem);
+/* The footer HTML lands inside #page (#region-main), so a sibling selector cannot match.
+   Boost only docks the right drawer (315px) from the lg breakpoint; below it the drawer overlays. */
+@media (min-width: 992px) {
+    body:has(#page.drawers.show-drawer-right) .local-accessibility-launcher,
+    body:has(#page.drawers.show-drawer-right) .local-accessibility-panel {
+        inset-inline-end: calc(315px + 24px);
+    }
 }
 
 @media (max-width: 576px) {
@@ -417,7 +458,7 @@ html[data-a11y-lowcontrast] .local-accessibility-panel .la-warn {
         inset-inline: 0;
         inset-block-end: 0;
         inline-size: auto;
-        border-radius: 0.6rem 0.6rem 0 0;
+        border-radius: 10px 10px 0 0;
         max-block-size: 80vh;
     }
 }

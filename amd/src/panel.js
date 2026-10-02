@@ -25,8 +25,10 @@ import {configure, save, reset} from 'local_accessibility/store';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 
-const FOCUSABLE = 'button:not([disabled]):not([aria-disabled="true"]), [href], input, select, textarea, '
-    + '[tabindex]:not([tabindex="-1"])';
+// Everything natively tabbable (aria-disabled buttons stay tabbable, so the trap must include them).
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), '
+    + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const EDITABLE = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
 const CONTROLS = '[aria-controls="local-accessibility-panel"]';
 
 let panel;
@@ -50,6 +52,41 @@ export const apply = (feature, value, defaultValue) => {
 };
 
 /**
+ * Whether an element is visible (rendered), including position: fixed ones.
+ *
+ * @param {Element|null} el
+ * @returns {boolean}
+ */
+const isVisible = (el) => !!el && document.contains(el) && el.getClientRects().length > 0;
+
+/**
+ * Where focus goes on close: the opener, or, when it has gone (a user-menu item whose dropdown closed),
+ * the user-menu toggle or the floating launcher.
+ *
+ * @returns {HTMLElement|null}
+ */
+const returnTarget = () => [opener, document.getElementById('user-menu-toggle'),
+    document.querySelector('.local-accessibility-launcher')].find(isVisible) || null;
+
+/**
+ * Whether a keydown is the Alt+A shortcut. Characters typed with Alt/Option (macOS å, Polish ą, AZERTY Alt+Q)
+ * are never taken: the physical-key fallback only applies when the key produced no character.
+ *
+ * @param {KeyboardEvent} e
+ * @returns {boolean}
+ */
+const isShortcut = (e) => {
+    if (!e.altKey || e.ctrlKey || e.metaKey || e.repeat || typeof e.key !== 'string') {
+        return false;
+    }
+    if (e.key === 'a' || e.key === 'A') {
+        return true;
+    }
+    const editable = e.target instanceof Element && e.target.closest(EDITABLE) !== null;
+    return e.code === 'KeyA' && e.key.length !== 1 && !editable;
+};
+
+/**
  * Open the dialog.
  *
  * @param {HTMLElement|null} from the control that opened it
@@ -58,7 +95,7 @@ const open = (from) => {
     opener = from || document.activeElement;
     panel.hidden = false;
     document.querySelectorAll(CONTROLS).forEach((b) => b.setAttribute('aria-expanded', 'true'));
-    const first = panel.querySelector(FOCUSABLE);
+    const first = [...panel.querySelectorAll(FOCUSABLE)].find((el) => el.getAttribute('aria-disabled') !== 'true');
     if (first) {
         first.focus();
     }
@@ -66,13 +103,16 @@ const open = (from) => {
 };
 
 /**
- * Close the dialog and return focus.
+ * Close the dialog.
+ *
+ * @param {boolean} returnFocus false when the user clicked elsewhere, so focus stays where they clicked
  */
-const close = () => {
+const close = (returnFocus = true) => {
     panel.hidden = true;
     document.querySelectorAll(CONTROLS).forEach((b) => b.setAttribute('aria-expanded', 'false'));
-    if (opener && document.contains(opener)) {
-        opener.focus();
+    const target = returnFocus ? returnTarget() : null;
+    if (target) {
+        target.focus();
     }
 };
 
@@ -124,7 +164,7 @@ export const init = (config) => {
             return;
         }
         if (!panel.hidden && !panel.contains(e.target)) {
-            close();
+            close(false);
         }
     });
     panel.addEventListener('click', async(e) => {
@@ -166,7 +206,7 @@ export const init = (config) => {
     });
     if (config.shortcut) {
         document.addEventListener('keydown', (e) => {
-            if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 'a' || e.key === 'A' || e.code === 'KeyA')) {
+            if (isShortcut(e)) {
                 e.preventDefault();
                 if (panel.hidden) {
                     open(null);
