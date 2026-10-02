@@ -132,7 +132,8 @@ html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd):where(:no
         background-color: var(--a11y-page);
         color: var(--a11y-text);
     }
-    html[data-a11y-colour] body :where(a:not(.btn, .qnbutton, .nav-link.active)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+    /* The current page in pagination and the active menu item keep the theme's white on primary (5.36:1). */
+    html[data-a11y-colour] body :where(a:not(.btn, .qnbutton, .nav-link.active, .page-item.active .page-link, .dropdown-item.active, .dropdown-item:active)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         color: var(--a11y-link) !important; /* stylelint-disable-line declaration-no-important */
         text-decoration: underline !important; /* stylelint-disable-line declaration-no-important */
     }
