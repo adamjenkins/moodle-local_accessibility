@@ -15,22 +15,36 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Exposed services (APIs)
+ * Web services.
  *
  * @package     local_accessibility
  * @copyright   2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
+ * @copyright   2026 Adam Jenkins <adam@wisecat.net>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'local_accessibility_savewidgetconfig' => [
-        'classname' => 'local_accessibility\external\savewidgetconfig',
-        'description' => 'Save user widget config',
+    'local_accessibility_save_preference' => [
+        'classname' => \local_accessibility\external\save_preference::class,
+        'description' => 'Save one accessibility preference for the current user.',
         'type' => 'write',
         'ajax' => true,
-        'loginrequired' => false,
-        'services' => [],
+        'loginrequired' => true,
+    ],
+    'local_accessibility_save_custom_scheme' => [
+        'classname' => \local_accessibility\external\save_custom_scheme::class,
+        'description' => 'Save a custom colour scheme for the current user.',
+        'type' => 'write',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
+    'local_accessibility_reset_preferences' => [
+        'classname' => \local_accessibility\external\reset_preferences::class,
+        'description' => 'Clear all accessibility preferences for the current user.',
+        'type' => 'write',
+        'ajax' => true,
+        'loginrequired' => true,
     ],
 ];
