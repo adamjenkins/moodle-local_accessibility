@@ -1,0 +1,48 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_accessibility/colour_editor
+
+    Custom colour editor (spec §6.2): a sub-view inside the dialog, hidden until the pen button is pressed.
+    Behaviour is in local_accessibility/colour.
+
+    Context variables required for this template:
+    * custom - the user's custom scheme (bg, text, link, exact), or null
+
+    Example context (json):
+    {
+        "custom": {"bg": "#fbf3df", "text": "#1f1f1f", "link": "#0b4f8a", "exact": false}
+    }
+}}
+<div class="la-editor" hidden>
+    <h3 class="la-title">{{#str}} customcolours, local_accessibility {{/str}}</h3>
+    <label class="la-row">{{#str}} background, local_accessibility {{/str}}
+        <input type="color" name="bg" value="{{#custom}}{{bg}}{{/custom}}{{^custom}}#ffffff{{/custom}}"></label>
+    <label class="la-row">{{#str}} text, local_accessibility {{/str}}
+        <input type="color" name="text" value="{{#custom}}{{text}}{{/custom}}{{^custom}}#000000{{/custom}}"></label>
+    <label class="la-row">{{#str}} links, local_accessibility {{/str}}
+        <input type="color" name="link" value="{{#custom}}{{link}}{{/custom}}{{^custom}}#0000c0{{/custom}}"></label>
+    <p class="la-preview">{{#str}} previewtext, local_accessibility {{/str}} <u>{{#str}} previewlink, local_accessibility {{/str}}</u></p>
+    <p class="la-ratio" aria-live="polite"></p>
+    <label class="la-row la-exactrow"><input type="checkbox" name="exact" {{#custom.exact}}checked{{/custom.exact}}>
+        {{#str}} useexact, local_accessibility {{/str}}</label>
+    <p class="la-protest" hidden></p>
+    <div class="la-row la-actions">
+        <button type="button" class="btn btn-primary btn-sm" data-action="applycolours">{{#str}} apply, local_accessibility {{/str}}</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-action="cancelcolours">{{#str}} cancel {{/str}}</button>
+    </div>
+</div>

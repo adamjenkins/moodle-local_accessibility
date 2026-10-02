@@ -420,6 +420,52 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 html[data-a11y-lowcontrast] .local-accessibility-panel .la-warn {
     display: inline;
 }
+/* Custom colour editor (Task 11): a sub-view of the dialog, shown instead of the grid. */
+.local-accessibility-panel .la-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    font-size: 13px;
+}
+.local-accessibility-panel .la-editor .la-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+}
+.local-accessibility-panel .la-editor .la-exactrow {
+    justify-content: flex-start;
+}
+.local-accessibility-panel .la-editor .la-actions {
+    justify-content: flex-end;
+}
+.local-accessibility-panel .la-editor input[type="color"] {
+    inline-size: 44px;
+    block-size: 28px;
+    padding: 0;
+    border: 1px solid #8f959e;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+}
+.local-accessibility-panel .la-editor .la-preview {
+    margin: 0;
+    padding: 10px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    font-size: 14px;
+}
+.local-accessibility-panel .la-editor .la-ratio,
+.local-accessibility-panel .la-editor .la-protest {
+    margin: 0;
+    font-size: 12px;
+}
+.local-accessibility-panel .la-editor .la-protest {
+    color: #b3261e;
+    font-weight: 600;
+}
 
 /* 14. Launcher (px, like the panel; .btn doubled for specificity over the theme's .btn). */
 .btn.local-accessibility-launcher {

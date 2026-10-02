@@ -78,6 +78,8 @@ class panel implements \renderable, \templatable {
             // Guests and secure-layout pages have no user menu, so they always get the floating launcher (R16).
             'floating' => $mode !== 'menu' || preferences::uses_cookie() || $PAGE->pagelayout === 'secure',
             'profiles' => \local_accessibility\profiles::for_template(),
+            // Exact custom colours under 7:1 (R18): the tile's warning icon is toggled by its hidden attribute.
+            'lowcontrast' => isset(preferences::html_attributes()['data-a11y-lowcontrast']),
         ];
     }
 }

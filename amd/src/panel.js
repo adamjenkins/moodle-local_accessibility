@@ -24,6 +24,7 @@
 import {configure, save, reset} from 'local_accessibility/store';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
+import {init as initColour} from 'local_accessibility/colour';
 
 // Everything natively tabbable (aria-disabled buttons stay tabbable, so the trap must include them).
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), '
@@ -226,4 +227,5 @@ export const init = (config) => {
             launcher.classList.toggle('la-launcher-shifted', overlaps && !panel.contains(e.target) && e.target !== launcher);
         });
     }
+    initColour(panel);
 };

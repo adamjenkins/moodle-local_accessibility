@@ -25,6 +25,7 @@
     * swatches - colour scheme swatches, used by the colour tile
     * profiles - preset profiles: id, name
     * custom - the user's custom scheme, or null
+    * lowcontrast - whether the current scheme is exact and under 7:1 (shows the colour tile's warning icon)
 
     Example context (json):
     {
@@ -35,7 +36,8 @@
             "locked": false}],
         "swatches": [{"id": "default", "label": "Site default", "selected": true}],
         "profiles": [{"id": "dyslexia", "name": "Dyslexia"}],
-        "custom": null
+        "custom": null,
+        "lowcontrast": false
     }
 }}
 {{#floating}}
@@ -64,5 +66,6 @@
     <div class="la-grid">
         {{#tiles}}{{> local_accessibility/tile }}{{/tiles}}
     </div>
+    {{> local_accessibility/colour_editor }}
     <div class="la-live la-visually-hidden" aria-live="polite"></div>
 </div>

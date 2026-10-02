@@ -216,6 +216,43 @@ final class hook_callbacks_test extends \advanced_testcase {
     }
 
     /**
+     * The colour tile's warning icon is shown only for exact custom colours under 7:1 (R18).
+     *
+     * @covers \local_accessibility\output\panel
+     */
+    public function test_panel_lowcontrast(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        $PAGE->set_url('/');
+        $renderer = $PAGE->get_renderer('core');
+
+        $this->assertFalse((new output\panel())->export_for_template($renderer)['lowcontrast']);
+        preferences::set_custom_scheme(colour\scheme::custom('#3a6ea5', '#ffffff', '#ffe08a', true));
+        $context = (new output\panel())->export_for_template($renderer);
+        $this->assertTrue($context['lowcontrast']);
+        $this->assertDoesNotMatchRegularExpression('/\shidden[\s>]/', $this->warn_icon($renderer, $context));
+        preferences::set_custom_scheme(colour\scheme::custom('#3a6ea5', '#ffffff', '#ffe08a', false));
+        $context = (new output\panel())->export_for_template($renderer);
+        $this->assertFalse($context['lowcontrast']);
+        $this->assertMatchesRegularExpression('/\shidden[\s>]/', $this->warn_icon($renderer, $context));
+    }
+
+    /**
+     * The rendered warning icon tag from the panel.
+     *
+     * @param \renderer_base $renderer
+     * @param array $context
+     * @return string
+     */
+    private function warn_icon(\renderer_base $renderer, array $context): string {
+        $html = $renderer->render_from_template('local_accessibility/panel', $context);
+        $this->assertSame(1, preg_match('/<i [^>]*la-warn[^>]*>/', $html, $m));
+        return $m[0];
+    }
+
+    /**
      * The shortcut is on unless explicitly turned off.
      */
     public function test_shortcut_enabled(): void {

@@ -25,6 +25,7 @@
     * values, valuelabels - JSON arrays of all values and their labels
     * iscolour, twostate, pressed, dots, locked - display state
     * swatches - resolved from the panel context for the colour tile
+    * lowcontrast - resolved from the panel context: exact custom colours under 7:1 show the warning icon
 
     Example context (json):
     {"id": "size", "label": "Text size", "icon": "fa-text-height", "value": "150", "valuelabel": "150%",
@@ -49,11 +50,12 @@
         <button type="button" class="la-swatch" data-scheme="{{id}}" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}"
                 {{#bg}}style="background:{{bg}};color:{{text}}"{{/bg}} aria-label="{{label}}" {{#locked}}aria-disabled="true"{{/locked}}>Aa</button>
         {{/swatches}}
-        <button type="button" class="la-swatch la-edit" data-action="customcolours" aria-label="{{#str}} customcolours, local_accessibility {{/str}}">
+        <button type="button" class="la-swatch la-edit" data-action="customcolours" aria-label="{{#str}} customcolours, local_accessibility {{/str}}"
+                {{#locked}}aria-disabled="true"{{/locked}}>
             <i class="icon fa fa-pen" aria-hidden="true"></i>
         </button>
     </div>
     <span class="la-label la-colourlabel">{{valuelabel}}</span>
-    <i class="icon fa fa-triangle-exclamation la-warn" aria-hidden="true" hidden></i>
+    <i class="icon fa fa-triangle-exclamation la-warn" aria-hidden="true" {{^lowcontrast}}hidden{{/lowcontrast}}></i>
 </div>
 {{/iscolour}}
