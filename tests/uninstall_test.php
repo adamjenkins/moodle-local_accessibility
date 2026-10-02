@@ -50,9 +50,8 @@ final class uninstall_test extends \advanced_testcase {
         $this->assertTrue(xmldb_local_accessibility_uninstall());
 
         $this->assertSame(0, $DB->count_records_select('user_preferences', $like, $params));
-        $this->assertSame('kept', $DB->get_field('user_preferences', 'value',
-            ['userid' => $u2->id, 'name' => 'local_accessibilityx']));
-        $this->assertSame('dark', $DB->get_field('user_preferences', 'value',
-            ['userid' => $u2->id, 'name' => 'theme_boost_colourmode']));
+        $kept = $DB->get_records_menu('user_preferences', ['userid' => $u2->id], '', 'name, value');
+        $this->assertSame('kept', $kept['local_accessibilityx']);
+        $this->assertSame('dark', $kept['theme_boost_colourmode']);
     }
 }

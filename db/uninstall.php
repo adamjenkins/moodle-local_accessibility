@@ -33,7 +33,7 @@
  */
 function xmldb_local_accessibility_uninstall() {
     global $DB;
-    $DB->delete_records_select('user_preferences', $DB->sql_like('name', ':name'),
-        ['name' => $DB->sql_like_escape('local_accessibility_') . '%']);
+    $like = $DB->sql_like('name', ':name');
+    $DB->delete_records_select('user_preferences', $like, ['name' => $DB->sql_like_escape('local_accessibility_') . '%']);
     return true;
 }
