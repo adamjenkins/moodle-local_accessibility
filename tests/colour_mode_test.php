@@ -59,4 +59,72 @@ final class colour_mode_test extends \advanced_testcase {
         preferences::set('colour', 'cream');
         $this->assertNull(get_user_preferences(\theme_boost\colour_mode::PREFERENCE));
     }
+
+    /**
+     * Dark chosen while core colour modes were off keeps the plugin's own Dark after an admin turns them on.
+     */
+    public function test_dark_chosen_before_core_enabled_is_kept(): void {
+        if (!class_exists(\theme_boost\colour_mode::class)) {
+            $this->markTestSkipped('Core colour mode needs Moodle 5.3');
+        }
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        set_config('enablecolourmodes', 0, 'theme_boost');
+        preferences::set('colour', 'dark');
+        $this->assertNull(get_user_preferences(\theme_boost\colour_mode::PREFERENCE));
+        set_config('enablecolourmodes', 1, 'theme_boost');
+        $this->assertTrue(colour_mode::core_dark_available());
+        $this->assertFalse(colour_mode::core_is_dark());
+        $attrs = preferences::html_attributes();
+        $this->assertSame('dark', $attrs['data-a11y-colour']);
+        $this->assertSame('dark', $attrs['data-bs-theme']);
+    }
+
+    /**
+     * A guest's Dark is handed to core only when core's own cookie says dark.
+     */
+    public function test_guest_dark_follows_core_cookie(): void {
+        if (!class_exists(\theme_boost\colour_mode::class)) {
+            $this->markTestSkipped('Core colour mode needs Moodle 5.3');
+        }
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setGuestUser();
+        set_config('enablecolourmodes', 1, 'theme_boost');
+        $_COOKIE[preferences::COOKIE] = json_encode(['colour' => 'dark']);
+        try {
+            $this->assertArrayHasKey('data-a11y-colour', preferences::html_attributes());
+            $_COOKIE[\theme_boost\colour_mode::PREFERENCE] = 'dark';
+            $this->assertArrayNotHasKey('data-a11y-colour', preferences::html_attributes());
+        } finally {
+            unset($_COOKIE[preferences::COOKIE], $_COOKIE[\theme_boost\colour_mode::PREFERENCE]);
+        }
+    }
+
+    /**
+     * Boost and its children count as Boost-based; other themes do not.
+     */
+    public function test_is_boost_based(): void {
+        $this->assertTrue(colour_mode::is_boost_based((object) ['name' => 'boost', 'parents' => []]));
+        $this->assertTrue(colour_mode::is_boost_based((object) ['name' => 'child', 'parents' => ['boost']]));
+        $this->assertFalse(colour_mode::is_boost_based((object) ['name' => 'other', 'parents' => ['base']]));
+        $this->assertFalse(colour_mode::is_boost_based((object) ['name' => 'other']));
+    }
+
+    /**
+     * The page's theme decides, not the site setting: a non-Boost page theme means no hand-over.
+     */
+    public function test_page_theme_decides(): void {
+        if (!class_exists(\theme_boost\colour_mode::class)) {
+            $this->markTestSkipped('Core colour mode needs Moodle 5.3');
+        }
+        global $PAGE;
+        $this->resetAfterTest();
+        set_config('enablecolourmodes', 1, 'theme_boost');
+        $this->assertTrue(colour_mode::core_dark_available());
+        $ref = new \ReflectionProperty(\moodle_page::class, '_theme');
+        $ref->setValue($PAGE, (object) ['name' => 'other', 'parents' => []]);
+        $this->assertFalse(colour_mode::core_dark_available());
+    }
 }

@@ -27,21 +27,67 @@ final class colour_mode {
     /**
      * Whether core's dark colour mode can render the Dark preset (spec section 6.5).
      *
-     * True only when core has the feature (Moodle 5.3+), the site has enabled it and the theme is Boost-based.
+     * True only when core has the feature (Moodle 5.3+), the site has enabled it and the theme rendering the page
+     * is Boost or a Boost child.
      *
      * @return bool
      */
     public static function core_dark_available(): bool {
-        global $CFG;
         if (!class_exists(\theme_boost\colour_mode::class) || !\theme_boost\colour_mode::is_enabled()) {
             return false;
         }
-        $name = $CFG->theme ?? '';
-        if ($name === 'boost') {
-            return true;
+        return self::rendering_theme_is_boost_based();
+    }
+
+    /**
+     * Whether the theme that renders (or, in a web service, would render) the page is Boost-based.
+     *
+     * A page has $PAGE->theme (it honours course, category, user and device themes). A web service runs without a
+     * page theme, and initialising one there is not safe, so it uses the user's effective theme: their own theme when
+     * the site allows user themes, else the site theme. Course and category themes cannot be known in a service.
+     * Memoised per theme name for the request.
+     *
+     * @return bool
+     */
+    private static function rendering_theme_is_boost_based(): bool {
+        global $CFG, $PAGE, $USER;
+        if (!(defined('AJAX_SCRIPT') && AJAX_SCRIPT) && !(defined('WS_SERVER') && WS_SERVER)) {
+            return self::is_boost_based($PAGE->theme);
         }
-        $theme = $name === '' ? null : \theme_config::load($name);
-        return $theme !== null && in_array('boost', $theme->parents ?? [], true);
+        $name = !empty($CFG->allowuserthemes) && !empty($USER->theme) ? $USER->theme : ($CFG->theme ?? '');
+        static $memo = [];
+        if (!isset($memo[$name])) {
+            $memo[$name] = $name !== '' && self::is_boost_based(\theme_config::load($name));
+        }
+        return $memo[$name];
+    }
+
+    /**
+     * Whether a theme is Boost or declares Boost as a parent.
+     *
+     * @param object $theme a theme_config (anything with name and parents)
+     * @return bool
+     */
+    public static function is_boost_based(object $theme): bool {
+        return $theme->name === 'boost' || in_array('boost', $theme->parents ?? [], true);
+    }
+
+    /**
+     * Whether core is already rendering dark for this browser or user, so the plugin's own Dark scheme can stand down.
+     *
+     * Logged-in users: core's preference is 'dark'. Guests: core's cookie is 'dark'. A user who chose Dark while core
+     * colour modes were off has neither, and keeps the plugin's own Dark until they choose again.
+     *
+     * @return bool
+     */
+    public static function core_is_dark(): bool {
+        if (!self::core_dark_available()) {
+            return false;
+        }
+        $mode = preferences::uses_cookie()
+            ? ($_COOKIE[\theme_boost\colour_mode::PREFERENCE] ?? null)
+            : get_user_preferences(\theme_boost\colour_mode::PREFERENCE);
+        return $mode === 'dark';
     }
 
     /**

@@ -254,8 +254,8 @@ final class preferences {
                 default => scheme::presets()[$colour]
                     ?? (\local_accessibility\feature\colour::site_presets()[$colour] ?? null),
             };
-            if ($colour === 'dark' && colour_mode::core_dark_available()) {
-                unset($attrs['data-a11y-colour']);      // Core renders dark (Task 12).
+            if ($colour === 'dark' && colour_mode::core_is_dark()) {
+                unset($attrs['data-a11y-colour']);      // Core renders dark.
             } else if ($s === null) {
                 unset($attrs['data-a11y-colour']);
             } else {

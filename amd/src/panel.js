@@ -143,6 +143,27 @@ const cycle = async(tile) => {
 };
 
 /**
+ * Disable or re-enable controls for forced colours, touching only what this function disabled itself.
+ * Controls the server rendered as aria-disabled (admin locks) are never changed.
+ *
+ * @param {Iterable<Element>} els
+ * @param {boolean} on whether forced colours are active
+ */
+const setForced = (els, on) => {
+    els.forEach((el) => {
+        if (on) {
+            if (el.getAttribute('aria-disabled') !== 'true') {
+                el.setAttribute('aria-disabled', 'true');
+                el.setAttribute('data-la-forced', '1');
+            }
+        } else if (el.hasAttribute('data-la-forced')) {
+            el.setAttribute('aria-disabled', 'false');
+            el.removeAttribute('data-la-forced');
+        }
+    });
+};
+
+/**
  * Mark the colour, saturation and links controls as controlled by the device while forced colours are active,
  * and show "Controlled by your device" as the colour tile's label.
  */
@@ -153,8 +174,8 @@ const initForcedColours = async() => {
     let showing = false;
     const message = await getString('controlledbydevice', 'local_accessibility');
     const mark = () => {
-        panel.querySelectorAll('.la-colour .la-swatch, [data-feature="saturation"], [data-feature="links"]')
-            .forEach((el) => el.setAttribute('aria-disabled', forced.matches ? 'true' : 'false'));
+        setForced(panel.querySelectorAll('.la-colour .la-swatch, [data-feature="saturation"], [data-feature="links"]'),
+            forced.matches);
         if (label && forced.matches && !showing) {
             original = label.textContent;
             label.textContent = message;
