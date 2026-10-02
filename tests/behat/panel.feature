@@ -1,0 +1,54 @@
+@local @local_accessibility @javascript
+Feature: Accessibility panel
+  In order to read comfortably
+  As a user
+  I need to change display settings from an accessible panel
+
+  Background:
+    Given the following "users" exist:
+      | username | firstname | lastname |
+      | student1 | Sam       | Student  |
+
+  Scenario: Open with the button, change text size, and keep it after reload
+    Given I log in as "student1"
+    When I click on "Accessibility settings" "button"
+    Then "local-accessibility-panel" "region" should be visible
+    When I click on "Text size, 100%" "button"
+    Then the page root should have attribute "data-a11y-size" with value "125"
+    And I reload the page
+    Then the page root should have attribute "data-a11y-size" with value "125"
+
+  Scenario: Keyboard shortcut and Escape
+    Given I log in as "student1"
+    When I press the accessibility shortcut
+    Then "local-accessibility-panel" "region" should be visible
+    When I press the escape key
+    Then "local-accessibility-panel" "region" should not be visible
+
+  Scenario: Guests keep settings in this browser
+    Given the following config values are set as admin:
+      | forcelogin | 0 |
+    And I am on site homepage
+    When I click on "Accessibility settings" "button"
+    And I click on "Links, Off" "button"
+    And I reload the page
+    Then the page root should have attribute "data-a11y-links" with value "on"
+
+  Scenario: Reset clears everything
+    Given I log in as "student1"
+    And I click on "Accessibility settings" "button"
+    And I click on "Text size, 100%" "button"
+    And the page root should have attribute "data-a11y-size" with value "125"
+    When I click on "Reset" "button" in the "local-accessibility-panel" "region"
+    And I wait until the page is ready
+    Then the page root should not have attribute "data-a11y-size"
+
+  Scenario: Guests get the floating launcher even when the launcher is in the user menu only
+    Given the following config values are set as admin:
+      | forcelogin | 0 |
+    And the following config values are set as admin:
+      | launcher | menu | local_accessibility |
+    When I am on site homepage
+    Then ".local-accessibility-launcher" "css_element" should exist
+    And I log in as "student1"
+    And ".local-accessibility-launcher" "css_element" should not exist
