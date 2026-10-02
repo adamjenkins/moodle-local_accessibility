@@ -25,6 +25,7 @@
 
 $string['accessibilitywidgets'] = 'Accessibility Widgets';
 $string['addwidget'] = 'Add Widget';
+$string['cachedef_enabled'] = 'Enabled accessibility features';
 $string['feature_align'] = 'Align left';
 $string['feature_align_off'] = 'Off';
 $string['feature_align_on'] = 'On';
@@ -79,6 +80,8 @@ $string['feature_spacing'] = 'Spacing';
 $string['feature_spacing_extra'] = 'Extra';
 $string['feature_spacing_normal'] = 'Normal';
 $string['feature_spacing_wcag'] = 'Wider';
+$string['featurelocked'] = 'This setting is set by your site administrator.';
+$string['guestsusecookie'] = 'Settings for visitors who are not logged in are kept in this browser only.';
 $string['manageenabledwidgets'] = 'Manage Enabled Widgets';
 $string['pluginname'] = 'Accessibility';
 $string['privacy:metadata:configs'] = 'A config for a widget in the plugin Accessibility Widgets';

@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace local_accessibility;
+
 /**
- * Plugin version and other meta-data are defined here.
+ * Bridge to core's Boost colour mode (filled in by Task 12).
  *
- * @package     local_accessibility
- * @copyright   2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_accessibility
+ * @copyright  2026 Adam Jenkins <adam@wisecat.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'local_accessibility';
-$plugin->version = 2026100501;
-$plugin->release = '3.0.0';
-$plugin->requires = 2024100700; // Moodle 4.5.0.
-$plugin->supported = [405, 503];
-$plugin->maturity = MATURITY_STABLE;
+final class colour_mode {
+    /**
+     * Whether core's dark colour mode can render the Dark preset.
+     *
+     * @return bool
+     */
+    public static function core_dark_available(): bool {
+        return false;
+    }
+}

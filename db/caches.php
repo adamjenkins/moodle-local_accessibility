@@ -15,18 +15,20 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Cache definitions.
  *
- * @package     local_accessibility
- * @copyright   2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_accessibility
+ * @copyright  2026 Adam Jenkins <adam@wisecat.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_accessibility';
-$plugin->version = 2026100501;
-$plugin->release = '3.0.0';
-$plugin->requires = 2024100700; // Moodle 4.5.0.
-$plugin->supported = [405, 503];
-$plugin->maturity = MATURITY_STABLE;
+$definitions = [
+    'enabled' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'staticacceleration' => true,
+    ],
+];
