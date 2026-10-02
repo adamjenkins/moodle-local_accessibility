@@ -25,6 +25,8 @@ import {configure, save, reset} from 'local_accessibility/store';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 import {init as initColour} from 'local_accessibility/colour';
+import {init as initGuide} from 'local_accessibility/guide';
+import {init as initImages} from 'local_accessibility/images';
 
 // Everything natively tabbable (aria-disabled buttons stay tabbable, so the trap must include them).
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), '
@@ -276,4 +278,6 @@ export const init = (config) => {
     }
     initColour(panel);
     initForcedColours().catch(Notification.exception);
+    initGuide();
+    initImages();
 };

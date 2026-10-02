@@ -464,6 +464,39 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     font-weight: 600;
 }
 
+/* 13b. Reading guide overlay (px, R19): never takes pointer events or focus; below the panel (1060). */
+.la-guide {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1055;
+}
+.la-guide-ruler::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: calc(var(--la-guide-y, 50vh) + 8px);
+    block-size: 3px;
+    background: #d6336c;
+}
+.la-guide-mask {
+    background:
+        linear-gradient(
+            to bottom,
+            rgb(0 0 0 / 55%) 0,
+            rgb(0 0 0 / 55%) calc(var(--la-guide-y, 50vh) - 36px),
+            transparent calc(var(--la-guide-y, 50vh) - 36px),
+            transparent calc(var(--la-guide-y, 50vh) + 36px),
+            rgb(0 0 0 / 55%) calc(var(--la-guide-y, 50vh) + 36px)
+        );
+}
+
+@media (forced-colors: active) {
+    .la-guide-ruler::after {
+        background: Highlight;
+    }
+}
+
 /* 14. Launcher (px, like the panel; .btn doubled for specificity over the theme's .btn). */
 .btn.local-accessibility-launcher {
     position: fixed;
