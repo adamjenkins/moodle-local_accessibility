@@ -74,10 +74,10 @@ html[data-a11y-size="200"] {
 
 /* stylelint-disable max-line-length, selector-type-no-unknown -- long :where() lists; mjx-container is a custom element. */
 /* 3. Font: content only; icons, code and maths excluded. */
-html[data-a11y-font="readable"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
+html[data-a11y-font="readable"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
     font-family: local_accessibility_readable, system-ui, sans-serif !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-font="dyslexic"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
+html[data-a11y-font="dyslexic"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
     font-family: local_accessibility_dyslexic, system-ui, sans-serif !important; /* stylelint-disable-line declaration-no-important */
 }
 
@@ -137,28 +137,24 @@ html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd) {
         text-decoration: underline !important; /* stylelint-disable-line declaration-no-important */
     }
     /* Mop-up: hardcoded surfaces (spec §6.4). Grows during Task 22's manual pass. */
-    html[data-a11y-colour] body :where(#page, #page-wrapper, .drawer, .navbar, .card, .list-group-item, .dropdown-menu, .modal-content, .popover, .table, .form-control, .form-select, .custom-select, .activity-item, .course-content .section) {
+    html[data-a11y-colour] body :where(#page, #page-wrapper, .drawer, .navbar, .card, .list-group-item, .dropdown-menu, .modal-content, .popover, .table, .form-control, .form-select, .custom-select, .activity-item, .course-content .section):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
         background-color: var(--a11y-surface1) !important; /* stylelint-disable-line declaration-no-important */
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
     }
-    html[data-a11y-colour] body :where(.drawer, .navbar, .secondary-navigation) {
+    html[data-a11y-colour] body :where(.drawer, .navbar, .secondary-navigation):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
         background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
     }
-    html[data-a11y-colour] body :where(.form-control, .form-select, .custom-select, textarea, input) {
+    html[data-a11y-colour] body :where(.form-control, .form-select, .custom-select, textarea, input):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
         background-color: var(--a11y-field) !important; /* stylelint-disable-line declaration-no-important */
     }
-    html[data-a11y-colour] body :where(#page-content, #region-main, .main-inner) {
+    html[data-a11y-colour] body :where(#page-content, #region-main, .main-inner):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
         background-color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
     }
+    /* Exclusions (spec §6.4): media, icons, maths and quiz state are never matched, via the :not() guard below. */
     /* Pasted content colours lose to the scheme (spec §6.2, CSS only). */
-    html[data-a11y-colour] #region-main [style*="color"] {
+    html[data-a11y-colour] #region-main [style*="color"]:where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail)) {
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
         background-color: transparent !important; /* stylelint-disable-line declaration-no-important */
-    }
-    /* Exclusions (spec §6.4): never recolour media, icons, maths, quiz state. */
-    html[data-a11y-colour] body :where(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, mjx-container, .qnbutton, .qnbutton *, .filemanager-thumbnail) {
-        background-color: revert !important; /* stylelint-disable-line declaration-no-important */
-        color: revert !important; /* stylelint-disable-line declaration-no-important */
     }
 }
 
@@ -212,16 +208,19 @@ html[data-a11y-focus] :focus-visible {
         outline: 3px solid CanvasText !important; /* stylelint-disable-line declaration-no-important, csstree/validator */
     }
 }
+/* stylelint-disable max-line-length */
 html[data-a11y-focus="cursor"],
-html[data-a11y-focus="cursor"] * {
+html[data-a11y-focus="cursor"] :where(*:not(input, textarea, select, [contenteditable], input *, textarea *, select *, [contenteditable] *)) {
     cursor: url(../../../../local/accessibility/pix/cursor.svg) 4 4, auto !important; /* stylelint-disable-line declaration-no-important */
 }
+/* stylelint-enable max-line-length */
 
 /* 12. Motion. */
 html[data-a11y-motion="on"] *,
 html[data-a11y-motion="on"] *::before,
 html[data-a11y-motion="on"] *::after {
     animation-duration: 0.001ms !important; /* stylelint-disable-line declaration-no-important, time-min-milliseconds */
+    animation-delay: 0s !important; /* stylelint-disable-line declaration-no-important */
     animation-iteration-count: 1 !important; /* stylelint-disable-line declaration-no-important */
     transition-duration: 0.001ms !important; /* stylelint-disable-line declaration-no-important, time-min-milliseconds */
     scroll-behavior: auto !important; /* stylelint-disable-line declaration-no-important */
