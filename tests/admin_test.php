@@ -16,6 +16,10 @@
 
 namespace local_accessibility;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/legacy_configs.php');
+
 /**
  * Tests for admin validation and widget subplugin cleanup.
  *
@@ -107,6 +111,8 @@ final class admin_test extends \advanced_testcase {
         $this->resetAfterTest();
         $DB->insert_record('local_accessibility_widgets', (object) ['name' => 'fontsize', 'enabled' => 1, 'sequence' => 99]);
         $user = $this->getDataGenerator()->create_user();
+        // The 3.0 upgrade step uninstalls the subplugins while the 2.x table still exists (ruling R10).
+        $legacy = local_accessibility_create_legacy_configs_table();
         $DB->insert_record('local_accessibility_configs', (object) ['userid' => $user->id, 'widget' => 'fontsize',
             'configvalue' => '150']);
         $cache = \cache::make('local_accessibility', 'enabled');
@@ -119,6 +125,7 @@ final class admin_test extends \advanced_testcase {
 
         $this->assertFalse($DB->record_exists('local_accessibility_widgets', ['name' => 'fontsize']));
         $this->assertEquals(1, $DB->count_records('local_accessibility_configs', ['widget' => 'fontsize']));
+        $DB->get_manager()->drop_table($legacy);
         $this->assertFalse($cache->get('ids'));
 
         // A widget name that is also a 3.0 feature id leaves the feature's row alone.

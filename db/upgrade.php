@@ -92,8 +92,30 @@ function xmldb_local_accessibility_upgrade($oldversion) {
     if ($oldversion < 2026080200) {
         // Configurations of the guest account are now kept in the session,
         // remove the records shared between all guest visitors left by the previous versions.
-        $DB->delete_records('local_accessibility_configs', ['userid' => $CFG->siteguest]);
+        if ($dbman->table_exists('local_accessibility_configs')) {
+            $DB->delete_records('local_accessibility_configs', ['userid' => $CFG->siteguest]);
+        }
         upgrade_plugin_savepoint(true, 2026080200, 'local', 'accessibility');
+    }
+    if ($oldversion < 2026100510) {
+        // 3.0: the order matters (spec §9).
+        // 1. Move the 2.x widget settings to user preferences, while the old table still exists.
+        \local_accessibility\local\migration::run();
+
+        // 2. Feature ids replace widget names in the enabled/order table, before the subplugins go:
+        // their uninstall_cleanup() deletes rows still carrying an old widget name.
+        \local_accessibility\local\migration::rename_widget_rows();
+
+        // 3. Remove the 11 old subplugins whose code is gone (Task 1 spike: decision A, the type stays declared).
+        \local_accessibility\local\migration::uninstall_old_subplugins();
+
+        // 4. Drop the old table last.
+        $table = new xmldb_table('local_accessibility_configs');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2026100510, 'local', 'accessibility');
     }
 
     return true;

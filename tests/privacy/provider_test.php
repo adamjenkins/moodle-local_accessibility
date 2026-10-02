@@ -16,9 +16,6 @@
 
 namespace local_accessibility\privacy;
 
-use core_privacy\local\request\approved_contextlist;
-use core_privacy\local\request\approved_userlist;
-use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 
 /**
@@ -55,34 +52,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertContains('local_accessibility_colourcustom', $names);
         $this->assertContains('local_accessibility_initialised', $names);
         $this->assertContains('local_accessibility', $names);
-    }
-
-    /**
-     * The legacy widget config table (dropped later) is still exported, listed and deleted.
-     */
-    public function test_legacy_configs_table(): void {
-        global $DB;
-        $this->resetAfterTest();
-        $u1 = $this->getDataGenerator()->create_user();
-        $u2 = $this->getDataGenerator()->create_user();
-        $sys = \context_system::instance();
-        foreach ([$u1, $u2] as $u) {
-            $DB->insert_record('local_accessibility_configs', ['widget' => 'x', 'configvalue' => '1', 'userid' => $u->id]);
-        }
-        $this->assertContainsEquals($sys->id, provider::get_contexts_for_userid($u1->id)->get_contextids());
-
-        $list = new userlist($sys, 'local_accessibility');
-        provider::get_users_in_context($list);
-        $this->assertEqualsCanonicalizing([$u1->id, $u2->id], $list->get_userids());
-
-        $this->export_context_data_for_user($u1->id, $sys, 'local_accessibility');
-        $this->assertTrue(writer::with_context($sys)->has_any_data());
-
-        provider::delete_data_for_user(new approved_contextlist($u1, 'local_accessibility', [$sys->id]));
-        $this->assertFalse($DB->record_exists('local_accessibility_configs', ['userid' => $u1->id]));
-        $this->assertTrue($DB->record_exists('local_accessibility_configs', ['userid' => $u2->id]));
-
-        provider::delete_data_for_users(new approved_userlist($sys, 'local_accessibility', [$u2->id]));
-        $this->assertSame(0, $DB->count_records('local_accessibility_configs'));
+        // The 2.x table is dropped by the 3.0 upgrade step.
+        $this->assertNotContains('local_accessibility_configs', $names);
     }
 }
