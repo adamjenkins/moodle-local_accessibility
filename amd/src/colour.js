@@ -71,28 +71,55 @@ export const init = (panel) => {
     const field = (n) => editor.querySelector(`[name="${n}"]`);
     const ratioEl = editor.querySelector('.la-ratio');
     const protest = editor.querySelector('.la-protest');
+    const announcer = editor.querySelector('.la-announce');
     const applyButton = editor.querySelector('[data-action="applycolours"]');
     const previewEl = editor.querySelector('.la-preview');
+    const ANNOUNCE_DELAY = 500;
     let sequence = 0;
+    let previewed = null;
+    let lastPreview = Promise.resolve(null);
+    let announceTimer = null;
 
     /**
-     * Recompute the scheme from the inputs and update the preview, ratio, warning and Apply state.
+     * The editor's current inputs.
      *
-     * @returns {Promise<Object|null>} the scheme, or null when refused
+     * @returns {Object} {bg, text, link, exact}
      */
-    const preview = async() => {
+    const inputs = () => ({bg: field('bg').value, text: field('text').value, link: field('link').value,
+        exact: field('exact').checked});
+
+    // The last applied colours: server-rendered at first, then whatever applyScheme last put on the page.
+    let applied = inputs();
+
+    /**
+     * Put the inputs back to the last applied colours (abandoned edits are discarded).
+     */
+    const restoreInputs = () => {
+        field('bg').value = applied.bg;
+        field('text').value = applied.text;
+        field('link').value = applied.link;
+        field('exact').checked = applied.exact;
+        previewed = null;
+    };
+
+    /**
+     * The work of preview(): compute the scheme and update the visible state.
+     *
+     * @returns {Promise<Object|null>}
+     */
+    const render = async() => {
         const mine = ++sequence;
-        const exact = field('exact').checked;
-        const values = [field('bg').value, field('text').value, field('link').value];
+        const v = inputs();
+        previewed = JSON.stringify(v);
         let s = null;
         let refused = null;
         try {
-            s = custom(...values, exact);
+            s = custom(v.bg, v.text, v.link, v.exact);
         } catch (e) {
-            const bg = normalise(values[0]);
+            const bg = normalise(v.bg);
             const r = bg ? ramp(bg) : null;
-            const text = normalise(values[1]);
-            const link = normalise(values[2]);
+            const text = normalise(v.text);
+            const link = normalise(v.link);
             refused = r && text && link ? Math.min(worst(text, r), worst(link, r)).toFixed(2) : '?';
         }
         const nums = s ? {text: s.textratio.toFixed(2), link: s.linkratio.toFixed(2)} : null;
@@ -120,11 +147,38 @@ export const init = (panel) => {
     };
 
     /**
-     * Back to the grid, focus on the pen button.
+     * Recompute the scheme from the inputs and update the VISIBLE preview, ratio, warning and Apply state.
+     * Nothing here is announced: the ratio text is not a live region (see announce()).
+     *
+     * @returns {Promise<Object|null>} the scheme, or null when refused
+     */
+    const preview = () => {
+        lastPreview = render();
+        return lastPreview;
+    };
+
+    /**
+     * Copy the current ratio (and warning) into the polite live region, once the user has settled.
+     *
+     * @param {number} delay ms; 0 announces now
+     */
+    const announce = (delay) => {
+        clearTimeout(announceTimer);
+        announceTimer = setTimeout(() => {
+            if (!editor.hidden) {
+                announcer.textContent = ratioEl.textContent + (protest.hidden ? '' : ' ' + protest.textContent);
+            }
+        }, delay);
+    };
+
+    /**
+     * Back to the grid, focus on the pen button. Unapplied edits are discarded.
      */
     const closeEditor = () => {
+        clearTimeout(announceTimer);
         editor.hidden = true;
         grid.hidden = false;
+        restoreInputs();
         const pen = panel.querySelector('[data-action="customcolours"]');
         if (pen) {
             pen.focus();
@@ -139,10 +193,14 @@ export const init = (panel) => {
         if (!s) {
             return;
         }
-        // The spec's confirmation step: a native, keyboard- and screen-reader-accessible modal.
-        // eslint-disable-next-line no-alert
-        if (!protest.hidden && !window.confirm(protest.textContent)) {
-            return;
+        if (isLow(s)) {
+            const warning = await getString('contrastwarning', 'local_accessibility',
+                {text: s.textratio.toFixed(2), link: s.linkratio.toFixed(2)});
+            // The spec's confirmation step: a native, keyboard- and screen-reader-accessible modal.
+            // eslint-disable-next-line no-alert
+            if (!window.confirm(warning)) {
+                return;
+            }
         }
         const saved = await saveCustom({bg: field('bg').value, text: field('text').value,
             link: field('link').value, exact: field('exact').checked});
@@ -156,6 +214,8 @@ export const init = (panel) => {
             }
         }
         applyScheme(panel, final);
+        // Matches what the server renders into the inputs on the next page load.
+        applied = {bg: final.ramp.page, text: final.text, link: final.link, exact: final.exact};
         const label = panel.querySelector('.la-colourlabel');
         if (label) {
             label.textContent = await getString('feature_colour_custom', 'local_accessibility');
@@ -163,23 +223,32 @@ export const init = (panel) => {
         closeEditor();
     };
 
-    const onInput = () => preview().catch(Notification.exception);
-    editor.addEventListener('input', onInput);
-    editor.addEventListener('change', onInput);
+    // Visual preview on every input (continuous while a picker is dragged); the announcement waits for a pause.
+    editor.addEventListener('input', () => {
+        preview().then(() => announce(ANNOUNCE_DELAY)).catch(Notification.exception);
+    });
+    // A committed change: preview only if no input event already covered these values, then announce.
+    editor.addEventListener('change', () => {
+        const pending = previewed === JSON.stringify(inputs()) ? lastPreview : preview();
+        pending.then(() => announce(0)).catch(Notification.exception);
+    });
 
-    // Esc in the editor goes back to the grid instead of closing the dialog.
-    editor.addEventListener('keydown', (e) => {
+    // Esc anywhere in the dialog (head and profiles included) closes the editor first, not the dialog.
+    // Capture phase on the panel runs before panel.js's bubbling Esc handler, and stopPropagation keeps it from it.
+    panel.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !editor.hidden) {
             e.preventDefault();
             e.stopPropagation();
             closeEditor();
         }
-    });
+    }, true);
 
-    // Each time the dialog opens it starts on the grid.
+    // Each time the dialog opens it starts on the grid, with the applied colours.
     document.addEventListener('local_accessibility:open', () => {
+        clearTimeout(announceTimer);
         editor.hidden = true;
         grid.hidden = false;
+        restoreInputs();
     });
 
     panel.addEventListener('click', async(e) => {
@@ -200,10 +269,12 @@ export const init = (panel) => {
                 if (pen.getAttribute('aria-disabled') === 'true') {
                     return;
                 }
+                restoreInputs();
                 grid.hidden = true;
                 editor.hidden = false;
                 field('bg').focus();
                 await preview();
+                announce(0);
             } else if (e.target.closest('[data-action="cancelcolours"]')) {
                 closeEditor();
             } else if (e.target.closest('[data-action="applycolours"]')) {

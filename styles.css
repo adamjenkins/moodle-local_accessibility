@@ -417,9 +417,6 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 .local-accessibility-panel .la-warn {
     color: #b3261e;
 }
-html[data-a11y-lowcontrast] .local-accessibility-panel .la-warn {
-    display: inline;
-}
 /* Custom colour editor (Task 11): a sub-view of the dialog, shown instead of the grid. */
 .local-accessibility-panel .la-editor {
     display: flex;

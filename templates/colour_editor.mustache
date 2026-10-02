@@ -37,10 +37,11 @@
     <label class="la-row">{{#str}} links, local_accessibility {{/str}}
         <input type="color" name="link" value="{{#custom}}{{link}}{{/custom}}{{^custom}}#0000c0{{/custom}}"></label>
     <p class="la-preview">{{#str}} previewtext, local_accessibility {{/str}} <u>{{#str}} previewlink, local_accessibility {{/str}}</u></p>
-    <p class="la-ratio" aria-live="polite"></p>
+    <p class="la-ratio"></p>
     <label class="la-row la-exactrow"><input type="checkbox" name="exact" {{#custom.exact}}checked{{/custom.exact}}>
         {{#str}} useexact, local_accessibility {{/str}}</label>
     <p class="la-protest" hidden></p>
+    <p class="la-announce la-visually-hidden" aria-live="polite"></p>
     <div class="la-row la-actions">
         <button type="button" class="btn btn-primary btn-sm" data-action="applycolours">{{#str}} apply, local_accessibility {{/str}}</button>
         <button type="button" class="btn btn-secondary btn-sm" data-action="cancelcolours">{{#str}} cancel {{/str}}</button>
