@@ -137,7 +137,7 @@ html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd):where(:no
         text-decoration: underline !important; /* stylelint-disable-line declaration-no-important */
     }
     /* Mop-up: hardcoded surfaces (spec §6.4). Grows during Task 22's manual pass. */
-    html[data-a11y-colour] body :where(#page, #page-wrapper, .drawer, .navbar, .card, .list-group-item, .dropdown-menu, .modal-content, .popover, .table, .form-control, .form-select, .custom-select, .activity-item, .course-content .section):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+    html[data-a11y-colour] body :where(#page, #page-wrapper, .drawer, .navbar, .card, .card-header, .card-footer, .list-group-item, .dropdown-menu, .modal-content, .popover, .table, .form-control, .form-select, .custom-select, .activity-item, .course-content .section, .bg-white, .bg-light, .bg-body, #page-footer, .footer-dark, .secondary-navigation, .secondary-navigation .navigation, .nav-tabs, .nav-tabs .nav-link.active, .section-item, .section-content-inner):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-surface1) !important; /* stylelint-disable-line declaration-no-important */
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
     }
@@ -149,6 +149,19 @@ html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd):where(:no
     }
     html[data-a11y-colour] body :where(#page-content, #region-main, .main-inner):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Theme-coloured controls (Task 22 browser pass): secondary, outline and icon buttons take the scheme. */
+    html[data-a11y-colour] body :where(.btn-secondary, .btn-light, .btn-outline-secondary, .btn-outline-primary, .btn-icon, .btn-footer-popover, .icons-collapse-expand, .mds-nav-pill--selected, .mds-nav-pill.active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
+        border-color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.btn-secondary, .btn-light, .btn-outline-secondary, .btn-outline-primary, .btn-icon, .btn-footer-popover, .icons-collapse-expand, .mds-nav-pill--selected, .mds-nav-pill.active):where(:hover, :focus, .active, [aria-expanded="true"]):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-hover) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Hardcoded theme text colours (Task 22): muted text and the active navigation item. */
+    html[data-a11y-colour] body :where(.text-muted, .text-secondary, .text-body-secondary, .dimmed_text, .categoryname, .progress-text, .collapsemenu-text, .mds-switch-label, .nav-link.active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
     }
     /* Exclusions (spec §6.4): media, icons, maths and quiz state are never matched, via the :not() guard below. */
     /* Pasted content colours lose to the scheme (spec §6.2, CSS only). */
@@ -331,6 +344,7 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
 .local-accessibility-panel .la-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    grid-auto-flow: dense;
     gap: 6px;
     padding: 8px;
 }
@@ -367,10 +381,15 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     outline-offset: 2px;
 }
 .local-accessibility-panel .la-colour {
-    grid-column: span 2;
+    grid-column: span 3;
+    block-size: auto;
+    min-block-size: 60px;
+    padding-block: 6px;
 }
 .local-accessibility-panel .la-swatches {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 4px;
 }
 .local-accessibility-panel .la-swatch {
