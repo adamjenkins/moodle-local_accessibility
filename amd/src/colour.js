@@ -213,6 +213,14 @@ export const init = (panel) => {
                 final = s;
             }
         }
+        const config = getConfig();
+        if (config.guest && config.coredark) {
+            // As the swatches do: guests have no preference to sync, so core's colour-mode cookie follows the
+            // scheme's own mode. A dark cookie left from an earlier Dark would otherwise make core's head script
+            // render a light custom scheme with data-bs-theme=dark.
+            document.cookie = 'theme_boost_colourmode=' + (final.mode === 'dark' ? 'dark' : 'light')
+                + config.cookieattributes;
+        }
         applyScheme(panel, final);
         // Matches what the server renders into the inputs on the next page load.
         applied = {bg: final.ramp.page, text: final.text, link: final.link, exact: final.exact};
