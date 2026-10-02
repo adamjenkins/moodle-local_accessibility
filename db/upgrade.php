@@ -68,8 +68,8 @@ function xmldb_local_accessibility_upgrade($oldversion) {
             $field = new xmldb_field('enabled', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 1, 'name');
             $dbman->add_field($newtable, $field);
         }
-        require_once(__DIR__ . '/../lib.php');
-        local_accessibility_addwidgetstodb(false);
+        // The 2.x lib.php helper that registered installed widgets here is gone: preferences::sync_features_table()
+        // adds the built-in features' rows at runtime, and the 3.0 step below renames the old widget names.
         upgrade_plugin_savepoint(true, 2023103002, 'local', 'accessibility');
     }
     if ($oldversion < 2023110101) {

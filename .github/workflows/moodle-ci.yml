@@ -2,9 +2,6 @@ name: Moodle Plugin CI
 
 on:
   push:
-    # The release branch is covered by release.yml, which calls this workflow.
-    branches-ignore:
-      - release
   pull_request:
   workflow_call:
 
@@ -79,15 +76,6 @@ jobs:
           echo $(cd ci/vendor/bin; pwd) >> $GITHUB_PATH
           sudo locale-gen en_AU.UTF-8
           echo "NVM_DIR=$HOME/.nvm" >> $GITHUB_ENV
-
-      # The PHPUnit suite needs these four widgets installed (tests/base.php). Their default
-      # branches are tracked. .moodle-plugin-ci.yml keeps the checks below off widgets/.
-      - name: Add widgets used by the tests
-        run: |
-          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_textcolour
-          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_fontsize
-          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_backgroundcolour
-          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_fontface
 
       - name: Install moodle-plugin-ci
         run: moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1

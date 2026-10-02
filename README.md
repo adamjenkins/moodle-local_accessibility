@@ -1,48 +1,58 @@
 # Accessibility #
 
-Accessibility plugin
+Lets every user adjust how Moodle looks and reads for them: text size, spacing, fonts, colours, motion and more.
+It is one plugin with all features built in.
 
-This plugin requires subplugins (widgets) to be installed separatedly inside directory `widgets` of this plugin.
-After installing widget plugins, site administrator needs to enable widgets by going to _Site Administration > Plugins > Accessibility Widgets > Manage Enabled Widgets_.
+## Features ##
 
-[Instructions to develop a widget plugin](./widgets/README.md)
+- A compact panel with one tile per setting. Open it with the floating button, the user menu entry or the
+  keyboard shortcut Alt+A.
+- Colour schemes: presets, or your own background, text and link colours. Custom colours are adjusted to a 7:1
+  contrast ratio unless you choose to keep your exact colours.
+- Text size scales the whole page in proportion. Spacing follows the WCAG 1.4.12 values.
+- Fonts: Readable (Atkinson Hyperlegible) and OpenDyslexic.
+- Reading guide, stop motion, saturation, strong focus ring, large cursor, link and image options.
+- Read aloud using the browser's own voices, sentence by sentence (no visual highlight yet).
+- Profiles: one-click bundles of settings (Dyslexia, Focus, Low vision, Seizure-safe).
+- Settings can start from the device's reduced-motion and contrast preferences.
 
-## Installing via uploaded ZIP file ##
+## Settings for administrators ##
 
-1. Log in to your Moodle site as an admin and go to _Site administration >
-   Plugins > Install plugins_.
-2. Upload the ZIP file with the plugin code. You should only be prompted to add
-   extra details if your plugin type is not automatically detected.
-3. Check the plugin validation report and finish the installation.
+Under _Site administration > Plugins > Local plugins > Accessibility_:
 
-## Installing via git
-From moodle root 
+- Where users open the panel from (floating button, user menu, or both) and whether Alt+A is active.
+- Site defaults for each setting, with a lock per setting so that everyone uses the default.
+- Site colour schemes (each is checked for contrast) and your own profiles.
+- _Features_ page: enable, disable and order the features.
 
-git  clone git@github.com:ponlawat-w/moodle-local_accessibility.git  local/accessibility
+## Guests ##
 
-`cd local/accessibility`
+Visitors who are not logged in keep their settings in a cookie (`local_accessibility`) in their own browser.
+Nothing is stored on the server for them. Logged-in users' settings are stored as user preferences.
 
-At this point the plugin will be installed but without any widgets. To add the widgets you can check out by tag as follows.
-Tags can be found at https://github.com/ponlawat-w/moodle-local_accessibility/tags. Select the one you want and checkout as follows
+## Known limitations ##
 
-`git checkout v1.0.1-with-widgets`
+- Content inside iframes (including H5P) is not changed.
+- The Moodle mobile app does not load the plugin.
+- The colour contrast guarantee covers only the surfaces the plugin recolours. Content with its own
+  colours, such as images or embedded media, is not guaranteed.
 
-This will result in a warning about being in 'detached HEAD' state that will not affect testing
+## Upgrading from 2.x ##
 
-## Installing manually ##
+Existing users' settings are carried over, and the old widget plugins are removed. Moodle 4.5 or later is
+required.
 
-The plugin can be also installed by putting the contents of this directory to
+## Installing ##
 
-    {your/moodle/dirroot}/local/accessibility
-
-Afterwards, log in to your Moodle site as an admin and go to _Site administration >
-Notifications_ to complete the installation.
-
-Alternatively, you can run
+Install from a ZIP file via _Site administration > Plugins > Install plugins_, or put the contents of this
+directory in `{your/moodle/dirroot}/local/accessibility` and run
 
     $ php admin/cli/upgrade.php
 
-to complete the installation from the command line.
+## Credits ##
+
+- Ponlawat Weerapanpisit, original author of the plugin and its widget framework.
+- Bartlomiej Jencz, for the 2024 work on moving the plugin to Moodle's hooks API.
 
 ## License ##
 

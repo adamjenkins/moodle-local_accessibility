@@ -1,5 +1,5 @@
-# Widgets are separate repos installed into widgets/ (see .github/workflows/moodle-ci.yml).
-# Anchored, so classes/widgets/ and templates/widgets/ are still checked.
+# The widgets/ directory (a subplugin type kept declared in db/subplugins.json so 2.x widget
+# plugins can still be uninstalled cleanly) is not checked.
 filter:
   notPaths:
     - '#^widgets/#'
