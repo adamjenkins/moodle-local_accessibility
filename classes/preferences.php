@@ -235,6 +235,9 @@ final class preferences {
             unset_user_preference(self::PREFIX . $id);
         }
         unset_user_preference(self::PREFIX . 'colourcustom');
+        // The 'initialised' marker is deliberately kept (spec §7.3: device settings apply on the first visit only).
+        // The panel's "Undo" after device settings calls this, and clearing the marker would re-apply the device
+        // settings on the next load, undoing the undo in a loop.
     }
 
     /**

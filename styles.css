@@ -324,6 +324,10 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     font-size: 11px;
     padding: 2px 8px;
 }
+.local-accessibility-panel .la-devicenote {
+    margin: 6px 8px 0;
+    font-size: 12px;
+}
 .local-accessibility-panel .la-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

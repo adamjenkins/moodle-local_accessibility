@@ -16,20 +16,67 @@
 
 namespace local_accessibility;
 
+use local_accessibility\feature\registry;
+
 /**
- * Saved settings profiles (stub; filled in by Task 17).
+ * One-click bundles of feature values (spec §7.3).
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class profiles {
+    /** @var array Shipped profiles (spec §7.3); each name is a lang string identifier. */
+    public const DEFAULTS = [
+        'dyslexia' => ['name' => 'profile_dyslexia',
+            'values' => ['font' => 'dyslexic', 'spacing' => 'extra', 'colour' => 'cream', 'guide' => 'ruler']],
+        'lowvision' => ['name' => 'profile_lowvision',
+            'values' => ['size' => '175', 'colour' => 'highcontrast', 'links' => 'on', 'focus' => 'ring']],
+        'focus' => ['name' => 'profile_focus', 'values' => ['motion' => 'on', 'narrow' => '70']],
+        'seizuresafe' => ['name' => 'profile_seizuresafe', 'values' => ['motion' => 'on', 'saturation' => 'low']],
+    ];
+
     /**
-     * Template context for the profiles section of the panel.
+     * Validated profiles: admin config if set, else the shipped defaults. Invalid values are dropped.
+     *
+     * @return array<string, array{name: string, values: array<string, string>}>
+     */
+    public static function all(): array {
+        $raw = json_decode((string) get_config('local_accessibility', 'profiles'), true);
+        $source = is_array($raw) && $raw ? $raw : self::DEFAULTS;
+        $out = [];
+        foreach ($source as $id => $p) {
+            $id = clean_param((string) $id, PARAM_ALPHANUMEXT);
+            if ($id === '' || !is_array($p) || !is_array($p['values'] ?? null)) {
+                continue;
+            }
+            $values = [];
+            foreach ($p['values'] as $fid => $v) {
+                $f = registry::get((string) $fid);
+                if ($f && is_string($v) && $f->validate($v)) {
+                    $values[(string) $fid] = $v;
+                }
+            }
+            $name = is_string($p['name'] ?? null) ? $p['name'] : $id;
+            $isdefault = isset(self::DEFAULTS[$id]) && $name === self::DEFAULTS[$id]['name'];
+            $out[$id] = [
+                'name' => $isdefault ? get_string($name, 'local_accessibility') : clean_param($name, PARAM_TEXT),
+                'values' => $values,
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Template context.
      *
      * @return array
      */
     public static function for_template(): array {
-        return [];
+        $out = [];
+        foreach (self::all() as $id => $p) {
+            $out[] = ['id' => $id, 'name' => $p['name'], 'values' => json_encode($p['values'])];
+        }
+        return $out;
     }
 }

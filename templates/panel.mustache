@@ -23,7 +23,7 @@
     * floating - whether to show the floating launcher button
     * tiles - one entry per enabled feature (see local_accessibility/tile)
     * swatches - colour scheme swatches, used by the colour tile
-    * profiles - preset profiles: id, name
+    * profiles - preset profiles: id, name, values (JSON of feature values)
     * custom - the user's custom scheme, or null
     * lowcontrast - whether the current scheme is exact and under 7:1 (shows the colour tile's warning icon)
 
@@ -35,7 +35,7 @@
             "iscolour": false, "twostate": false, "pressed": "true", "dots": [{"filled": true}, {"filled": false}],
             "locked": false}],
         "swatches": [{"id": "default", "label": "Site default", "selected": true}],
-        "profiles": [{"id": "dyslexia", "name": "Dyslexia"}],
+        "profiles": [{"id": "dyslexia", "name": "Dyslexia", "values": "{\"font\":\"dyslexic\"}"}],
         "custom": null,
         "lowcontrast": false
     }
@@ -60,7 +60,7 @@
     </div>
     {{#profiles.0}}
     <div class="la-profiles" role="group" aria-label="{{#str}} profiles, local_accessibility {{/str}}">
-        {{#profiles}}<button type="button" class="la-profile" data-profile="{{id}}">{{name}}</button>{{/profiles}}
+        {{#profiles}}<button type="button" class="la-profile" data-profile="{{id}}" data-values="{{values}}">{{name}}</button>{{/profiles}}
     </div>
     {{/profiles.0}}
     <div class="la-grid">

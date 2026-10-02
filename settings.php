@@ -81,9 +81,7 @@ if ($hassiteconfig) {
             ));
         }
         $page->add(new \local_accessibility\admin\setting_sitepresets());
-        // Task 17 restores this line when setting_profiles exists.
-        // phpcs:ignore Squiz.PHP.CommentedOutCode.Found,moodle.Commenting.InlineComment.NotCapital
-        // $page->add(new \local_accessibility\admin\setting_profiles());
+        $page->add(new \local_accessibility\admin\setting_profiles());
     }
     $ADMIN->add('local_accessibility_cat', $page);
     $ADMIN->add('local_accessibility_cat', new admin_externalpage(

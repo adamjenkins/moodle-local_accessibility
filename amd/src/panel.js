@@ -194,6 +194,106 @@ const initForcedColours = async() => {
 };
 
 /**
+ * Apply a profile: confirm if the user has changed anything, save every value, then reload.
+ *
+ * @param {HTMLElement} profile the profile button
+ */
+const applyProfile = async(profile) => {
+    const changed = [...panel.querySelectorAll('.la-tile[data-feature]')].some((t) =>
+        t.dataset.value !== JSON.parse(t.dataset.values)[0]);
+    // A native confirm is deliberate: a Moodle modal would sit outside this dialog's focus trap.
+    // eslint-disable-next-line no-alert
+    if (changed && !window.confirm(await getString('profileoverwrite', 'local_accessibility'))) {
+        return;
+    }
+    const values = JSON.parse(profile.dataset.values);
+    for (const [feature, value] of Object.entries(values)) {
+        await save(feature, value);
+    }
+    window.location.reload();
+};
+
+/**
+ * Read or write a sessionStorage flag; storage may be unavailable (privacy modes), which reads as "no".
+ *
+ * @param {string} key
+ * @param {string|null} value a string to set, null to remove, undefined to read
+ * @returns {string|null|boolean} the stored value when reading; whether the write worked otherwise
+ */
+const flag = (key, value) => {
+    try {
+        if (value === undefined) {
+            return window.sessionStorage.getItem(key);
+        }
+        if (value === null) {
+            window.sessionStorage.removeItem(key);
+        } else {
+            window.sessionStorage.setItem(key, value);
+        }
+        return true;
+    } catch (e) {
+        return value === undefined ? null : false;
+    }
+};
+
+/**
+ * On a first visit, adopt the device's reduced-motion and more-contrast settings (spec §7.3), reloading once.
+ * A sessionStorage guard is set before saving, so a failing save, or storage that cannot hold the guard,
+ * never produces a reload loop.
+ *
+ * @param {Object} config
+ */
+const initDeviceSettings = async(config) => {
+    const firstVisit = config.guest ? !document.cookie.includes(config.cookie + '=') : !config.initialised;
+    if (firstVisit && !flag('local_accessibility_devicetried')) {
+        const wants = {};
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            wants.motion = 'on';
+        }
+        if (window.matchMedia('(prefers-contrast: more)').matches) {
+            wants.colour = 'highcontrast';
+        }
+        // Without a working guard a reload could repeat, so do nothing then.
+        if (Object.keys(wants).length && flag('local_accessibility_devicetried', '1')) {
+            let saved = 0;
+            for (const [feature, value] of Object.entries(wants)) {
+                try {
+                    await save(feature, value);
+                    saved++;
+                } catch (error) {
+                    Notification.exception(error);
+                }
+            }
+            if (saved && flag('local_accessibility_fromdevice', '1')) {
+                window.location.reload();
+                return;
+            }
+        }
+    }
+    if (flag('local_accessibility_fromdevice')) {
+        flag('local_accessibility_fromdevice', null);
+        const note = document.createElement('p');
+        note.className = 'la-devicenote';
+        note.textContent = await getString('fromdevice', 'local_accessibility');
+        const undo = document.createElement('button');
+        undo.type = 'button';
+        undo.className = 'btn btn-link btn-sm';
+        undo.textContent = await getString('undo', 'local_accessibility');
+        undo.addEventListener('click', async() => {
+            try {
+                // Reset keeps the initialised marker, so this does not re-apply the device settings.
+                await reset();
+                window.location.reload();
+            } catch (error) {
+                Notification.exception(error);
+            }
+        });
+        note.append(' ', undo);
+        panel.querySelector('.la-grid').before(note);
+    }
+};
+
+/**
  * Initialise.
  *
  * @param {Object} config from hook_callbacks::before_http_headers
@@ -221,6 +321,11 @@ export const init = (config) => {
     });
     panel.addEventListener('click', async(e) => {
         try {
+            const profile = e.target.closest('.la-profile');
+            if (profile) {
+                await applyProfile(profile);
+                return;
+            }
             const tile = e.target.closest('.la-tile[data-feature]');
             if (tile) {
                 await cycle(tile);
@@ -284,4 +389,6 @@ export const init = (config) => {
     initImages();
     initMotion();
     initRead();
+    // Last, so every listener above is attached before the first await.
+    initDeviceSettings(config).catch(Notification.exception);
 };
