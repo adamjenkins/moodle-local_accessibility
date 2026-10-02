@@ -52,3 +52,11 @@ Feature: Accessibility panel
     Then ".local-accessibility-launcher" "css_element" should exist
     And I log in as "student1"
     And ".local-accessibility-launcher" "css_element" should not exist
+
+  Scenario: Applying a profile also applies its colour scheme
+    Given I log in as "student1"
+    And I click on "Accessibility settings" "button"
+    When I click on "Low vision" "button"
+    Then the page root should have attribute "data-a11y-colour" with value "highcontrast"
+    And the page root should have attribute "data-a11y-size" with value "175"
+    And the page root should have attribute "data-a11y-links" with value "on"

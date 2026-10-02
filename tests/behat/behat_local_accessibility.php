@@ -38,20 +38,23 @@ use Behat\Mink\Exception\ExpectationException;
  */
 class behat_local_accessibility extends behat_base {
     /**
-     * Check an attribute on <html>.
+     * Check an attribute on <html>, waiting for it while the page settles (a profile or swatch saves, then reloads).
      *
      * @Then /^the page root should have attribute "(?P<attr>[^"]*)" with value "(?P<value>[^"]*)"$/
      * @param string $attr
      * @param string $value
      */
     public function the_page_root_should_have_attribute(string $attr, string $value): void {
-        $actual = $this->getSession()->getPage()->find('css', 'html')->getAttribute($attr);
-        if ($actual !== $value) {
-            throw new ExpectationException(
-                "Expected $attr=\"$value\" on html, got " . var_export($actual, true),
-                $this->getSession()
-            );
-        }
+        $this->spin(function () use ($attr, $value) {
+            $actual = $this->getSession()->getPage()->find('css', 'html')->getAttribute($attr);
+            if ($actual !== $value) {
+                throw new ExpectationException(
+                    "Expected $attr=\"$value\" on html, got " . var_export($actual, true),
+                    $this->getSession()
+                );
+            }
+            return true;
+        });
     }
 
     /**

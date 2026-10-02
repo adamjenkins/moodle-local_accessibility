@@ -194,13 +194,57 @@ const initForcedColours = async() => {
 };
 
 /**
- * Apply a profile: confirm if the user has changed anything, save every value, then reload.
+ * Whether the server left a control operable: it did not render it as locked. Forced-colours disabling, set by this
+ * script, is not a lock.
+ *
+ * @param {Element} el
+ * @returns {boolean}
+ */
+const unlocked = (el) => el.getAttribute('aria-disabled') !== 'true' || el.hasAttribute('data-la-forced');
+
+/**
+ * The value a tile shows, and its first (off/default) value. The colour tile is a group of swatches with no cycle:
+ * its value is the pressed swatch's scheme, or 'custom' when none is pressed.
+ *
+ * @param {HTMLElement} tile
+ * @returns {{value: string, first: string}}
+ */
+const tileState = (tile) => {
+    if (tile.classList.contains('la-colour')) {
+        const pressed = tile.querySelector('.la-swatch[data-scheme][aria-pressed="true"]');
+        return {value: pressed ? pressed.dataset.scheme : 'custom', first: 'default'};
+    }
+    return {value: tile.dataset.value, first: JSON.parse(tile.dataset.values)[0]};
+};
+
+/**
+ * Whether the panel shows a feature as one the user may change: it has a tile (so it is enabled) and the server
+ * did not render it as locked. The colour tile is changeable while any of its scheme swatches is.
+ *
+ * @param {string} feature
+ * @returns {boolean}
+ */
+const isChangeable = (feature) => {
+    const tile = panel.querySelector('.la-tile[data-feature="' + feature + '"]');
+    if (!tile) {
+        return false;
+    }
+    if (tile.classList.contains('la-colour')) {
+        return [...tile.querySelectorAll('.la-swatch[data-scheme]')].some(unlocked);
+    }
+    return unlocked(tile);
+};
+
+/**
+ * Apply a profile: confirm if the user has changed anything they could change, save every value, then reload.
  *
  * @param {HTMLElement} profile the profile button
  */
 const applyProfile = async(profile) => {
-    const changed = [...panel.querySelectorAll('.la-tile[data-feature]')].some((t) =>
-        t.dataset.value !== JSON.parse(t.dataset.values)[0]);
+    const changed = [...panel.querySelectorAll('.la-tile[data-feature]')].some((t) => {
+        const state = tileState(t);
+        return isChangeable(t.dataset.feature) && state.value !== state.first;
+    });
     // A native confirm is deliberate: a Moodle modal would sit outside this dialog's focus trap.
     // eslint-disable-next-line no-alert
     if (changed && !window.confirm(await getString('profileoverwrite', 'local_accessibility'))) {
@@ -226,18 +270,6 @@ const applyProfile = async(profile) => {
     } else if (failure) {
         Notification.exception(failure);
     }
-};
-
-/**
- * Whether the panel shows a feature as one the user may change: it has a tile (so it is enabled) and the
- * server did not render that tile as locked. Forced-colours disabling, set by this script, is not a lock.
- *
- * @param {string} feature
- * @returns {boolean}
- */
-const isChangeable = (feature) => {
-    const tile = panel.querySelector('.la-tile[data-feature="' + feature + '"]');
-    return !!tile && (tile.getAttribute('aria-disabled') !== 'true' || tile.hasAttribute('data-la-forced'));
 };
 
 /**
@@ -357,7 +389,8 @@ export const init = (config) => {
                 await applyProfile(profile);
                 return;
             }
-            const tile = e.target.closest('.la-tile[data-feature]');
+            // The colour tile is a group of swatches (colour.js), not a cycling tile.
+            const tile = e.target.closest('.la-tile[data-feature]:not(.la-colour)');
             if (tile) {
                 await cycle(tile);
                 return;

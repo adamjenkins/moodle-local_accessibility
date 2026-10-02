@@ -18,6 +18,7 @@
     @template local_accessibility/tile
 
     One feature tile. Colour renders swatches; the custom editor lives in colour_editor (Task 11).
+    Every tile carries data-feature, the colour group too: panel.js finds a feature's tile by it.
 
     Context variables required for this template:
     * id, label, icon - the feature
@@ -44,7 +45,7 @@
 </button>
 {{/iscolour}}
 {{#iscolour}}
-<div class="la-tile la-colour" role="group" aria-label="{{label}}">
+<div class="la-tile la-colour" data-feature="{{id}}" role="group" aria-label="{{label}}">
     <div class="la-swatches">
         {{#swatches}}
         <button type="button" class="la-swatch" data-scheme="{{id}}" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}"
