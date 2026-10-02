@@ -67,6 +67,9 @@ final class contrast_test extends \advanced_testcase {
         $this->assertNull(contrast::normalise('#12345'));
         $this->assertNull(contrast::normalise('#12345g'));
         $this->assertNull(contrast::normalise('#123456;color:red'));
+        // PCRE's $ also matches before a final newline; a stored value must not carry one into the style attribute.
+        $this->assertNull(contrast::normalise("#123456\n"));
+        $this->assertNull(contrast::normalise("#abc\n"));
     }
 
     /**

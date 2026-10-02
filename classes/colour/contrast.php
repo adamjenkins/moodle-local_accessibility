@@ -36,10 +36,10 @@ final class contrast {
      * @return string|null null when the input is not a 3- or 6-digit hex colour
      */
     public static function normalise(string $hex): ?string {
-        if (preg_match('/^#([0-9a-f]{3})$/i', $hex, $m)) {
+        if (preg_match('/^#([0-9a-f]{3})\z/i', $hex, $m)) {
             $hex = '#' . $m[1][0] . $m[1][0] . $m[1][1] . $m[1][1] . $m[1][2] . $m[1][2];
         }
-        return preg_match('/^#[0-9a-f]{6}$/i', $hex) ? strtolower($hex) : null;
+        return preg_match('/^#[0-9a-f]{6}\z/i', $hex) ? strtolower($hex) : null;
     }
 
     /**
