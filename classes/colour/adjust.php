@@ -30,8 +30,11 @@ final class adjust {
     /** @var array<string, float> OKLCH lightness steps per tier on a light page (negative = darker). */
     private const LIGHT_STEPS = ['surface1' => -0.03, 'surface2' => -0.06, 'field' => 0.0, 'hover' => -0.09];
 
-    /** @var array<string, float> Steps on a dark page (positive = lighter), as Boost's dark mode does. */
-    private const DARK_STEPS = ['surface1' => 0.04, 'surface2' => 0.08, 'field' => 0.06, 'hover' => 0.12];
+    /** @var array<string, float> Steps on a dark page (positive = lighter), visible even on pure black. */
+    private const DARK_STEPS = ['surface1' => 0.07, 'surface2' => 0.12, 'field' => 0.10, 'hover' => 0.16];
+
+    /** @var array<string, float> Minimum OKLCH lightness per tier on a dark page, so near-black pages still get visible tiers. */
+    private const DARK_FLOORS = ['surface1' => 0.20, 'surface2' => 0.28, 'field' => 0.24, 'hover' => 0.34];
 
     /**
      * Light or dark, from the page colour.
@@ -51,10 +54,15 @@ final class adjust {
      */
     public static function ramp(string $page): array {
         [$l, $c, $h] = oklch::from_hex($page);
-        $steps = self::mode($page) === 'light' ? self::LIGHT_STEPS : self::DARK_STEPS;
+        $light = self::mode($page) === 'light';
+        $steps = $light ? self::LIGHT_STEPS : self::DARK_STEPS;
         $ramp = ['page' => $page];
         foreach ($steps as $tier => $step) {
-            $ramp[$tier] = $step == 0.0 ? $page : oklch::to_hex([$l + $step, $c, $h]);
+            $target = $l + $step;
+            if (!$light) {
+                $target = max($target, self::DARK_FLOORS[$tier]);
+            }
+            $ramp[$tier] = $step == 0.0 ? $page : oklch::to_hex([$target, $c, $h]);
         }
         return $ramp;
     }

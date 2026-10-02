@@ -161,8 +161,11 @@ final class scheme {
         if (!is_array($d) || ($d['v'] ?? 0) !== 1 || !isset($d['bg'], $d['text'], $d['link'])) {
             return null;
         }
+        if (!is_string($d['bg']) || !is_string($d['text']) || !is_string($d['link'])) {
+            return null;
+        }
         try {
-            return self::custom((string) $d['bg'], (string) $d['text'], (string) $d['link'], !empty($d['exact']));
+            return self::custom($d['bg'], $d['text'], $d['link'], ($d['exact'] ?? false) === true);
         } catch (invalid_parameter_exception $e) {
             return null;
         }

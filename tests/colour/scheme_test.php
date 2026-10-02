@@ -40,6 +40,17 @@ final class scheme_test extends \advanced_testcase {
     }
 
     /**
+     * Every preset keeps its surface tiers visibly distinct, including pure black (spec §6.3).
+     */
+    public function test_preset_tiers_distinct(): void {
+        foreach (scheme::presets() as $id => $s) {
+            $r = $s->ramp;
+            $this->assertCount(3, array_unique([$r['page'], $r['surface1'], $r['surface2']]), "$id tiers distinct");
+            $this->assertGreaterThanOrEqual(1.15, contrast::ratio($r['page'], $r['surface2']), "$id page vs surface2");
+        }
+    }
+
+    /**
      * Light pages step darker, dark pages step lighter (spec §6.3).
      */
     public function test_ramp_direction(): void {
@@ -110,6 +121,14 @@ final class scheme_test extends \advanced_testcase {
         $this->assertNull(scheme::from_json('{"v":1,"bg":"#fff;x","text":"#000000","link":"#0000c0","exact":true}'));
         $this->assertNull(scheme::from_json('not json'));
         $this->assertNull(scheme::from_json(str_repeat('a', 5000)));
+        // Non-string colours must give null without a PHP warning.
+        $this->assertNull(scheme::from_json('{"v":1,"bg":["x"],"text":"#000000","link":"#0000c0","exact":true}'));
+        $this->assertNull(scheme::from_json('{"v":1,"bg":"#ffffff","text":{"a":1},"link":"#0000c0","exact":true}'));
+        $this->assertNull(scheme::from_json('{"v":1,"bg":"#ffffff","text":"#000000","link":5,"exact":true}'));
+        // Only a real boolean true means exact.
+        $loose = scheme::from_json('{"v":1,"bg":"#3a6ea5","text":"#1d2125","link":"#ffe08a","exact":"false"}');
+        $this->assertFalse($loose->exact);
+        $this->assertGreaterThanOrEqual(contrast::AAA, $loose->worst_text());
     }
 
     /**
