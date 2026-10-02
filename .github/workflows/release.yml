@@ -37,8 +37,8 @@ jobs:
           git push -f -u origin ${{ needs.get-version.outputs.branch-name }}
       - name: Remove .gitignore for default widgets pack
         run: |
-          git config --global user.name "ponlawat-w"
-          git config --global user.email "ponlawat_w@outlook.co.th"
+          git config --global user.name "Adam Jenkins"
+          git config --global user.email "adam@wisecat.net"
           git checkout -b ${{ needs.get-version.outputs.branch-name }}-with-widgets
           rm ./.gitignore
           git add -A
@@ -160,8 +160,8 @@ jobs:
           ref: ${{ matrix.branch }}
       - name: Publish Tag
         run: |
-          git config --global user.name "ponlawat-w"
-          git config --global user.email "ponlawat_w@outlook.co.th"
+          git config --global user.name "Adam Jenkins"
+          git config --global user.email "adam@wisecat.net"
           git tag -fa ${{ matrix.name }} -m "${{ matrix.body }}"
           git push --force origin ${{ matrix.name }}
       - name: Release
