@@ -17,36 +17,52 @@
 {{!
     @template local_accessibility/panel
 
-    The launcher and the accessibility settings dialog (minimal; the full template comes in Task 10).
+    The accessibility launcher and dialog (spec §4).
 
     Context variables required for this template:
     * floating - whether to show the floating launcher button
-    * tiles - one entry per enabled feature: id, label
+    * tiles - one entry per enabled feature (see local_accessibility/tile)
+    * swatches - colour scheme swatches, used by the colour tile
+    * profiles - preset profiles: id, name
+    * custom - the user's custom scheme, or null
 
     Example context (json):
     {
         "floating": true,
-        "tiles": [
-            {"id": "size", "label": "Text size"},
-            {"id": "font", "label": "Readable font"}
-        ]
+        "tiles": [{"id": "size", "label": "Text size", "icon": "fa-text-height", "value": "150",
+            "valuelabel": "150%", "values": "[\"100\",\"125\",\"150\"]", "valuelabels": "[\"100%\",\"125%\",\"150%\"]",
+            "iscolour": false, "twostate": false, "pressed": "true", "dots": [{"filled": true}, {"filled": false}],
+            "locked": false}],
+        "swatches": [{"id": "default", "label": "Site default", "selected": true}],
+        "profiles": [{"id": "dyslexia", "name": "Dyslexia"}],
+        "custom": null
     }
 }}
-<div class="local-accessibility">
-    {{#floating}}
-    <button type="button" class="la-launcher" aria-expanded="false" aria-controls="local-accessibility-panel">
-        {{#str}} accessibilitysettings, local_accessibility {{/str}}
-    </button>
-    {{/floating}}
-    <div id="local-accessibility-panel" class="la-panel" role="dialog" aria-modal="true"
-        aria-labelledby="local-accessibility-panel-title" hidden>
-        <h2 id="local-accessibility-panel-title" class="la-panel-title">
-            {{#str}} accessibilitysettings, local_accessibility {{/str}}
-        </h2>
-        <div class="la-tiles">
-            {{#tiles}}
-            <button type="button" class="la-tile" data-feature="{{id}}">{{label}}</button>
-            {{/tiles}}
-        </div>
+{{#floating}}
+<button type="button" class="local-accessibility-launcher btn btn-primary"
+        aria-expanded="false" aria-controls="local-accessibility-panel"
+        title="{{#str}} accessibilitysettings, local_accessibility {{/str}}">
+    <i class="icon fa fa-universal-access" aria-hidden="true"></i>
+    <span class="la-visually-hidden">{{#str}} accessibilitysettings, local_accessibility {{/str}}</span>
+</button>
+{{/floating}}
+<div id="local-accessibility-panel" class="local-accessibility-panel" role="dialog" aria-modal="true"
+     aria-labelledby="local-accessibility-title" hidden>
+    <div class="la-head">
+        <h2 id="local-accessibility-title" class="la-title">{{#str}} pluginname, local_accessibility {{/str}}</h2>
+        <button type="button" class="btn btn-sm la-reset" data-action="reset">{{#str}} resetall, local_accessibility {{/str}}</button>
+        <button type="button" class="btn btn-sm la-close" data-action="close"
+                aria-label="{{#str}} closepanel, local_accessibility {{/str}}">
+            <i class="icon fa fa-xmark" aria-hidden="true"></i>
+        </button>
     </div>
+    {{#profiles.0}}
+    <div class="la-profiles" role="group" aria-label="{{#str}} profiles, local_accessibility {{/str}}">
+        {{#profiles}}<button type="button" class="la-profile" data-profile="{{id}}">{{name}}</button>{{/profiles}}
+    </div>
+    {{/profiles.0}}
+    <div class="la-grid">
+        {{#tiles}}{{> local_accessibility/tile }}{{/tiles}}
+    </div>
+    <div class="la-live la-visually-hidden" aria-live="polite"></div>
 </div>

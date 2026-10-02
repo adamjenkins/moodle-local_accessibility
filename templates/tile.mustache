@@ -1,0 +1,59 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_accessibility/tile
+
+    One feature tile. Colour renders swatches; the custom editor lives in colour_editor (Task 11).
+
+    Context variables required for this template:
+    * id, label, icon - the feature
+    * value, valuelabel - the current value and its label
+    * values, valuelabels - JSON arrays of all values and their labels
+    * iscolour, twostate, pressed, dots, locked - display state
+    * swatches - resolved from the panel context for the colour tile
+
+    Example context (json):
+    {"id": "size", "label": "Text size", "icon": "fa-text-height", "value": "150", "valuelabel": "150%",
+     "values": "[\"100\",\"125\",\"150\"]", "valuelabels": "[\"100%\",\"125%\",\"150%\"]", "iscolour": false,
+     "twostate": false, "pressed": "true", "dots": [{"filled": true}, {"filled": false}], "locked": false}
+}}
+{{^iscolour}}
+<button type="button" class="la-tile" data-feature="{{id}}" data-value="{{value}}"
+        data-values="{{values}}" data-labels="{{valuelabels}}" data-label="{{label}}"
+        {{#twostate}}aria-pressed="{{pressed}}"{{/twostate}}
+        aria-label="{{label}}, {{valuelabel}}" {{#locked}}aria-disabled="true"{{/locked}}>
+    <i class="icon fa {{icon}}" aria-hidden="true"></i>
+    <span class="la-label" aria-hidden="true">{{label}}</span>
+    {{#dots.0}}<span class="la-dots" aria-hidden="true">{{#dots}}<i class="{{#filled}}la-on{{/filled}}"></i>{{/dots}}</span>{{/dots.0}}
+    {{#locked}}<i class="icon fa fa-lock la-lock" aria-hidden="true"></i>{{/locked}}
+</button>
+{{/iscolour}}
+{{#iscolour}}
+<div class="la-tile la-colour" role="group" aria-label="{{label}}">
+    <div class="la-swatches">
+        {{#swatches}}
+        <button type="button" class="la-swatch" data-scheme="{{id}}" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}"
+                {{#bg}}style="background:{{bg}};color:{{text}}"{{/bg}} aria-label="{{label}}" {{#locked}}aria-disabled="true"{{/locked}}>Aa</button>
+        {{/swatches}}
+        <button type="button" class="la-swatch la-edit" data-action="customcolours" aria-label="{{#str}} customcolours, local_accessibility {{/str}}">
+            <i class="icon fa fa-pen" aria-hidden="true"></i>
+        </button>
+    </div>
+    <span class="la-label la-colourlabel">{{valuelabel}}</span>
+    <i class="icon fa fa-triangle-exclamation la-warn" aria-hidden="true" hidden></i>
+</div>
+{{/iscolour}}
