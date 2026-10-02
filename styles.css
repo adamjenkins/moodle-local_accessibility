@@ -538,3 +538,31 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
         max-block-size: 80vh;
     }
 }
+.la-readbar {
+    position: fixed;
+    inset-block-end: 12px;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    z-index: 1055;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    max-inline-size: calc(100vw - 24px);
+    padding: 6px 10px;
+    font-size: 16px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-primary);
+    border-radius: 10px;
+}
+.la-readbar[hidden],
+.local-accessibility-panel .la-tile[hidden] {
+    display: none;
+}
+.la-readbar .la-rate {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin: 0;
+}

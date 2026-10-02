@@ -28,6 +28,7 @@ import {init as initColour} from 'local_accessibility/colour';
 import {init as initGuide} from 'local_accessibility/guide';
 import {init as initImages} from 'local_accessibility/images';
 import {init as initMotion} from 'local_accessibility/motion';
+import {init as initRead} from 'local_accessibility/read';
 
 // Everything natively tabbable (aria-disabled buttons stay tabbable, so the trap must include them).
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), '
@@ -282,4 +283,5 @@ export const init = (config) => {
     initGuide();
     initImages();
     initMotion();
+    initRead();
 };
