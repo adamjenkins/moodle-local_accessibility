@@ -12,65 +12,217 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with Moodle.  If not, see <https://www.gnu.org/licenses/>. */
+
 /**
- * Plugin version and other meta-data are defined here.
+ * Attribute-driven accessibility styles.
  *
  * @package     local_accessibility
  * @copyright   2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
+ * @copyright   2026 Adam Jenkins <adam@wisecat.net>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-.local-accessibility-buttoncontainer {
-    position: fixed;
-    bottom: 5rem;
-    right: 2rem;
-}
-body.dir-rtl .local-accessibility-buttoncontainer {
-    right: unset;
-    left: 2rem;
+
+/* 1. Fonts. */
+@font-face {
+    font-family: local_accessibility_dyslexic;
+    font-weight: 400;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/opendyslexic-regular.woff2) format("woff2");
 }
 
-#page.drawers.show-drawer-right .local-accessibility-buttoncontainer {
-    right: calc(315px + 2rem);
-}
-body.dir-rtl #page.drawers.show-drawer-right .local-accessibility-buttoncontainer {
-    right: unset;
-    left: calc(315px + 2rem);
-}
-
-#local-accessibility-buttoncontainer button {
-    font-size: 16px;
-    width: 36px;
-    height: 36px;
-    line-height: 16px;
-    padding: 0;
-    text-align: center;
-    border-radius: 50%;
+@font-face {
+    font-family: local_accessibility_dyslexic;
+    font-weight: 700;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/opendyslexic-bold.woff2) format("woff2");
 }
 
-.local-accessibility-panel {
+@font-face {
+    font-family: local_accessibility_readable;
+    font-weight: 400;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/atkinsonhyperlegible-regular.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: local_accessibility_readable;
+    font-weight: 700;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/atkinsonhyperlegible-bold.woff2) format("woff2");
+}
+
+/* 2. Size: root scaling (spec §5). */
+html[data-a11y-size="125"] {
+    font-size: 125%;
+}
+html[data-a11y-size="150"] {
+    font-size: 150%;
+}
+html[data-a11y-size="175"] {
+    font-size: 175%;
+}
+html[data-a11y-size="200"] {
+    font-size: 200%;
+}
+
+@media (max-width: 480px) {
+    html[data-a11y-size="175"],
+    html[data-a11y-size="200"] {
+        font-size: 150%;
+    }
+}
+
+/* stylelint-disable max-line-length, selector-type-no-unknown -- long :where() lists; mjx-container is a custom element. */
+/* 3. Font: content only; icons, code and maths excluded. */
+html[data-a11y-font="readable"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
+    font-family: local_accessibility_readable, system-ui, sans-serif !important; /* stylelint-disable-line declaration-no-important */
+}
+html[data-a11y-font="dyslexic"] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, .MathJax, .MathJax *, mjx-container, mjx-container *)) {
+    font-family: local_accessibility_dyslexic, system-ui, sans-serif !important; /* stylelint-disable-line declaration-no-important */
+}
+
+/* stylelint-enable max-line-length, selector-type-no-unknown */
+/* 4. Spacing: WCAG 1.4.12 values, em units. */
+html[data-a11y-spacing="wcag"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div) {
+    line-height: 1.5 !important; /* stylelint-disable-line declaration-no-important */
+    letter-spacing: 0.12em !important; /* stylelint-disable-line declaration-no-important */
+    word-spacing: 0.16em !important; /* stylelint-disable-line declaration-no-important */
+}
+html[data-a11y-spacing="wcag"] body :where(p) {
+    margin-block-end: 2em !important; /* stylelint-disable-line declaration-no-important */
+}
+html[data-a11y-spacing="extra"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div) {
+    line-height: 1.8 !important; /* stylelint-disable-line declaration-no-important */
+    letter-spacing: 0.16em !important; /* stylelint-disable-line declaration-no-important */
+    word-spacing: 0.24em !important; /* stylelint-disable-line declaration-no-important */
+    font-kerning: none;
+}
+html[data-a11y-spacing="extra"] body :where(p) {
+    margin-block-end: 2.5em !important; /* stylelint-disable-line declaration-no-important */
+}
+
+/* 5. Align left: content text in the main region only. */
+html[data-a11y-align="on"] #region-main :where(p, li, td, th, blockquote, div:not(.text-center)) {
+    text-align: start !important; /* stylelint-disable-line declaration-no-important */
+}
+
+/* 6. Narrow lines. */
+html[data-a11y-narrow="70"] #region-main :where(p, li, blockquote, dd) {
+    max-inline-size: 70ch;
+}
+html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd) {
+    max-inline-size: 60ch;
+}
+
+/* stylelint-disable max-line-length, selector-type-no-unknown -- long :where() lists; mjx-container is a custom element. */
+/* 7. Colour schemes: custom properties onto Bootstrap/MDS surfaces (spec §6.3), only when not forced. */
+@media (forced-colors: none) {
+    html[data-a11y-colour] {
+        --bs-body-bg: var(--a11y-page);
+        --bs-body-color: var(--a11y-text);
+        --bs-emphasis-color: var(--a11y-text);
+        --bs-secondary-color: var(--a11y-text);
+        --bs-secondary-bg: var(--a11y-surface1);
+        --bs-tertiary-bg: var(--a11y-hover);
+        --bs-border-color: var(--a11y-text);
+        --bs-link-color: var(--a11y-link);
+        --bs-link-hover-color: var(--a11y-link);
+        --bs-link-color-rgb: initial;
+        --bs-card-bg: var(--a11y-surface1);
+        background-color: var(--a11y-page);
+        color: var(--a11y-text);
+    }
+    html[data-a11y-colour] body :where(a:not(.btn, .qnbutton, .nav-link.active)) {
+        color: var(--a11y-link) !important; /* stylelint-disable-line declaration-no-important */
+        text-decoration: underline !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Mop-up: hardcoded surfaces (spec §6.4). Grows during Task 22's manual pass. */
+    html[data-a11y-colour] body :where(#page, #page-wrapper, .drawer, .navbar, .card, .list-group-item, .dropdown-menu, .modal-content, .popover, .table, .form-control, .form-select, .custom-select, .activity-item, .course-content .section) {
+        background-color: var(--a11y-surface1) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.drawer, .navbar, .secondary-navigation) {
+        background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.form-control, .form-select, .custom-select, textarea, input) {
+        background-color: var(--a11y-field) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(#page-content, #region-main, .main-inner) {
+        background-color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Pasted content colours lose to the scheme (spec §6.2, CSS only). */
+    html[data-a11y-colour] #region-main [style*="color"] {
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+        background-color: transparent !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Exclusions (spec §6.4): never recolour media, icons, maths, quiz state. */
+    html[data-a11y-colour] body :where(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, mjx-container, .qnbutton, .qnbutton *, .filemanager-thumbnail) {
+        background-color: revert !important; /* stylelint-disable-line declaration-no-important */
+        color: revert !important; /* stylelint-disable-line declaration-no-important */
+    }
+}
+
+/* stylelint-enable max-line-length, selector-type-no-unknown */
+/* 8. Links highlight: underline + outline, no layout shift. */
+html[data-a11y-links="on"] body :where(a:not(.btn, .qnbutton)) {
+    text-decoration: underline 2px !important; /* stylelint-disable-line declaration-no-important */
+    text-underline-offset: 0.2em;
+    outline: 2px solid var(--a11y-link, var(--bs-link-color));
+    outline-offset: 2px;
+}
+
+/* 9. Hide images; alt text shown by images.js (Task 13) as a sibling span. */
+html[data-a11y-images="on"] #page :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]) {
+    visibility: hidden;
+}
+html[data-a11y-images="on"] #page img:not(.icon, .activityicon, .userpicture) {
+    background-image: none !important; /* stylelint-disable-line declaration-no-important */
+}
+.la-alt {
     display: none;
-    position: fixed;
-    bottom: 8rem;
-    right: 2rem;
-    z-index: 1040;
-    box-shadow: 0 0 5px #000;
 }
-body.dir-rtl .local-accessibility-panel {
-    right: unset;
-    left: 2rem;
+html[data-a11y-images="on"] .la-alt {
+    display: inline-block;
+    border: 1px dashed currentcolor;
+    padding: 0.1em 0.4em;
 }
 
-.local-accessibility-panel > .card-body {
-    min-height: 250px;
-    max-height: calc(100vh - 250px);
-    overflow-y: auto;
+/* 10. Saturation: on <html> only (spec §5, research R §1.10). */
+@media (forced-colors: none) {
+    html[data-a11y-saturation="low"] {
+        filter: saturate(0.5);
+    }
+    html[data-a11y-saturation="grey"] {
+        filter: grayscale(1);
+    }
+    html[data-a11y-saturation="high"] {
+        filter: saturate(1.8);
+    }
 }
 
-.local-accessibility-panel .card-header {
-    border-radius: calc(0.5rem - 1px) calc(0.5rem - 1px) 0 0;
+/* 11. Focus ring (C40 two-colour) and large cursor (64px max). */
+html[data-a11y-focus] :focus-visible {
+    outline: 3px solid #000 !important; /* stylelint-disable-line declaration-no-important */
+    outline-offset: 2px !important; /* stylelint-disable-line declaration-no-important */
+    box-shadow: 0 0 0 5px #fff !important; /* stylelint-disable-line declaration-no-important */
 }
 
-.h5p-embed .local-accessibility-buttoncontainer {
-    display: none;
+@media (forced-colors: active) {
+    html[data-a11y-focus] :focus-visible {
+        outline: 3px solid CanvasText !important; /* stylelint-disable-line declaration-no-important, csstree/validator */
+    }
+}
+html[data-a11y-focus="cursor"],
+html[data-a11y-focus="cursor"] * {
+    cursor: url(../../../../local/accessibility/pix/cursor.svg) 4 4, auto !important; /* stylelint-disable-line declaration-no-important */
 }
 
+/* 12. Motion. */
+html[data-a11y-motion="on"] *,
+html[data-a11y-motion="on"] *::before,
+html[data-a11y-motion="on"] *::after {
+    animation-duration: 0.001ms !important; /* stylelint-disable-line declaration-no-important, time-min-milliseconds */
+    animation-iteration-count: 1 !important; /* stylelint-disable-line declaration-no-important */
+    transition-duration: 0.001ms !important; /* stylelint-disable-line declaration-no-important, time-min-milliseconds */
+    scroll-behavior: auto !important; /* stylelint-disable-line declaration-no-important */
+}
