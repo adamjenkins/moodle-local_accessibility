@@ -18,7 +18,7 @@
  * Hook callbacks.
  *
  * @package    local_accessibility
- * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
+ * @copyright  2024 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

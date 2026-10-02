@@ -26,6 +26,7 @@ use core_user\hook\extend_user_menu;
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
+ * @copyright  2024 Bartlomiej Jencz <bartlomiej.jencz@p.lodz.pl>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -40,10 +41,30 @@ final class hook_callbacks {
      * @return bool
      */
     public static function is_suppressed(\moodle_page $page): bool {
+        return self::inactive() || in_array($page->pagelayout, self::SUPPRESSED_LAYOUTS, true);
+    }
+
+    /**
+     * Whether the plugin must do nothing on any page: escape hatch, install or upgrade running, or
+     * the code is on disk but the plugin is not installed yet (core loads db/hooks.php regardless).
+     *
+     * @return bool
+     */
+    private static function inactive(): bool {
         global $CFG;
         return !empty($CFG->local_accessibility_disabled)
-            || in_array($page->pagelayout, self::SUPPRESSED_LAYOUTS, true)
-            || during_initial_install();
+            || !empty($CFG->upgraderunning)
+            || during_initial_install()
+            || !get_config('local_accessibility', 'version');
+    }
+
+    /**
+     * Whether the keyboard shortcut is on (default on when the setting is unset).
+     *
+     * @return bool
+     */
+    public static function shortcut_enabled(): bool {
+        return get_config('local_accessibility', 'shortcut') !== '0';
     }
 
     /**
@@ -77,7 +98,7 @@ final class hook_callbacks {
             'guest' => preferences::uses_cookie(),
             'cookie' => preferences::COOKIE,
             'cookieattributes' => colour_mode::cookie_attributes(),
-            'shortcut' => (bool) get_config('local_accessibility', 'shortcut'),
+            'shortcut' => self::shortcut_enabled(),
             'initialised' => !preferences::uses_cookie() && get_user_preferences('local_accessibility_initialised'),
         ]]);
     }
@@ -103,6 +124,9 @@ final class hook_callbacks {
      * @return void
      */
     public static function user_menu(extend_user_menu $hook): void {
+        if (self::inactive()) {
+            return;
+        }
         $mode = get_config('local_accessibility', 'launcher') ?: 'both';
         if ($mode === 'floating' || !preferences::enabled_ids()) {
             return;

@@ -36,6 +36,7 @@ class panel implements \renderable, \templatable {
      * @return array
      */
     public function export_for_template(\renderer_base $output): array {
+        global $PAGE;
         $tiles = [];
         foreach (preferences::enabled_ids() as $id) {
             $f = registry::get($id);
@@ -74,7 +75,8 @@ class panel implements \renderable, \templatable {
             'swatches' => $swatches,
             'custom' => $custom ? ['bg' => $custom->ramp['page'], 'text' => $custom->text,
                 'link' => $custom->link, 'exact' => $custom->exact] : null,
-            'floating' => $mode !== 'menu',
+            // Guests and secure-layout pages have no user menu, so they always get the floating launcher (R16).
+            'floating' => $mode !== 'menu' || preferences::uses_cookie() || $PAGE->pagelayout === 'secure',
             'profiles' => \local_accessibility\profiles::for_template(),
         ];
     }

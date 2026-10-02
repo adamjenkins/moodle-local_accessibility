@@ -105,7 +105,10 @@ final class hook_callbacks_test extends \advanced_testcase {
         $CFG->sessioncookiepath = '';
         $CFG->sessioncookiedomain = '';
         unset($CFG->cookiesecure);
+        $CFG->wwwroot = 'http://example.com';
         $this->assertSame('; Path=/; SameSite=Lax; Max-Age=31536000', colour_mode::cookie_attributes());
+        $CFG->wwwroot = 'http://example.com/lms';
+        $this->assertStringStartsWith('; Path=/lms/;', colour_mode::cookie_attributes());
         $CFG->sessioncookiepath = '/moodle/';
         $CFG->sessioncookiedomain = 'example.com';
         $this->assertStringContainsString('; Path=/moodle/;', colour_mode::cookie_attributes());
@@ -113,5 +116,115 @@ final class hook_callbacks_test extends \advanced_testcase {
         $CFG->cookiesecure = true;
         $CFG->sslproxy = true;
         $this->assertStringEndsWith('; Secure', colour_mode::cookie_attributes());
+    }
+
+    /**
+     * Code on disk but plugin not installed: no hook touches the plugin's tables.
+     */
+    public function test_not_installed_does_nothing(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $this->setUser($this->getDataGenerator()->create_user());
+        preferences::set('size', '175');
+        unset_config('version', 'local_accessibility');
+        $cache = \cache::make('local_accessibility', 'enabled');
+        $cache->purge();
+        $PAGE->set_url('/');
+        $PAGE->set_pagelayout('standard');
+
+        $attrs = new \core\hook\output\before_html_attributes($PAGE->get_renderer('core'), ['lang' => 'en']);
+        hook_callbacks::html_attributes($attrs);
+        $this->assertSame(['lang' => 'en'], $attrs->get_attributes());
+
+        $footer = new \core\hook\output\before_footer_html_generation($PAGE->get_renderer('core'));
+        hook_callbacks::footer($footer);
+        $this->assertSame('', $footer->get_output());
+
+        $menu = new \core_user\hook\extend_user_menu();
+        hook_callbacks::user_menu($menu);
+        $this->assertSame([], $menu->get_navitems());
+
+        $this->assertTrue(hook_callbacks::is_suppressed($PAGE));
+        // The enabled-features cache was never filled, so the features table was never queried.
+        $this->assertFalse($cache->get('ids'));
+    }
+
+    /**
+     * A running upgrade suppresses every page.
+     */
+    public function test_upgrade_running_suppresses(): void {
+        global $CFG;
+        $this->resetAfterTest();
+        $page = new \moodle_page();
+        $page->set_url('/');
+        $page->set_pagelayout('standard');
+        $this->assertFalse(hook_callbacks::is_suppressed($page));
+        $CFG->upgraderunning = time();
+        $this->assertTrue(hook_callbacks::is_suppressed($page));
+    }
+
+    /**
+     * The escape hatch also removes the user menu entry.
+     */
+    public function test_user_menu_disabled(): void {
+        global $CFG;
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        $CFG->local_accessibility_disabled = true;
+        $hook = new \core_user\hook\extend_user_menu();
+        hook_callbacks::user_menu($hook);
+        $this->assertSame([], $hook->get_navitems());
+    }
+
+    /**
+     * In menu mode, users without a user menu still get the floating launcher (R16).
+     *
+     * @covers \local_accessibility\output\panel
+     */
+    public function test_menu_mode_floating_fallback(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        set_config('launcher', 'menu', 'local_accessibility');
+        $PAGE->set_url('/');
+        $PAGE->set_pagelayout('standard');
+        $renderer = $PAGE->get_renderer('core');
+
+        $this->setGuestUser();
+        $this->assertTrue((new output\panel())->export_for_template($renderer)['floating']);
+        $this->setUser($this->getDataGenerator()->create_user());
+        $this->assertFalse((new output\panel())->export_for_template($renderer)['floating']);
+        $this->setUser(0);
+        $this->assertTrue((new output\panel())->export_for_template($renderer)['floating']);
+    }
+
+    /**
+     * Logged-in users on a secure-layout page have no user menu either (R16).
+     *
+     * @covers \local_accessibility\output\panel
+     */
+    public function test_menu_mode_secure_layout(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+        preferences::sync_features_table();
+        set_config('launcher', 'menu', 'local_accessibility');
+        $this->setUser($this->getDataGenerator()->create_user());
+        $PAGE->set_url('/');
+        $PAGE->set_pagelayout('secure');
+        $this->assertTrue((new output\panel())->export_for_template($PAGE->get_renderer('core'))['floating']);
+    }
+
+    /**
+     * The shortcut is on unless explicitly turned off.
+     */
+    public function test_shortcut_enabled(): void {
+        $this->resetAfterTest();
+        unset_config('shortcut', 'local_accessibility');
+        $this->assertTrue(hook_callbacks::shortcut_enabled());
+        set_config('shortcut', '0', 'local_accessibility');
+        $this->assertFalse(hook_callbacks::shortcut_enabled());
+        set_config('shortcut', '1', 'local_accessibility');
+        $this->assertTrue(hook_callbacks::shortcut_enabled());
     }
 }

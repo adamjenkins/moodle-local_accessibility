@@ -40,7 +40,9 @@ final class colour_mode {
      */
     public static function cookie_attributes(): string {
         global $CFG;
-        $a = ['Path=' . (($CFG->sessioncookiepath ?? '') ?: '/'), 'SameSite=Lax', 'Max-Age=31536000'];
+        // Same fallback as core\session\manager when sessioncookiepath is empty: the wwwroot path.
+        $path = ($CFG->sessioncookiepath ?? '') ?: (parse_url($CFG->wwwroot, PHP_URL_PATH) ?: '') . '/';
+        $a = ['Path=' . $path, 'SameSite=Lax', 'Max-Age=31536000'];
         if (!empty($CFG->sessioncookiedomain)) {
             $a[] = 'Domain=' . $CFG->sessioncookiedomain;
         }
