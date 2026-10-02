@@ -1,0 +1,153 @@
+name: Moodle Plugin CI
+
+on:
+  push:
+    # The release branch is covered by release.yml, which calls this workflow.
+    branches-ignore:
+      - release
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    # moodle.git main rows are experimental: allowed to fail without failing the run.
+    continue-on-error: ${{ matrix.experimental == true }}
+
+    services:
+      postgres:
+        # Lowest version satisfying every stable branch in the matrix (4.5 needs >= 13,
+        # 5.2 needs >= 16; environment.xml). main/5.3 needs PostgreSQL >= 17, so its
+        # rows override the image via matrix.pgsql-image.
+        image: ${{ matrix.database == 'pgsql' && (matrix.pgsql-image || 'postgres:16') || '' }}
+        env:
+          POSTGRES_USER: 'postgres'
+          POSTGRES_HOST_AUTH_METHOD: 'trust'
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+
+      mariadb:
+        # Lowest version satisfying every stable branch (4.5 needs >= 10.6.7, 5.2 needs
+        # >= 10.11). main/5.3 needs MariaDB >= 11.4, set via matrix.mariadb-image.
+        image: ${{ matrix.database == 'mariadb' && (matrix.mariadb-image || 'mariadb:10.11') || '' }}
+        env:
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: '1'
+          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
+          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval 10s --health-timeout 5s --health-retries 3
+
+    strategy:
+      fail-fast: false
+      # Moodle 4.5 and 5.2 (blocking) plus moodle.git main = 5.3beta (non-blocking,
+      # experimental). Each branch at its PHP floor and ceiling (4.5: 8.1-8.3,
+      # 5.2 and main: 8.3-8.4; environment.xml and core's push.yml), with the two
+      # database engines alternating so both are exercised.
+      matrix:
+        include:
+          - {moodle-branch: MOODLE_405_STABLE, php: '8.1', database: pgsql}
+          - {moodle-branch: MOODLE_405_STABLE, php: '8.3', database: mariadb}
+          - {moodle-branch: MOODLE_502_STABLE, php: '8.3', database: mariadb}
+          - {moodle-branch: MOODLE_502_STABLE, php: '8.4', database: pgsql}
+          - {moodle-branch: main, php: '8.4', database: pgsql, experimental: true, pgsql-image: 'postgres:17', mariadb-image: 'mariadb:11.4'}
+          - {moodle-branch: main, php: '8.3', database: mariadb, experimental: true, pgsql-image: 'postgres:17', mariadb-image: 'mariadb:11.4'}
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+        with:
+          path: plugin
+          persist-credentials: false
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ${{ matrix.extensions }}
+          ini-values: max_input_vars=5000, opcache.enable_cli=1
+          coverage: none
+
+      - name: Initialise moodle-plugin-ci
+        run: |
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
+          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
+          echo $(cd ci/vendor/bin; pwd) >> $GITHUB_PATH
+          sudo locale-gen en_AU.UTF-8
+          echo "NVM_DIR=$HOME/.nvm" >> $GITHUB_ENV
+
+      # The PHPUnit suite needs these four widgets installed (tests/base.php). Their default
+      # branches are tracked. .moodle-plugin-ci.yml keeps the checks below off widgets/.
+      - name: Add widgets used by the tests
+        run: |
+          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_textcolour
+          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_fontsize
+          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_backgroundcolour
+          moodle-plugin-ci add-plugin adamjenkins/moodle-accessibility_fontface
+
+      - name: Install moodle-plugin-ci
+        run: moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1
+        env:
+          DB: ${{ matrix.database }}
+          MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+
+      - name: PHP Lint
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phplint
+
+      - name: PHP Mess Detector
+        continue-on-error: true # This step will show errors but will not fail
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpmd
+
+      - name: Moodle Code Checker
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpcs --max-warnings 0
+
+      - name: Moodle PHPDoc Checker
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpdoc --max-warnings 0
+
+      - name: Validating
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci validate
+
+      - name: Check upgrade savepoints
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci savepoints
+
+      - name: Mustache Lint
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci mustache
+
+      # 5.2 only: the committed amd/build bundles are built with the 5.2 toolchain,
+      # and each branch minifies differently.
+      - name: Grunt
+        if: ${{ !cancelled() && matrix.moodle-branch == 'MOODLE_502_STABLE' }}
+        run: moodle-plugin-ci grunt --max-lint-warnings 0
+
+      - name: PHPUnit tests
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci phpunit --fail-on-warning
+
+      - name: Behat features
+        id: behat
+        if: ${{ !cancelled() }}
+        run: moodle-plugin-ci behat --profile chrome --scss-deprecations
+
+      - name: Upload Behat Faildump
+        if: ${{ failure() && steps.behat.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: Behat Faildump (${{ matrix.moodle-branch }}, PHP ${{ matrix.php }}, ${{ matrix.database }})
+          path: ${{ github.workspace }}/moodledata/behat_dump
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Mark cancelled jobs as failed.
+        if: ${{ cancelled() }}
+        run: exit 1

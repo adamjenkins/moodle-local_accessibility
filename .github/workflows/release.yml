@@ -9,9 +9,11 @@ jobs:
 
   ci:
     name: CI
-    uses: ./.github/workflows/ci.yml
-    with:
-      accessibility-branch: ${{ github.ref }}
+    uses: ./.github/workflows/moodle-ci.yml
+
+  widget-versions:
+    name: Get default widget versions
+    uses: ./.github/workflows/default-widget-versions.yml
 
   get-version:
     name: Get version info
@@ -19,7 +21,7 @@ jobs:
 
   push-branches:
     name: Push to release branches
-    needs: [ci, get-version]
+    needs: [ci, get-version, widget-versions]
     outputs:
       release: ${{ needs.get-version.outputs.plugin-release }}
       version: ${{ needs.get-version.outputs.plugin-version }}
@@ -48,67 +50,67 @@ jobs:
         with:
           repository: adamjenkins/moodle-accessibility_backgroundcolour
           path: widgets/backgroundcolour
-          ref: ${{ needs.ci.outputs.widget-backgroundcolour-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-backgroundcolour-branch }}
       - name: 'Checkout Widget: fontface'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_fontface
           path: widgets/fontface
-          ref: ${{ needs.ci.outputs.widget-fontface-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-fontface-branch }}
       - name: 'Checkout Widget: fontkerning'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_fontkerning
           path: widgets/fontkerning
-          ref: ${{ needs.ci.outputs.widget-fontkerning-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-fontkerning-branch }}
       - name: 'Checkout Widget: fontsize'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_fontsize
           path: widgets/fontsize
-          ref: ${{ needs.ci.outputs.widget-fontsize-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-fontsize-branch }}
       - name: 'Checkout Widget: imagevisibility'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_imagevisibility
           path: widgets/imagevisibility
-          ref: ${{ needs.ci.outputs.widget-imagevisibility-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-imagevisibility-branch }}
       - name: 'Checkout Widget: letterspacing'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_letterspacing
           path: widgets/letterspacing
-          ref: ${{ needs.ci.outputs.widget-letterspacing-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-letterspacing-branch }}
       - name: 'Checkout Widget: lineheight'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_lineheight
           path: widgets/lineheight
-          ref: ${{ needs.ci.outputs.widget-lineheight-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-lineheight-branch }}
       - name: 'Checkout Widget: linkhighlight'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_linkhighlight
           path: widgets/linkhighlight
-          ref: ${{ needs.ci.outputs.widget-linkhighlight-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-linkhighlight-branch }}
       - name: 'Checkout Widget: paragraphwidth'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_paragraphwidth
           path: widgets/paragraphwidth
-          ref: ${{ needs.ci.outputs.widget-paragraphwidth-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-paragraphwidth-branch }}
       - name: 'Checkout Widget: textalignment'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_textalignment
           path: widgets/textalignment
-          ref: ${{ needs.ci.outputs.widget-textalignment-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-textalignment-branch }}
       - name: 'Checkout Widget: textcolour'
         uses: actions/checkout@v4
         with:
           repository: adamjenkins/moodle-accessibility_textcolour
           path: widgets/textcolour
-          ref: ${{ needs.ci.outputs.widget-textcolour-branch }}
+          ref: ${{ needs.widget-versions.outputs.widget-textcolour-branch }}
       - name: Add widgets
         run: |
           rm -rf widgets/backgroundcolour/.git
