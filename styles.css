@@ -81,26 +81,26 @@ html[data-a11y-font="dyslexic"] body :where(*:not(.fa, .icon, [class*="fa-"], co
     font-family: local_accessibility_dyslexic, system-ui, sans-serif !important; /* stylelint-disable-line declaration-no-important */
 }
 
-/* stylelint-enable selector-type-no-unknown */
-/* 4. Spacing: WCAG 1.4.12 values, em units. */
-html[data-a11y-spacing="wcag"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+/* 4. Spacing: WCAG 1.4.12 values, em units; maths excluded (MathJax positions glyphs from measured widths). */
+html[data-a11y-spacing="wcag"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     line-height: 1.5 !important; /* stylelint-disable-line declaration-no-important */
     letter-spacing: 0.12em !important; /* stylelint-disable-line declaration-no-important */
     word-spacing: 0.16em !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-spacing="wcag"] body :where(p):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+html[data-a11y-spacing="wcag"] body :where(p):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     margin-block-end: 2em !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-spacing="extra"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+html[data-a11y-spacing="extra"] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     line-height: 1.8 !important; /* stylelint-disable-line declaration-no-important */
     letter-spacing: 0.16em !important; /* stylelint-disable-line declaration-no-important */
     word-spacing: 0.24em !important; /* stylelint-disable-line declaration-no-important */
     font-kerning: none;
 }
-html[data-a11y-spacing="extra"] body :where(p):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+html[data-a11y-spacing="extra"] body :where(p):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     margin-block-end: 2.5em !important; /* stylelint-disable-line declaration-no-important */
 }
 
+/* stylelint-enable selector-type-no-unknown */
 /* 5. Align left: content text in the main region only. */
 html[data-a11y-align="on"] #region-main :where(p, li, td, th, blockquote, div:not(.text-center)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     text-align: start !important; /* stylelint-disable-line declaration-no-important */
