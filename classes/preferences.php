@@ -183,7 +183,9 @@ final class preferences {
         if (self::uses_cookie()) {
             throw new moodle_exception('guestsusecookie', 'local_accessibility');
         }
-        if ($value === $f->default()) {
+        // Store nothing only for the site default, so the user follows later changes to it. A value equal to the
+        // feature's built-in default must still be stored when the admin's site default differs.
+        if ($value === self::site_default($id)) {
             unset_user_preference(self::PREFIX . $id);
         } else {
             set_user_preference(self::PREFIX . $id, $value);

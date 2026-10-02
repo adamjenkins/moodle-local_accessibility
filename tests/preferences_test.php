@@ -87,6 +87,21 @@ final class preferences_test extends \advanced_testcase {
     }
 
     /**
+     * A user can choose the feature's built-in default when the admin's unlocked site default differs.
+     */
+    public function test_choose_builtin_default_over_site_default(): void {
+        $this->setUser($this->getDataGenerator()->create_user());
+        set_config('default_size', '125', 'local_accessibility');
+        $this->assertSame('125', preferences::get('size'));
+        preferences::set('size', '100');
+        $this->assertSame('100', preferences::get('size'));
+        // Choosing the site default itself stores nothing, so the user follows later changes to it.
+        preferences::set('size', '125');
+        $this->assertNull(get_user_preferences('local_accessibility_size'));
+        $this->assertSame('125', preferences::get('size'));
+    }
+
+    /**
      * Saving a locked feature throws.
      */
     public function test_set_locked_throws(): void {
