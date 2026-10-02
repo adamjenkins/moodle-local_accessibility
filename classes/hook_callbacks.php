@@ -132,10 +132,17 @@ final class hook_callbacks {
         if ($mode === 'floating' || !preferences::enabled_ids()) {
             return;
         }
+        $url = new \moodle_url('#local-accessibility-panel');
+        $title = get_string('accessibilitysettings', 'local_accessibility');
+        if (method_exists($hook, 'add_menu_item')) {
+            // Moodle 5.3+ (MDL-88938) takes menu item objects; add_navitem() is deprecated there.
+            $hook->add_menu_item(new \core_user\output\user_action_menu\link($url, $title));
+            return;
+        }
         $hook->add_navitem((object) [
             'itemtype' => 'link',
-            'url' => new \moodle_url('#local-accessibility-panel'),
-            'title' => get_string('accessibilitysettings', 'local_accessibility'),
+            'url' => $url,
+            'title' => $title,
             'titleidentifier' => 'accessibilitysettings,local_accessibility',
         ]);
     }

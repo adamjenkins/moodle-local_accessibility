@@ -27,6 +27,16 @@ namespace local_accessibility;
  */
 final class hook_callbacks_test extends \advanced_testcase {
     /**
+     * The user menu hook's items, through the 5.3+ getter where it exists (MDL-88938 deprecates get_navitems()).
+     *
+     * @param \core_user\hook\extend_user_menu $hook
+     * @return array
+     */
+    private static function menu_items(\core_user\hook\extend_user_menu $hook): array {
+        return method_exists($hook, 'get_menu_items') ? $hook->get_menu_items() : $hook->get_navitems();
+    }
+
+    /**
      * Attributes reach the hook.
      */
     public function test_html_attributes(): void {
@@ -78,12 +88,25 @@ final class hook_callbacks_test extends \advanced_testcase {
      * The user menu entry follows the launcher setting.
      */
     public function test_user_menu(): void {
+        global $PAGE;
         $this->resetAfterTest();
         preferences::sync_features_table();
         foreach (['both' => 1, 'menu' => 1, 'floating' => 0] as $mode => $expect) {
             set_config('launcher', $mode, 'local_accessibility');
             $hook = new \core_user\hook\extend_user_menu();
             hook_callbacks::user_menu($hook);
+            if (method_exists($hook, 'get_menu_items')) {
+                // Moodle 5.3+: menu item objects (MDL-88938).
+                $items = $hook->get_menu_items();
+                $this->assertCount($expect, $items, $mode);
+                if ($expect) {
+                    $this->assertInstanceOf(\core_user\output\user_action_menu\link::class, $items[0]);
+                    $data = $items[0]->export_for_template($PAGE->get_renderer('core'));
+                    $this->assertSame(get_string('accessibilitysettings', 'local_accessibility'), $data['title']);
+                    $this->assertStringEndsWith('#local-accessibility-panel', $data['url']);
+                }
+                continue;
+            }
             $items = $hook->get_navitems();
             $this->assertCount($expect, $items, $mode);
             if ($expect) {
@@ -143,7 +166,7 @@ final class hook_callbacks_test extends \advanced_testcase {
 
         $menu = new \core_user\hook\extend_user_menu();
         hook_callbacks::user_menu($menu);
-        $this->assertSame([], $menu->get_navitems());
+        $this->assertSame([], self::menu_items($menu));
 
         $this->assertTrue(hook_callbacks::is_suppressed($PAGE));
         // The enabled-features cache was never filled, so the features table was never queried.
@@ -174,7 +197,7 @@ final class hook_callbacks_test extends \advanced_testcase {
         $CFG->local_accessibility_disabled = true;
         $hook = new \core_user\hook\extend_user_menu();
         hook_callbacks::user_menu($hook);
-        $this->assertSame([], $hook->get_navitems());
+        $this->assertSame([], self::menu_items($hook));
     }
 
     /**
