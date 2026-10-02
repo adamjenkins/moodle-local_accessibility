@@ -61,3 +61,13 @@ Feature: Content styles leave structure, maths and theme behaviour alone
     And the computed "max-inline-size" of "#region-main li.activity" should be "none"
     And the computed "max-inline-size" of "#la-test-controls p" should not be "none"
     And the computed "max-inline-size" of "#la-test-item" should not be "none"
+
+  Scenario: The reading mask still shows its band under forced colours
+    Given the following "user preferences" exist:
+      | user     | preference                | value |
+      | student1 | local_accessibility_guide | mask  |
+    And I log in as "student1"
+    When the browser emulates forced colours
+    Then the computed "content" of ".la-guide-mask::before" should not be "none"
+    And the computed "background-color" of ".la-guide-mask::before" should not be "rgba(0, 0, 0, 0)"
+    And the computed "content" of ".la-guide-mask::after" should not be "none"

@@ -562,6 +562,21 @@ html[data-a11y-colour][data-bs-theme="dark"] .local-accessibility-panel {
     .la-guide-ruler::after {
         background: Highlight;
     }
+    /* Forced colours remove the mask's gradient, so the band's edges are marked with Highlight lines instead. */
+    .la-guide-mask::before,
+    .la-guide-mask::after {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        block-size: 3px;
+        background: Highlight;
+    }
+    .la-guide-mask::before {
+        inset-block-start: calc(var(--la-guide-y, 50vh) - 36px);
+    }
+    .la-guide-mask::after {
+        inset-block-start: calc(var(--la-guide-y, 50vh) + 36px);
+    }
 }
 
 /* 14. Launcher (px, like the panel; .btn doubled for specificity over the theme's .btn). */
