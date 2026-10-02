@@ -41,3 +41,23 @@ Feature: Content styles leave structure, maths and theme behaviour alone
     When I click on "Accessibility settings" "button"
     Then the "#local-accessibility-panel .la-warn" element should have a text contrast of at least 3:1
     And the "#local-accessibility-panel .la-protest" element should have a text contrast of at least 4.5:1
+
+  Scenario: Narrow lines limits text, not course sections and activities
+    Given the following "courses" exist:
+      | fullname | shortname |
+      | Course 1 | C1        |
+    And the following "course enrolments" exist:
+      | user     | course | role    |
+      | student1 | C1     | student |
+    And the following "activities" exist:
+      | activity | course | name      | section |
+      | page     | C1     | Text page | 1       |
+    And the following "user preferences" exist:
+      | user     | preference                 | value |
+      | student1 | local_accessibility_narrow | 60    |
+    When I am on the "Course 1" "course" page logged in as "student1"
+    And the main region contains core controls
+    Then the computed "max-inline-size" of "#region-main li.section" should be "none"
+    And the computed "max-inline-size" of "#region-main li.activity" should be "none"
+    And the computed "max-inline-size" of "#la-test-controls p" should not be "none"
+    And the computed "max-inline-size" of "#la-test-item" should not be "none"

@@ -417,14 +417,16 @@ class behat_local_accessibility extends behat_base {
     }
 
     /**
-     * Add core-style controls to the main region: a link, a moodleform submit input, checkboxes, radios, a text field,
-     * pagination with a current page and a menu with an active item, as core's templates render them.
+     * Add core-style controls to the main region: a link, a plain list item, a moodleform submit input, checkboxes,
+     * radios, a text field, pagination with a current page, a menu with an active item and a MathJax span, marked up as
+     * core's templates render them.
      *
      * @Given the main region contains core controls
      */
     public function the_main_region_contains_core_controls(): void {
         $html = '<div id="la-test-controls">
             <p><a id="la-test-link" href="#">A test link</a></p>
+            <ul><li id="la-test-item">A list item in text</li></ul>
             <input type="submit" class="btn btn-primary" id="la-test-submit" value="Save changes">
             <input type="checkbox" class="form-check-input" id="la-test-checked" checked>
             <input type="checkbox" class="form-check-input" id="la-test-unchecked">

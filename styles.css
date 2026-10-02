@@ -106,11 +106,12 @@ html[data-a11y-align="on"] #region-main :where(p, li, td, th, blockquote, div:no
     text-align: start !important; /* stylelint-disable-line declaration-no-important */
 }
 
-/* 6. Narrow lines. */
-html[data-a11y-narrow="70"] #region-main :where(p, li, blockquote, dd):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+/* 6. Narrow lines: text only. List items count when they are plain (no class) or inside formatted text, so course
+   sections, activities and other classed structural list items keep their width. */
+html[data-a11y-narrow="70"] #region-main :where(p, blockquote, dd, li:not([class]), .no-overflow li, .text_to_html li):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     max-inline-size: 70ch;
 }
-html[data-a11y-narrow="60"] #region-main :where(p, li, blockquote, dd):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+html[data-a11y-narrow="60"] #region-main :where(p, blockquote, dd, li:not([class]), .no-overflow li, .text_to_html li):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     max-inline-size: 60ch;
 }
 
