@@ -42,8 +42,13 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 
 ## Upgrading from 2.x ##
 
-Existing users' settings are carried over, and the old widget plugins are removed. Moodle 4.5 or later is
-required.
+Existing users' settings are carried over. Moodle 4.5 or later is required.
+
+The upgrade uninstalls an old `accessibility_*` widget plugin only when its folder is already gone from
+`local/accessibility/widgets/`. If the old widget folders are still there after the upgrade (for example after
+a git pull, or after unpacking 3.0 over the old folder), delete each `local/accessibility/widgets/<name>/`
+folder, keeping `widgets/README.md`, then uninstall the leftover widgets under
+_Site administration > Plugins > Plugins overview_.
 
 ## Installing ##
 
