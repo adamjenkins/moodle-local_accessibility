@@ -82,9 +82,15 @@ final class fonts {
     }
 
     /**
-     * Fonts uploaded by the admin, keyed by font id up_<slug>, sorted by file name.
+     * Fonts uploaded by the admin, keyed by font id up_<slug>.
      *
-     * @return array<string, array{label: string, faces: array<int, array{url: string, weight: int, format: string}>}>
+     * Files are taken in byte order of their names (strcmp, not the database collation), so the first family per slug
+     * wins on every database. Each family keeps one file per weight, style and format: the one whose name says
+     * exactly that face (Regular, Bold, Italic, BoldItalic), else the next best (see parse_filename()), so a full
+     * static family never shows Black or Light in place of Regular.
+     *
+     * @return array<string, array{label: string,
+     *     faces: array<int, array{url: string, weight: int, style: string, format: string}>}>
      */
     public static function uploaded(): array {
         if (self::$uploaded !== null) {
@@ -92,8 +98,10 @@ final class fonts {
         }
         $sys = \context_system::instance();
         $fs = get_file_storage();
-        $files = $fs->get_area_files($sys->id, 'local_accessibility', self::FILEAREA, 0, 'filename', false);
+        $files = array_values($fs->get_area_files($sys->id, 'local_accessibility', self::FILEAREA, 0, '', false));
+        usort($files, fn($a, $b) => strcmp($a->get_filename(), $b->get_filename()));
         $out = [];
+        $best = [];
         foreach ($files as $file) {
             if ($file->get_filepath() !== '/') {
                 continue;
@@ -108,33 +116,48 @@ final class fonts {
             } else if ($out[$id]['label'] !== $parsed['family']) {
                 continue;       // A second family with the same slug: the first one wins.
             }
+            $slot = $parsed['weight'] . ' ' . $parsed['style'] . ' ' . $parsed['format'];
+            if (isset($best[$id][$slot]) && $best[$id][$slot]['rank'] <= $parsed['rank']) {
+                continue;       // A file at least as good for this face came first.
+            }
+            // The item id is a content revision, so a replaced file gets a new URL despite immutable caching.
             $url = \moodle_url::make_pluginfile_url(
                 $sys->id,
                 'local_accessibility',
                 self::FILEAREA,
-                0,
+                substr($file->get_contenthash(), 0, 8),
                 '/',
                 $file->get_filename()
             );
-            $out[$id]['faces'][] = [
-                'url' => $url->out(false),
-                'weight' => $parsed['weight'],
-                'format' => $parsed['format'],
+            $best[$id][$slot] = [
+                'rank' => $parsed['rank'],
+                'face' => [
+                    'url' => $url->out(false),
+                    'weight' => $parsed['weight'],
+                    'style' => $parsed['style'],
+                    'format' => $parsed['format'],
+                ],
             ];
         }
-        foreach ($out as &$font) {
-            usort($font['faces'], fn($a, $b) => [$a['weight'], self::format_rank($a['format'])]
-                <=> [$b['weight'], self::format_rank($b['format'])]);
+        foreach ($out as $id => &$font) {
+            $font['faces'] = array_column($best[$id], 'face');
+            usort($font['faces'], fn($a, $b) => self::face_order($a) <=> self::face_order($b));
         }
         unset($font);
         return self::$uploaded = $out;
     }
 
     /**
-     * Parse an uploaded font's file name: Family-Bold.woff2 is family "Family", weight 700 (spec §4, D8).
+     * Parse an uploaded font's file name (spec §4, D8): Family-BoldItalic.woff2 is family "Family", weight 700, italic.
+     *
+     * The part after the family decides the face. Containing "Bold" means weight 700, otherwise 400; containing
+     * "Italic" or "Oblique" means italic. The rank says how exactly the name matches the face, lowest best: 0 for the
+     * face's own name (nothing, Regular, Bold, Italic, BoldItalic), 1 for a near name (Book, Normal, Roman; or a
+     * bold variant such as ExtraBold), 2 for any other (Light, Medium, Black, Condensed...).
      *
      * @param string $name
-     * @return array{family: string, slug: string, weight: int, format: string}|null null when not accepted
+     * @return array{family: string, slug: string, weight: int, style: string, rank: int, format: string}|null null when
+     *     not accepted
      */
     public static function parse_filename(string $name): ?array {
         if (!preg_match(self::FILENAME, $name, $m)) {
@@ -143,15 +166,27 @@ final class fonts {
         $basename = substr($name, 0, -strlen($m[1]) - 1);
         $cut = strcspn($basename, '-_');
         $family = trim(substr($basename, 0, $cut));
-        $rest = substr($basename, $cut);
         $slug = clean_param(\core_text::strtolower($family), PARAM_ALPHANUMEXT);
         if ($family === '' || $slug === '') {
             return null;
         }
+        $rest = preg_replace('/[^a-z0-9]/', '', strtolower(substr($basename, $cut)));
+        $bold = str_contains($rest, 'bold');
+        $italic = str_contains($rest, 'italic') || str_contains($rest, 'oblique');
+        $core = str_replace(['italic', 'oblique'], '', $rest);
+        if ($bold) {
+            $rank = $core === 'bold' ? 0 : 1;
+        } else if ($core === '' || $core === 'regular') {
+            $rank = 0;
+        } else {
+            $rank = in_array($core, ['book', 'normal', 'roman'], true) ? 1 : 2;
+        }
         return [
             'family' => $family,
             'slug' => $slug,
-            'weight' => stripos($rest, 'bold') !== false ? 700 : 400,
+            'weight' => $bold ? 700 : 400,
+            'style' => $italic ? 'italic' : 'normal',
+            'rank' => $rank,
             'format' => self::FORMATS[strtolower($m[1])][0],
         ];
     }
@@ -175,16 +210,17 @@ final class fonts {
      *
      * @param \context $context
      * @param string $filearea
-     * @param array $args itemid and file name
+     * @param array $args revision and file name; the revision (hex, from the content hash) only makes the URL change
+     *     with the content, and any revision serves the current file
      * @return array{file: \stored_file, mimetype: string}|null null when the request must be refused
      */
     public static function serve_check(\context $context, string $filearea, array $args): ?array {
         if ($context->contextlevel != CONTEXT_SYSTEM || $filearea !== self::FILEAREA || count($args) !== 2) {
             return null;
         }
-        [$itemid, $filename] = array_map('strval', array_values($args));
+        [$revision, $filename] = array_map('strval', array_values($args));
         $mimetype = self::mimetype($filename);
-        if ($itemid !== '0' || $mimetype === null || !preg_match(self::FILENAME, $filename)) {
+        if (!preg_match('/^[0-9a-f]{1,40}$/', $revision) || $mimetype === null || !preg_match(self::FILENAME, $filename)) {
             return null;
         }
         $file = get_file_storage()->get_file($context->id, 'local_accessibility', self::FILEAREA, 0, '/', $filename);
@@ -195,7 +231,7 @@ final class fonts {
     }
 
     /**
-     * The @font-face rules of an uploaded font, one per weight; empty for any other id.
+     * The @font-face rules of an uploaded font, one per weight and style; empty for any other id.
      *
      * @param string $id
      * @return string
@@ -205,28 +241,30 @@ final class fonts {
         if ($font === null) {
             return '';
         }
-        $byweight = [];
+        $byface = [];
         foreach ($font['faces'] as $face) {
-            // Faces come sorted by weight, then format (smallest first).
-            $byweight[$face['weight']][] = 'url("' . self::css_url($face['url']) . '") format("' . $face['format'] . '")';
+            // Faces come sorted by weight, style, then format (smallest first).
+            $key = (int) $face['weight'] . ';font-style:' . ($face['style'] === 'italic' ? 'italic' : 'normal');
+            $byface[$key][] = 'url("' . self::css_url($face['url']) . '") format("' . $face['format'] . '")';
         }
         $css = '';
-        foreach ($byweight as $weight => $src) {
-            // The id is up_ plus a PARAM_ALPHANUMEXT slug, the weight an int and the formats constants.
-            $css .= '@font-face{font-family:"local_accessibility_' . $id . '";font-weight:' . (int) $weight
+        foreach ($byface as $key => $src) {
+            // The id is up_ plus a PARAM_ALPHANUMEXT slug, the weight an int, the style and the formats constants.
+            $css .= '@font-face{font-family:"local_accessibility_' . $id . '";font-weight:' . $key
                 . ';font-display:swap;src:' . implode(',', $src) . '}';
         }
         return $css;
     }
 
     /**
-     * Position of a CSS font format in a src list: smallest first.
+     * Sort key of a face: weight, normal before italic, then the src order of its format (smallest first).
      *
-     * @param string $format
-     * @return int
+     * @param array $face
+     * @return int[]
      */
-    private static function format_rank(string $format): int {
-        return (int) array_search($format, self::SRC_ORDER, true);
+    private static function face_order(array $face): array {
+        return [$face['weight'], $face['style'] === 'italic' ? 1 : 0,
+            (int) array_search($face['format'], self::SRC_ORDER, true)];
     }
 
     /**

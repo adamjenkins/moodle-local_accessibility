@@ -64,15 +64,15 @@ class font extends base {
     }
 
     /**
-     * Label of one value: an uploaded font's family name from its file name.
+     * Label of one value: an uploaded font's family name from its file name. Raw text, like every label: the
+     * outputs (panel template, admin select) escape it.
      *
      * @param string $value
      * @return string
      */
     public function value_label(string $value): string {
         if (str_starts_with($value, 'up_')) {
-            $font = fonts::uploaded()[$value] ?? null;
-            return $font === null ? s($value) : s($font['label']);
+            return fonts::uploaded()[$value]['label'] ?? $value;
         }
         return parent::value_label($value);
     }

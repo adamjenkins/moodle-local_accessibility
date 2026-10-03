@@ -64,7 +64,7 @@ final class fonts_test extends \advanced_testcase {
     }
 
     /**
-     * File names parse to family, slug, weight and format (spec §4, D8).
+     * File names parse to family, slug, weight, style, preference rank and format (spec §4, D8).
      *
      * @dataProvider filename_provider
      * @param string $name
@@ -75,18 +75,28 @@ final class fonts_test extends \advanced_testcase {
     }
 
     /**
-     * File names and their parse.
+     * File names and their parse. Rank 0 is the face's own name (Regular, Bold, Italic, BoldItalic); a higher rank is
+     * used only when no better file of the same weight, style and format exists.
      *
      * @return array
      */
     public static function filename_provider(): array {
-        $f = fn($family, $slug, $weight, $format) => compact('family', 'slug', 'weight', 'format');
+        $f = fn($family, $slug, $weight, $style, $rank, $format) =>
+            compact('family', 'slug', 'weight', 'style', 'rank', 'format');
         return [
-            'regular woff2' => ['MyFont-Regular.woff2', $f('MyFont', 'myfont', 400, 'woff2')],
-            'underscore bold ttf' => ['MyFont_Bold.ttf', $f('MyFont', 'myfont', 700, 'truetype')],
-            'space, bold italic' => ['Open Sans-BoldItalic.woff', $f('Open Sans', 'opensans', 700, 'woff')],
-            'no suffix otf' => ['Plain.otf', $f('Plain', 'plain', 400, 'opentype')],
-            'upper-case extension' => ['Plain-BOLD.WOFF2', $f('Plain', 'plain', 700, 'woff2')],
+            'regular woff2' => ['MyFont-Regular.woff2', $f('MyFont', 'myfont', 400, 'normal', 0, 'woff2')],
+            'underscore bold ttf' => ['MyFont_Bold.ttf', $f('MyFont', 'myfont', 700, 'normal', 0, 'truetype')],
+            'space, bold italic' => ['Open Sans-BoldItalic.woff', $f('Open Sans', 'opensans', 700, 'italic', 0, 'woff')],
+            'no suffix otf' => ['Plain.otf', $f('Plain', 'plain', 400, 'normal', 0, 'opentype')],
+            'upper-case extension' => ['Plain-BOLD.WOFF2', $f('Plain', 'plain', 700, 'normal', 0, 'woff2')],
+            'italic' => ['Roboto-Italic.ttf', $f('Roboto', 'roboto', 400, 'italic', 0, 'truetype')],
+            'oblique' => ['Inter-Oblique.woff2', $f('Inter', 'inter', 400, 'italic', 0, 'woff2')],
+            'regular italic' => ['Inter-Regular Italic.woff2', $f('Inter', 'inter', 400, 'italic', 0, 'woff2')],
+            'book' => ['Gotham-Book.woff', $f('Gotham', 'gotham', 400, 'normal', 1, 'woff')],
+            'light' => ['Roboto-Light.ttf', $f('Roboto', 'roboto', 400, 'normal', 2, 'truetype')],
+            'black italic' => ['Roboto-BlackItalic.ttf', $f('Roboto', 'roboto', 400, 'italic', 2, 'truetype')],
+            'extra bold' => ['Roboto-ExtraBold.ttf', $f('Roboto', 'roboto', 700, 'normal', 1, 'truetype')],
+            'condensed' => ['Roboto_Condensed-Regular.ttf', $f('Roboto', 'roboto', 400, 'normal', 2, 'truetype')],
             'not a font' => ['bad.exe', null],
             'quote' => ['x".woff2', null],
             'parenthesis' => ['a(b).woff2', null],
@@ -131,8 +141,8 @@ final class fonts_test extends \advanced_testcase {
     public function test_uploaded_listed_and_validated(): void {
         $this->resetAfterTest();
         $this->assertSame([], fonts::uploaded());
-        self::store('MyFont-Regular.woff2');
-        self::store('MyFont-Bold.woff2');
+        $regular = self::store('MyFont-Regular.woff2');
+        $bold = self::store('MyFont-Bold.woff2');
         self::store('a(b).woff2');
         self::store('notes.txt');
         fonts::reset_cache();
@@ -143,11 +153,18 @@ final class fonts_test extends \advanced_testcase {
         $faces = $up['up_myfont']['faces'];
         $this->assertSame([400, 700], array_values(array_unique(array_column($faces, 'weight'))));
         $this->assertSame(['woff2'], array_values(array_unique(array_column($faces, 'format'))));
+        $this->assertSame(['normal'], array_values(array_unique(array_column($faces, 'style'))));
         $sys = \context_system::instance()->id;
-        $urls = array_column($faces, 'url');
-        sort($urls);
-        $this->assertStringEndsWith("/pluginfile.php/$sys/local_accessibility/fonts/0/MyFont-Bold.woff2", $urls[0]);
-        $this->assertStringEndsWith("/pluginfile.php/$sys/local_accessibility/fonts/0/MyFont-Regular.woff2", $urls[1]);
+        // Faces come by weight. The item id in the URL is a content revision, so a replaced file gets a new URL.
+        $rev = fn($f) => substr($f->get_contenthash(), 0, 8);
+        $this->assertStringEndsWith(
+            "/pluginfile.php/$sys/local_accessibility/fonts/{$rev($regular)}/MyFont-Regular.woff2",
+            $faces[0]['url']
+        );
+        $this->assertStringEndsWith(
+            "/pluginfile.php/$sys/local_accessibility/fonts/{$rev($bold)}/MyFont-Bold.woff2",
+            $faces[1]['url']
+        );
 
         set_config('fonts_available', '', 'local_accessibility');
         $font = registry::get('font');
@@ -155,6 +172,8 @@ final class fonts_test extends \advanced_testcase {
         $this->assertTrue($font->validate('up_myfont'));
         $this->assertFalse($font->validate('up_other'));
         $this->assertSame('MyFont', $font->value_label('up_myfont'));
+        // Labels are raw text: the panel template and the admin select escape them once.
+        $this->assertSame('up_a&b', $font->value_label('up_a&b'));
         $this->assertSame('"local_accessibility_up_myfont", system-ui, sans-serif', font::stack('up_myfont'));
         $this->assertNull(font::stack('up_other'));
 
@@ -176,6 +195,94 @@ final class fonts_test extends \advanced_testcase {
         $up = fonts::uploaded();
         $this->assertSame(['up_myfont'], array_keys($up));
         $this->assertSame('My Font', $up['up_myfont']['label']);
+    }
+
+    /**
+     * Files are taken in byte order of their names, whatever the database's collation: "first family wins" is the
+     * same on every database. Stored out of order, and differing only in case where a case-insensitive collation
+     * would put the other one first.
+     */
+    public function test_uploaded_byte_order(): void {
+        $this->resetAfterTest();
+        self::store('myFont-Bold.woff2');
+        self::store('Myfont-Regular.woff2');
+        fonts::reset_cache();
+        $up = fonts::uploaded();
+        $this->assertSame(['up_myfont'], array_keys($up));
+        $this->assertSame('Myfont', $up['up_myfont']['label']);
+        $this->assertCount(1, $up['up_myfont']['faces']);
+        $this->assertStringEndsWith('/Myfont-Regular.woff2', $up['up_myfont']['faces'][0]['url']);
+    }
+
+    /**
+     * A full static family (as downloaded from a font site) gives one face per weight and style: Regular, Italic,
+     * Bold and Bold Italic, never Black or Light in place of Regular.
+     */
+    public function test_uploaded_full_family(): void {
+        $this->resetAfterTest();
+        $suffixes = ['Black', 'BlackItalic', 'Bold', 'BoldItalic', 'ExtraBold', 'Italic', 'Light', 'Medium', 'Regular', 'Thin'];
+        foreach ($suffixes as $suffix) {
+            self::store("Roboto-$suffix.ttf");
+        }
+        fonts::reset_cache();
+        $faces = fonts::uploaded()['up_roboto']['faces'];
+        $byface = [];
+        foreach ($faces as $face) {
+            $byface[$face['weight'] . ' ' . $face['style']][] = basename($face['url']);
+        }
+        $this->assertSame([
+            '400 normal' => ['Roboto-Regular.ttf'],
+            '400 italic' => ['Roboto-Italic.ttf'],
+            '700 normal' => ['Roboto-Bold.ttf'],
+            '700 italic' => ['Roboto-BoldItalic.ttf'],
+        ], $byface);
+
+        $css = fonts::face_css('up_roboto');
+        $this->assertSame(4, substr_count($css, '@font-face{'));
+        $this->assertMatchesRegularExpression(
+            '/font-weight:400;font-style:normal;font-display:swap;src:url\("[^"]*\/Roboto-Regular\.ttf"\) format\("truetype"\)\}/',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/font-weight:700;font-style:italic;font-display:swap;src:url\("[^"]*\/Roboto-BoldItalic\.ttf"\) '
+            . 'format\("truetype"\)\}/',
+            $css
+        );
+        foreach (['Black', 'ExtraBold', 'Light', 'Medium', 'Thin'] as $unused) {
+            $this->assertStringNotContainsString("Roboto-$unused.ttf", $css);
+        }
+    }
+
+    /**
+     * Without a Regular file, the best remaining file of the weight stands in: the family is still offered.
+     */
+    public function test_uploaded_fallback_face(): void {
+        $this->resetAfterTest();
+        self::store('Thin-Light.woff2');
+        self::store('Thin-Medium.woff2');
+        self::store('Thin-SemiBold.woff2');
+        fonts::reset_cache();
+        $faces = fonts::uploaded()['up_thin']['faces'];
+        $this->assertSame(['Thin-Light.woff2', 'Thin-SemiBold.woff2'], array_map(fn($f) => basename($f['url']), $faces));
+        $this->assertSame([400, 700], array_column($faces, 'weight'));
+    }
+
+    /**
+     * Replacing a file's content changes its URL, so browsers do not keep the old file under immutable caching.
+     */
+    public function test_uploaded_url_changes_with_content(): void {
+        $this->resetAfterTest();
+        $file = self::store('MyFont-Regular.woff2');
+        fonts::reset_cache();
+        $before = fonts::uploaded()['up_myfont']['faces'][0]['url'];
+        $file->delete();
+        get_file_storage()->create_file_from_string(['contextid' => \context_system::instance()->id,
+            'component' => 'local_accessibility', 'filearea' => 'fonts', 'itemid' => 0, 'filepath' => '/',
+            'filename' => 'MyFont-Regular.woff2'], 'corrected font data');
+        fonts::reset_cache();
+        $after = fonts::uploaded()['up_myfont']['faces'][0]['url'];
+        $this->assertNotSame($before, $after);
+        $this->assertStringEndsWith('/MyFont-Regular.woff2', $after);
     }
 
     /**
@@ -201,7 +308,15 @@ final class fonts_test extends \advanced_testcase {
         $this->assertNull(fonts::serve_check($sys, 'fonts', ['0', 'Missing-Regular.woff2']));
         $this->assertNull(fonts::serve_check($sys, 'fonts', ['0', 'evil.svg']));
         $this->assertNull(fonts::serve_check($sys, 'fonts', ['0', 'a(b).woff2']));
-        $this->assertNull(fonts::serve_check($sys, 'fonts', ['1', 'MyFont-Regular.woff2']));
+        // The revision is a cache key only: any hex revision serves the current file; anything else is refused.
+        $this->assertSame(
+            'MyFont-Regular.woff2',
+            fonts::serve_check($sys, 'fonts', ['0a1b2c3d', 'MyFont-Regular.woff2'])['file']->get_filename()
+        );
+        $this->assertNull(fonts::serve_check($sys, 'fonts', ['x', 'MyFont-Regular.woff2']));
+        $this->assertNull(fonts::serve_check($sys, 'fonts', ['', 'MyFont-Regular.woff2']));
+        $this->assertNull(fonts::serve_check($sys, 'fonts', ['-1', 'MyFont-Regular.woff2']));
+        $this->assertNull(fonts::serve_check($sys, 'fonts', [str_repeat('a', 41), 'MyFont-Regular.woff2']));
         $this->assertNull(fonts::serve_check($sys, 'fonts', ['0', 'sub', 'MyFont-Regular.woff2']));
         $this->assertNull(fonts::serve_check($sys, 'fonts', []));
         $this->assertNull(fonts::serve_check($sys, 'fonts', ['0', '.']));
@@ -252,7 +367,8 @@ final class fonts_test extends \advanced_testcase {
         $this->assertStringContainsString('font-weight:400', $css);
         $this->assertStringContainsString('font-weight:700', $css);
         $this->assertStringContainsString('format("woff2")', $css);
-        $this->assertStringContainsString('local_accessibility/fonts/0/MyFont-Bold.woff2', $css);
+        $this->assertMatchesRegularExpression('#local_accessibility/fonts/[0-9a-f]{8}/MyFont-Bold\.woff2#', $css);
+        $this->assertStringContainsString('font-style:normal', $css);
         $this->assertStringNotContainsString('color:red', $css);
         // Two rules; woff2 is listed before woff in the regular face.
         $this->assertSame(2, substr_count($css, '@font-face{'));
