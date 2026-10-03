@@ -56,6 +56,9 @@ if ($hassiteconfig) {
             new lang_string('defaults', 'local_accessibility'),
             new lang_string('defaults_desc', 'local_accessibility')
         ));
+        // One default per feature (the three spacing features each have one) and one lock per tile (spec §5),
+        // placed after the tile's last member.
+        $tiles = \local_accessibility\feature\registry::tiles(array_keys(\local_accessibility\feature\registry::all()));
         foreach (\local_accessibility\feature\registry::all() as $id => $f) {
             if ($id === 'read') {
                 continue;
@@ -73,9 +76,13 @@ if ($hassiteconfig) {
                 $f->default(),
                 $choices
             ));
+            if (end($tiles[$f->tile()]) !== $id) {
+                continue;
+            }
+            $tilelabel = $f->tile() === $id ? $f->label() : get_string('feature_' . $f->tile(), 'local_accessibility');
             $page->add(new admin_setting_configcheckbox(
-                "local_accessibility/lock_$id",
-                new lang_string('lockfeature', 'local_accessibility', $f->label()),
+                'local_accessibility/' . $f->lock_name(),
+                new lang_string('lockfeature', 'local_accessibility', $tilelabel),
                 '',
                 0
             ));

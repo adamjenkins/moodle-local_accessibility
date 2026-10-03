@@ -38,7 +38,7 @@ final class profiles {
     ];
 
     /**
-     * Validated profiles: admin config if set, else the shipped defaults. Invalid values are dropped.
+     * Validated profiles: admin config if set, else the shipped defaults. Legacy values are mapped, invalid ones dropped.
      *
      * @return array<string, array{name: string, values: array<string, string>}>
      */
@@ -52,7 +52,8 @@ final class profiles {
                 continue;
             }
             $values = [];
-            foreach ($p['values'] as $fid => $v) {
+            // Profiles saved with 3.0 development values are mapped when read, never rewritten (plan D12).
+            foreach (local\legacy::map_values($p['values']) as $fid => $v) {
                 $f = registry::get((string) $fid);
                 if ($f && is_string($v) && $f->validate($v)) {
                     $values[(string) $fid] = $v;

@@ -61,6 +61,24 @@ final class profiles_test extends \advanced_testcase {
     }
 
     /**
+     * Plan D12: profile JSON saved with 3.0 development values is mapped when read, not rewritten.
+     */
+    public function test_legacy_profile_json_mapped(): void {
+        $this->resetAfterTest();
+        $json = json_encode(['p' => ['name' => 'P', 'values' => ['spacing' => 'wcag', 'links' => 'on', 'size' => '175']]]);
+        set_config('profiles', $json, 'local_accessibility');
+        $this->assertEqualsCanonicalizing(
+            ['lineheight' => '150', 'letterspacing' => '12', 'wordspacing' => '16', 'links' => 'outline', 'size' => '180'],
+            profiles::all()['p']['values']
+        );
+        $this->assertSame($json, get_config('local_accessibility', 'profiles'));
+        // Focus "cursor" gains the large cursor, and a value still invalid after mapping is dropped.
+        $json = json_encode(['q' => ['name' => 'Q', 'values' => ['focus' => 'cursor', 'images' => 'x']]]);
+        set_config('profiles', $json, 'local_accessibility');
+        $this->assertEqualsCanonicalizing(['focus' => 'ring', 'cursor' => 'large'], profiles::all()['q']['values']);
+    }
+
+    /**
      * Template context carries the values as JSON.
      */
     public function test_for_template(): void {

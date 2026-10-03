@@ -35,31 +35,51 @@ final class migration_test extends \advanced_testcase {
         $p = 'local_accessibility_';
         return [
             'size 1.5' => [['fontsize' => '1.5'], [$p . 'size' => '150']],
-            'size 1.6 nearest' => [['fontsize' => '1.6'], [$p . 'size' => '150']],
-            'size 0.75 dropped' => [['fontsize' => '0.75'], []],
+            'size 1.6 nearest 10-step' => [['fontsize' => '1.6'], [$p . 'size' => '160']],
+            'size 1.75 rounds half up' => [['fontsize' => '1.75'], [$p . 'size' => '180']],
+            'size 1.25 kept' => [['fontsize' => '1.25'], [$p . 'size' => '125']],
+            'size 1.15 float noise' => [['fontsize' => '1.15'], [$p . 'size' => '120']],
+            'size 0.75 smallest' => [['fontsize' => '0.75'], [$p . 'size' => '80']],
+            'size 1.0 default omitted' => [['fontsize' => '1.0'], []],
             'size 2' => [['fontsize' => '2'], [$p . 'size' => '200']],
-            'lineheight wcag' => [['lineheight' => '1.5'], [$p . 'spacing' => 'wcag']],
-            'lineheight extra' => [['lineheight' => '2.0'], [$p . 'spacing' => 'extra']],
+            'size 3.5 capped' => [['fontsize' => '3.5'], [$p . 'size' => '300']],
+            'size 0 dropped' => [['fontsize' => '0'], []],
+            'size garbage dropped' => [['fontsize' => 'big'], []],
+            'lineheight 1.5' => [['lineheight' => '1.5'], [$p . 'lineheight' => '150']],
+            'lineheight 2.0' => [['lineheight' => '2.0'], [$p . 'lineheight' => '200']],
+            'lineheight 1.7 nearest' => [['lineheight' => '1.7'], [$p . 'lineheight' => '180']],
+            'lineheight 1.1 nearest' => [['lineheight' => '1.1'], [$p . 'lineheight' => '120']],
+            'lineheight 3 capped' => [['lineheight' => '3'], [$p . 'lineheight' => '250']],
+            'lineheight 1.0 omitted' => [['lineheight' => '1.0'], []],
             'lineheight low dropped' => [['lineheight' => '0.8'], []],
-            'letterspacing extra' => [['letterspacing' => '0.3'], [$p . 'spacing' => 'extra']],
-            'kerning' => [['fontkerning' => '1'], [$p . 'spacing' => 'extra']],
-            'max of spacing' => [['lineheight' => '1.5', 'fontkerning' => '1'], [$p . 'spacing' => 'extra']],
+            'letterspacing 0.3' => [['letterspacing' => '0.3'], [$p . 'letterspacing' => '30']],
+            'letterspacing 0.12' => [['letterspacing' => '0.12'], [$p . 'letterspacing' => '12']],
+            'letterspacing 0.14 nearest' => [['letterspacing' => '0.14'], [$p . 'letterspacing' => '16']],
+            'letterspacing 0 omitted' => [['letterspacing' => '0'], []],
+            'letterspacing negative omitted' => [['letterspacing' => '-0.1'], []],
+            'kerning' => [['fontkerning' => '1'], [$p . 'letterspacing' => '10']],
+            'kerning keeps mapped letterspacing' => [['fontkerning' => '1', 'letterspacing' => '0.2'],
+                [$p . 'letterspacing' => '20']],
+            'kerning off' => [['fontkerning' => '0'], []],
+            'lineheight and letterspacing' => [['lineheight' => '1.5', 'letterspacing' => '0.12'],
+                [$p . 'lineheight' => '150', $p . 'letterspacing' => '12']],
             'font serif' => [['fontface' => 'serif'], []],
             'font sans' => [['fontface' => 'sansserif'], [$p . 'font' => 'readable']],
             'font dyslexic' => [['fontface' => 'dyslexic'], [$p . 'font' => 'dyslexic']],
-            'align left' => [['textalignment' => 'left'], [$p . 'align' => 'on']],
+            'align left' => [['textalignment' => 'left'], [$p . 'align' => 'left']],
             'align justify dropped' => [['textalignment' => 'justify'], []],
-            'width 25' => [['paragraphwidth' => '25'], [$p . 'narrow' => '60']],
+            'width 25' => [['paragraphwidth' => '25'], [$p . 'narrow' => '50']],
+            'width 50' => [['paragraphwidth' => '50'], [$p . 'narrow' => '60']],
             'width 75' => [['paragraphwidth' => '75'], [$p . 'narrow' => '70']],
             'width 100 dropped' => [['paragraphwidth' => '100'], []],
-            'links' => [['linkhighlight' => '1'], [$p . 'links' => 'on']],
-            'images' => [['imagevisibility' => '1'], [$p . 'images' => 'on']],
+            'links' => [['linkhighlight' => '1'], [$p . 'links' => 'outline']],
+            'images' => [['imagevisibility' => '1'], [$p . 'images' => 'hide']],
             'unknown widget ignored' => [['nosuch' => 'x'], []],
         ];
     }
 
     /**
-     * Mapping.
+     * Mapping: every value produced is valid for its feature.
      *
      * @dataProvider cases
      * @param array $old
@@ -67,6 +87,33 @@ final class migration_test extends \advanced_testcase {
      */
     public function test_map(array $old, array $expected): void {
         $this->assertSame($expected, migration::map_user($old));
+        foreach ($expected as $name => $value) {
+            $f = \local_accessibility\feature\registry::get(substr($name, strlen('local_accessibility_')));
+            $this->assertTrue($f->validate($value), "$name $value");
+        }
+    }
+
+    /**
+     * Renaming the 2.x widget rows keeps the rows of the features that took an old widget's name (lineheight,
+     * letterspacing) and deletes the other old names.
+     */
+    public function test_rename_keeps_new_feature_rows(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $DB->delete_records('local_accessibility_widgets');
+        $seq = 0;
+        foreach (['lineheight', 'letterspacing', 'fontkerning', 'fontsize'] as $name) {
+            $DB->insert_record('local_accessibility_widgets', (object) ['name' => $name, 'enabled' => 1,
+                'sequence' => ++$seq]);
+        }
+
+        migration::rename_widget_rows();
+
+        $rows = $DB->get_records_menu('local_accessibility_widgets', null, 'sequence', 'name, sequence');
+        $this->assertSame(['lineheight', 'letterspacing', 'size'], array_slice(array_keys($rows), 0, 3));
+        $this->assertArrayNotHasKey('fontkerning', $rows);
+        $this->assertArrayNotHasKey('fontsize', $rows);
+        $this->assertEqualsCanonicalizing(array_keys(\local_accessibility\feature\registry::all()), array_keys($rows));
     }
 
     /**
@@ -90,7 +137,7 @@ final class migration_test extends \advanced_testcase {
         $this->assertSame([], migration::map_user(['textcolour' => '#ffffff']));
         // Other settings survive a dropped colour pair.
         $this->assertSame(
-            ['local_accessibility_links' => 'on'],
+            ['local_accessibility_links' => 'outline'],
             migration::map_user(['linkhighlight' => '1', 'textcolour' => '#ffffff', 'backgroundcolour' => '#fefefe'])
         );
     }

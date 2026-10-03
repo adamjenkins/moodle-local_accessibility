@@ -117,6 +117,21 @@ function xmldb_local_accessibility_upgrade($oldversion) {
 
         upgrade_plugin_savepoint(true, 2026100510, 'local', 'accessibility');
     }
+    if ($oldversion < 2026100600) {
+        // 3.0 choices (spec §6): the 3.0 development values move to the new ones. The order matters.
+        // 1. Feature rows first: spacing becomes lineheight in place, so the admin's enabled flag and order carry over
+        // to the three spacing features, and cursor follows focus. The runtime sync would otherwise append them.
+        \local_accessibility\local\legacy::upgrade_feature_rows();
+
+        // 2. Admin defaults and locks: default_spacing becomes the three defaults, focus=cursor also sets the cursor.
+        \local_accessibility\local\legacy::upgrade_config();
+
+        // 3. Users' preferences last; re-runnable, so an interrupted upgrade can restart the step.
+        // Profiles JSON is not rewritten: it is mapped when read (plan D12).
+        \local_accessibility\local\legacy::upgrade_user_preferences();
+
+        upgrade_plugin_savepoint(true, 2026100600, 'local', 'accessibility');
+    }
 
     return true;
 }

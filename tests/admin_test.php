@@ -97,8 +97,30 @@ final class admin_test extends \advanced_testcase {
                 continue;
             }
             $this->assertContains('default_' . $id, $names);
-            $this->assertContains('lock_' . $id, $names);
+            $this->assertContains(feature\registry::get($id)->lock_name(), $names);
         }
+        // One lock per tile: the three spacing features share lock_spacing (spec §5).
+        $this->assertContains('lock_spacing', $names);
+        $this->assertSame(array_search('default_wordspacing', $names) + 1, array_search('lock_spacing', $names));
+        $this->assertContains('lock_cursor', $names);
+        foreach (['lineheight', 'letterspacing', 'wordspacing'] as $id) {
+            $this->assertNotContains('lock_' . $id, $names);
+        }
+        $locks = array_values(array_filter($names, fn($n) => str_starts_with($n, 'lock_')));
+        // In tile order; read keeps having neither a site default nor a lock.
+        $tiles = array_values(array_diff(array_keys(feature\registry::tiles(array_keys(feature\registry::all()))), ['read']));
+        $this->assertSame($tiles, array_map(fn($n) => substr($n, 5), $locks));
+        $this->assertSame(
+            get_string('lockfeature', 'local_accessibility', get_string('feature_spacing', 'local_accessibility')),
+            (string) $settings['lock_spacing']->visiblename
+        );
+        // The size default lists its values ascending, labelled as percentages, defaulting to 100.
+        $size = $settings['default_size'];
+        $size->load_choices();
+        $this->assertSame(feature\registry::get('size')->values(), array_map('strval', array_keys($size->choices)));
+        $this->assertSame('100', $size->get_defaultsetting());
+        $this->assertSame('125%', (string) $size->choices['125']);
+        $this->assertSame('large', array_keys($settings['default_cursor']->choices)[1]);
         $this->assertSame('1', (string) $settings['shortcut']->get_defaultsetting());
         $this->assertSame('both', $settings['launcher']->get_defaultsetting());
     }

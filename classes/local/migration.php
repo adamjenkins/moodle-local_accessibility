@@ -30,8 +30,6 @@ use local_accessibility\colour\scheme;
 final class migration {
     /** @var string Preference prefix. */
     private const P = 'local_accessibility_';
-    /** @var string[] Spacing levels in increasing order. */
-    private const SPACING = ['normal', 'wcag', 'extra'];
     /** @var string[] The 2.x widget subplugins (accessibility_*) that 3.0 replaces. */
     public const OLD_WIDGETS = ['backgroundcolour', 'fontface', 'fontkerning', 'fontsize', 'imagevisibility',
         'letterspacing', 'lineheight', 'linkhighlight', 'paragraphwidth', 'textalignment', 'textcolour'];
@@ -39,50 +37,50 @@ final class migration {
     private const LINKS = ['#0f6cbf', '#8cc8ff'];
 
     /**
-     * Map one user's old settings.
+     * Map one user's old settings straight to the 3.0 values (spec §6, plan D5).
      *
      * @param array $old widget => configvalue
      * @return array preference name => value
      */
     public static function map_user(array $old): array {
         $out = [];
-        if (isset($old['fontsize']) && is_numeric($old['fontsize']) && (float) $old['fontsize'] > 1.0) {
-            $steps = [125, 150, 175, 200];
-            $want = (float) $old['fontsize'] * 100;
-            usort($steps, fn($a, $b) => abs($a - $want) <=> abs($b - $want));
-            $out[self::P . 'size'] = (string) $steps[0];
+        $size = self::number($old['fontsize'] ?? null, 100);
+        if ($size !== null && $size > 0) {
+            // The nearest 10-step in 80..300, half up; 125 is a step of its own. 100 is the default.
+            $step = abs($size - 125) <= 0.5 ? 125 : (int) round($size / 10) * 10;
+            $step = max(80, min(300, $step));
+            if ($step !== 100) {
+                $out[self::P . 'size'] = (string) $step;
+            }
         }
-        $spacing = 0;
-        if (isset($old['lineheight']) && is_numeric($old['lineheight'])) {
-            $lh = (float) $old['lineheight'];
-            $spacing = max($spacing, $lh >= 1.8 ? 2 : ($lh > 1.2 ? 1 : 0));
+        // Line height and letter spacing at or below normal were never increases: omitted.
+        $lh = self::number($old['lineheight'] ?? null, 100);
+        if ($lh !== null && $lh > 100) {
+            $out[self::P . 'lineheight'] = self::nearest($lh, \local_accessibility\feature\registry::get('lineheight'));
         }
-        if (isset($old['letterspacing']) && is_numeric($old['letterspacing'])) {
-            $ls = (float) $old['letterspacing'];
-            $spacing = max($spacing, $ls >= 0.2 ? 2 : ($ls > 0 ? 1 : 0));
+        $ls = self::number($old['letterspacing'] ?? null, 100);
+        if ($ls !== null && $ls > 0) {
+            $out[self::P . 'letterspacing'] = self::nearest($ls, \local_accessibility\feature\registry::get('letterspacing'));
         }
-        if (!empty($old['fontkerning'])) {
-            $spacing = 2;
-        }
-        if ($spacing > 0) {
-            $out[self::P . 'spacing'] = self::SPACING[$spacing];
+        if (!empty($old['fontkerning']) && !isset($out[self::P . 'letterspacing'])) {
+            $out[self::P . 'letterspacing'] = '10';
         }
         $font = ['sansserif' => 'readable', 'dyslexic' => 'dyslexic'][(string) ($old['fontface'] ?? '')] ?? null;
         if ($font) {
             $out[self::P . 'font'] = $font;
         }
         if ((string) ($old['textalignment'] ?? '') === 'left') {
-            $out[self::P . 'align'] = 'on';
+            $out[self::P . 'align'] = 'left';
         }
         $width = (string) ($old['paragraphwidth'] ?? '');
         if (in_array($width, ['25', '50', '75'], true)) {
-            $out[self::P . 'narrow'] = $width === '75' ? '70' : '60';
+            $out[self::P . 'narrow'] = ['25' => '50', '50' => '60', '75' => '70'][$width];
         }
         if (!empty($old['linkhighlight'])) {
-            $out[self::P . 'links'] = 'on';
+            $out[self::P . 'links'] = 'outline';
         }
         if (!empty($old['imagevisibility'])) {
-            $out[self::P . 'images'] = 'on';
+            $out[self::P . 'images'] = 'hide';
         }
         $bg = contrast::normalise((string) ($old['backgroundcolour'] ?? ''));
         $text = contrast::normalise((string) ($old['textcolour'] ?? ''));
@@ -104,6 +102,42 @@ final class migration {
             }
         }
         return $out;
+    }
+
+    /**
+     * A stored 2.x number scaled to the 3.0 integer units, or null when it is not a number.
+     *
+     * Rounded to 4 places so float noise cannot flip a half-way value (1.15 * 100 is 114.999...).
+     *
+     * @param mixed $value
+     * @param int $scale e.g. 100 for a factor stored as 1.5 and meant as 150
+     * @return float|null
+     */
+    private static function number($value, int $scale): ?float {
+        if (!is_numeric($value)) {
+            return null;
+        }
+        return round((float) $value * $scale, 4);
+    }
+
+    /**
+     * The feature's numeric value nearest to a wanted one; a tie goes to the larger value.
+     *
+     * @param float $want
+     * @param \local_accessibility\feature\base $feature a feature whose non-default values are digits
+     * @return string
+     */
+    private static function nearest(float $want, \local_accessibility\feature\base $feature): string {
+        $best = null;
+        foreach ($feature->values() as $v) {
+            if (!ctype_digit($v)) {
+                continue;
+            }
+            if ($best === null || abs((int) $v - $want) <= abs((int) $best - $want)) {
+                $best = $v;
+            }
+        }
+        return (string) $best;
     }
 
     /**

@@ -31,6 +31,7 @@ require_once(__DIR__ . '/fixtures/legacy_configs.php');
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \local_accessibility\local\migration
+ * @covers     \local_accessibility\local\legacy
  * @covers     ::xmldb_local_accessibility_upgrade
  */
 final class upgrade_test extends \advanced_testcase {
@@ -70,7 +71,7 @@ final class upgrade_test extends \advanced_testcase {
         local\migration::run();
 
         $this->assertSame('150', get_user_preferences('local_accessibility_size', null, $u1->id));
-        $this->assertSame('on', get_user_preferences('local_accessibility_links', null, $u1->id));
+        $this->assertSame('outline', get_user_preferences('local_accessibility_links', null, $u1->id));
         $this->assertSame('1', get_user_preferences('local_accessibility_initialised', null, $u1->id));
         $this->assertSame('dyslexic', get_user_preferences('local_accessibility_font', null, $u2->id));
         $this->assertNull(get_user_preferences('local_accessibility_size', null, $u2->id));
@@ -136,7 +137,8 @@ final class upgrade_test extends \advanced_testcase {
         $this->assertTrue(xmldb_local_accessibility_upgrade(2026100502));
 
         // Preferences exist and the table is gone: the migration read the table before the drop.
-        $this->assertSame('175', get_user_preferences('local_accessibility_size', null, $u1->id));
+        // 1.75 maps straight to the nearest new step (plan D2/D5), not to the 3.0-dev 175.
+        $this->assertSame('180', get_user_preferences('local_accessibility_size', null, $u1->id));
         $this->assertSame('custom', get_user_preferences('local_accessibility_colour', null, $u1->id));
         $s = colour\scheme::from_json(get_user_preferences('local_accessibility_colourcustom', null, $u1->id));
         $this->assertSame('#ffff00', $s->text);
@@ -161,6 +163,160 @@ final class upgrade_test extends \advanced_testcase {
                 $this->assertFalse(get_config('accessibility_' . $w, 'version'), $w);
             }
         }
-        $this->assertEquals(2026100510, get_config('local_accessibility', 'version'));
+        $this->assertEquals(2026100600, get_config('local_accessibility', 'version'));
+    }
+
+    /**
+     * The 2026100600 step on a 3.0 development site: feature rows, user preferences and admin config move to the
+     * choices values (spec §6), profiles JSON is left alone (plan D12), and running the helpers again changes nothing.
+     */
+    public function test_upgrade_from_30dev(): void {
+        global $DB;
+        $this->resetAfterTest();
+        set_config('version', 2026100510, 'local_accessibility');
+
+        // The 13 feature rows of 3.0-dev, the admin having disabled spacing.
+        $DB->delete_records('local_accessibility_widgets');
+        $old = ['size', 'font', 'spacing', 'align', 'colour', 'narrow', 'links', 'images', 'guide', 'motion', 'read',
+            'saturation', 'focus'];
+        foreach ($old as $i => $name) {
+            $DB->insert_record('local_accessibility_widgets', (object) ['name' => $name,
+                'enabled' => $name === 'spacing' ? 0 : 1, 'sequence' => $i + 1]);
+        }
+        $cache = \cache::make('local_accessibility', 'enabled');
+        $cache->set('ids', ['stale']);
+
+        $u1 = $this->getDataGenerator()->create_user();
+        $u2 = $this->getDataGenerator()->create_user();
+        $u3 = $this->getDataGenerator()->create_user();
+        $prefs = [
+            [$u1, ['spacing' => 'extra', 'align' => 'on', 'links' => 'on', 'images' => 'on', 'focus' => 'cursor',
+                'size' => '175', 'font' => 'dyslexic']],
+            [$u2, ['spacing' => 'normal']],
+            [$u3, ['size' => '150']],
+        ];
+        foreach ($prefs as [$u, $values]) {
+            foreach ($values as $id => $v) {
+                set_user_preference('local_accessibility_' . $id, $v, $u);
+            }
+        }
+        set_config('default_spacing', 'wcag', 'local_accessibility');
+        set_config('lock_spacing', 1, 'local_accessibility');
+        set_config('default_focus', 'cursor', 'local_accessibility');
+        set_config('lock_focus', 1, 'local_accessibility');
+        set_config('default_links', 'on', 'local_accessibility');
+        set_config('default_size', '175', 'local_accessibility');
+        // What saving the settings page stores for the new features: a default must not block the mapping.
+        set_config('default_lineheight', 'default', 'local_accessibility');
+        set_config('default_cursor', 'off', 'local_accessibility');
+        set_config('lock_cursor', 0, 'local_accessibility');
+        $profiles = json_encode(['p' => ['name' => 'P', 'values' => ['spacing' => 'wcag', 'links' => 'on']]]);
+        set_config('profiles', $profiles, 'local_accessibility');
+
+        $this->assertTrue(xmldb_local_accessibility_upgrade(2026100510));
+
+        // Rows: spacing became lineheight in place, the other two follow it with its enabled flag, cursor follows focus.
+        $rows = $DB->get_records('local_accessibility_widgets', null, 'sequence', 'name, enabled, sequence');
+        $this->assertSame(['size', 'font', 'lineheight', 'letterspacing', 'wordspacing', 'align', 'colour', 'narrow',
+            'links', 'images', 'guide', 'motion', 'read', 'saturation', 'focus', 'cursor'], array_keys($rows));
+        foreach (['lineheight', 'letterspacing', 'wordspacing'] as $id) {
+            $this->assertEquals(0, $rows[$id]->enabled, $id);
+        }
+        $this->assertEquals(1, $rows['cursor']->enabled);
+        $this->assertEquals($rows['focus']->sequence + 1, $rows['cursor']->sequence);
+        $this->assertFalse($cache->get('ids'));
+
+        // Preferences.
+        $this->assertSame(['align' => 'left', 'cursor' => 'large', 'focus' => 'ring', 'font' => 'dyslexic',
+            'images' => 'hide', 'letterspacing' => '16', 'lineheight' => '180', 'links' => 'outline', 'size' => '180',
+            'wordspacing' => '24'], $this->prefs($u1->id));
+        $this->assertSame([], $this->prefs($u2->id));
+        $this->assertSame(['size' => '150'], $this->prefs($u3->id));
+
+        // Admin defaults and locks.
+        $c = get_config('local_accessibility');
+        $this->assertSame('150', $c->default_lineheight);
+        $this->assertSame('12', $c->default_letterspacing);
+        $this->assertSame('16', $c->default_wordspacing);
+        $this->assertFalse(property_exists($c, 'default_spacing'));
+        $this->assertSame('1', $c->lock_spacing);
+        $this->assertSame('ring', $c->default_focus);
+        $this->assertSame('large', $c->default_cursor);
+        $this->assertSame('1', $c->lock_cursor);
+        $this->assertSame('1', $c->lock_focus);
+        $this->assertSame('outline', $c->default_links);
+        $this->assertSame('180', $c->default_size);
+        // Profiles are mapped when read, never rewritten (plan D12).
+        $this->assertSame($profiles, $c->profiles);
+        $this->assertEquals(2026100600, $c->version);
+
+        // Re-running the step's helpers (an interrupted upgrade restarts the step) changes nothing.
+        $snapshot = $this->snapshot();
+        local\legacy::upgrade_feature_rows();
+        local\legacy::upgrade_config();
+        local\legacy::upgrade_user_preferences();
+        $this->assertSame($snapshot, $this->snapshot());
+    }
+
+    /**
+     * The step also handles rows the runtime sync appended before the upgrade ran: an existing lineheight row takes
+     * the place and flag of spacing, and the other two spacing rows move next to it.
+     */
+    public function test_upgrade_feature_rows_after_sync(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $DB->delete_records('local_accessibility_widgets');
+        $order = ['size', 'spacing', 'focus', 'lineheight', 'letterspacing', 'wordspacing', 'cursor'];
+        foreach ($order as $i => $name) {
+            $DB->insert_record('local_accessibility_widgets', (object) ['name' => $name,
+                'enabled' => $name === 'spacing' || $name === 'focus' ? 0 : 1, 'sequence' => $i + 1]);
+        }
+
+        local\legacy::upgrade_feature_rows();
+
+        $rows = $DB->get_records('local_accessibility_widgets', null, 'sequence', 'name, enabled');
+        $first = ['size', 'lineheight', 'letterspacing', 'wordspacing', 'focus', 'cursor'];
+        $this->assertSame($first, array_slice(array_keys($rows), 0, 6));
+        $this->assertArrayNotHasKey('spacing', $rows);
+        foreach (['lineheight', 'letterspacing', 'wordspacing', 'focus'] as $id) {
+            $this->assertEquals(0, $rows[$id]->enabled, $id);
+        }
+        $this->assertEquals(1, $rows['cursor']->enabled);
+        $this->assertEqualsCanonicalizing(array_keys(feature\registry::all()), array_keys($rows));
+    }
+
+    /**
+     * A user's local_accessibility preferences, without the prefix.
+     *
+     * @param int $userid
+     * @return array<string, string> feature id => value, sorted by id
+     */
+    private function prefs(int $userid): array {
+        global $DB;
+        $like = 'userid = ? AND ' . $DB->sql_like('name', '?');
+        $out = [];
+        $records = $DB->get_records_select('user_preferences', $like, [$userid, 'local\\_accessibility\\_%'], '', 'name, value');
+        foreach ($records as $r) {
+            $out[substr($r->name, strlen('local_accessibility_'))] = $r->value;
+        }
+        ksort($out);
+        return $out;
+    }
+
+    /**
+     * Everything the step writes: feature rows, the plugin's config and the plugin's user preferences.
+     *
+     * @return array
+     */
+    private function snapshot(): array {
+        global $DB;
+        $like = $DB->sql_like('name', '?');
+        $rows = [
+            $DB->get_records('local_accessibility_widgets', null, 'id', 'id, name, enabled, sequence'),
+            $DB->get_records('config_plugins', ['plugin' => 'local_accessibility'], 'id', 'id, name, value'),
+            $DB->get_records_select('user_preferences', $like, ['local\\_accessibility\\_%'], 'id', 'id, userid, name, value'),
+        ];
+        // Plain arrays, so assertSame compares values rather than object identity.
+        return array_map(fn($set) => array_map(fn($r) => (array) $r, $set), $rows);
     }
 }
