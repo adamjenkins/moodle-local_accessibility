@@ -27,6 +27,18 @@ namespace local_accessibility;
  */
 final class hook_callbacks_test extends \advanced_testcase {
     /**
+     * Store a file in the uploaded fonts area.
+     *
+     * @param string $filename
+     * @return void
+     */
+    private static function store_font(string $filename): void {
+        get_file_storage()->create_file_from_string(['contextid' => \context_system::instance()->id,
+            'component' => 'local_accessibility', 'filearea' => 'fonts', 'itemid' => 0, 'filepath' => '/',
+            'filename' => $filename], 'font data');
+    }
+
+    /**
      * The user menu hook's items, through the 5.3+ getter where it exists (MDL-88938 deprecates get_navitems()).
      *
      * @param \core_user\hook\extend_user_menu $hook
@@ -377,6 +389,65 @@ final class hook_callbacks_test extends \advanced_testcase {
         $this->assertMatchesRegularExpression('/la-colourlabel">\s*Forest\s*</', $html);
         $this->assertMatchesRegularExpression('/data-scheme="site_0"[^>]*aria-label="Navy &amp; Gold"/', $html);
         $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * The head hook's output for the current user.
+     *
+     * @return string
+     */
+    private function head_output(): string {
+        global $PAGE;
+        $PAGE->set_url('/');
+        $PAGE->set_pagelayout('standard');
+        $hook = new \core\hook\output\before_standard_head_html_generation($PAGE->get_renderer('core'));
+        hook_callbacks::head($hook);
+        return $hook->get_output();
+    }
+
+    /**
+     * The @font-face of an uploaded font is added to the head only while that font is selected (spec §4).
+     *
+     * @covers \local_accessibility\local\fonts::face_css
+     */
+    public function test_head_injects_uploaded_font(): void {
+        $this->resetAfterTest();
+        local\fonts::reset_cache();
+        preferences::sync_features_table();
+        self::store_font('MyFont-Regular.woff2');
+        local\fonts::reset_cache();
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $this->assertSame('', $this->head_output());
+        preferences::set('font', 'up_myfont');
+        $html = $this->head_output();
+        $this->assertStringStartsWith('<style>@font-face{font-family:"local_accessibility_up_myfont"', $html);
+        $this->assertStringEndsWith('</style>', $html);
+        // The callback is registered in db/hooks.php: core's hook manager reaches it.
+        global $PAGE;
+        $hook = new \core\hook\output\before_standard_head_html_generation($PAGE->get_renderer('core'));
+        \core\di::get(\core\hook\manager::class)->dispatch($hook);
+        $this->assertStringContainsString($html, $hook->get_output());
+        preferences::set('font', 'serif');
+        $this->assertSame('', $this->head_output());
+
+        // A guest's cookie naming an unknown upload is ignored.
+        $saved = $_COOKIE;
+        $this->setUser(0);
+        $_COOKIE[preferences::COOKIE] = json_encode(['font' => 'up_nosuch']);
+        $this->assertSame('', $this->head_output());
+        $_COOKIE[preferences::COOKIE] = json_encode(['font' => 'up_myfont']);
+        $this->assertStringContainsString('local_accessibility_up_myfont', $this->head_output());
+        $_COOKIE = $saved;
+
+        // Nothing on suppressed pages or when the font feature is disabled.
+        $this->setUser($this->getDataGenerator()->create_user());
+        preferences::set('font', 'up_myfont');
+        global $DB;
+        $DB->set_field('local_accessibility_widgets', 'enabled', 0, ['name' => 'font']);
+        \cache::make('local_accessibility', 'enabled')->purge();
+        $this->assertSame('', $this->head_output());
+        local\fonts::reset_cache();
     }
 
     /**

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Admin settings: launcher, shortcut, site defaults, locks, site colour schemes and the features page.
+ * Admin settings: launcher, shortcut, fonts, site defaults, locks, site colour schemes and the features page.
  *
  * @package     local_accessibility
  * @category    admin
@@ -51,6 +51,29 @@ if ($hassiteconfig) {
             new lang_string('shortcut_desc', 'local_accessibility'),
             1
         ));
+        // Fonts users may choose (spec §4): every built-in font is on until the admin turns it off; the site font is
+        // always offered. Uploaded fonts are always offered; an admin removes one by deleting its file.
+        $fontchoices = [];
+        foreach (\local_accessibility\local\fonts::builtin() as $id) {
+            $fontchoices[$id] = new lang_string('feature_font_' . $id, 'local_accessibility');
+        }
+        $page->add(new admin_setting_configmulticheckbox(
+            'local_accessibility/fonts_available',
+            new lang_string('fonts_available', 'local_accessibility'),
+            new lang_string('fonts_available_desc', 'local_accessibility'),
+            array_fill_keys(array_keys($fontchoices), 1),
+            $fontchoices
+        ));
+        $setting = new admin_setting_configstoredfile(
+            'local_accessibility/fonts_uploaded',
+            new lang_string('fonts_uploaded', 'local_accessibility'),
+            new lang_string('fonts_uploaded_desc', 'local_accessibility'),
+            \local_accessibility\local\fonts::FILEAREA,
+            0,
+            ['maxfiles' => 20, 'accepted_types' => ['.woff2', '.woff', '.ttf', '.otf']]
+        );
+        $setting->set_updatedcallback([\local_accessibility\local\fonts::class, 'reset_cache']);
+        $page->add($setting);
         $page->add(new admin_setting_heading(
             'local_accessibility/defaultsheading',
             new lang_string('defaults', 'local_accessibility'),

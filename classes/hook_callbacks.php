@@ -19,6 +19,7 @@ namespace local_accessibility;
 use core\hook\output\before_footer_html_generation;
 use core\hook\output\before_html_attributes;
 use core\hook\output\before_http_headers;
+use core\hook\output\before_standard_head_html_generation;
 use core_user\hook\extend_user_menu;
 
 /**
@@ -102,6 +103,29 @@ final class hook_callbacks {
             'shortcut' => self::shortcut_enabled(),
             'initialised' => !preferences::uses_cookie() && get_user_preferences('local_accessibility_initialised'),
         ]]);
+    }
+
+    /**
+     * Add the @font-face rule of the user's uploaded font, only while one is selected (spec §4). Bundled fonts keep
+     * their static rules in styles.css.
+     *
+     * @param before_standard_head_html_generation $hook
+     * @return void
+     */
+    public static function head(before_standard_head_html_generation $hook): void {
+        global $PAGE;
+        if (self::is_suppressed($PAGE) || !preferences::is_enabled('font')) {
+            return;
+        }
+        // The value is validated against the uploaded fonts, so face_css() only ever gets a listed id.
+        $font = preferences::get('font');
+        if (!str_starts_with($font, 'up_')) {
+            return;
+        }
+        $css = local\fonts::face_css($font);
+        if ($css !== '') {
+            $hook->add_html('<style>' . $css . '</style>');
+        }
     }
 
     /**

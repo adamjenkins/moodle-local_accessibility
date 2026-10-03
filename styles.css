@@ -51,6 +51,34 @@ along with Moodle.  If not, see <https://www.gnu.org/licenses/>. */
     src: url(../../../../local/accessibility/fonts/atkinsonhyperlegible-bold.woff2) format("woff2");
 }
 
+@font-face {
+    font-family: local_accessibility_lexend;
+    font-weight: 400;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/lexend-regular.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: local_accessibility_lexend;
+    font-weight: 700;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/lexend-bold.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: local_accessibility_comic;
+    font-weight: 400;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/comicneue-regular.woff2) format("woff2");
+}
+
+@font-face {
+    font-family: local_accessibility_comic;
+    font-weight: 700;
+    font-display: swap;
+    src: url(../../../../local/accessibility/fonts/comicneue-bold.woff2) format("woff2");
+}
+
 /* 2. Size: root scaling (spec §5). */
 html[data-a11y-size="125"] {
     font-size: 125%;

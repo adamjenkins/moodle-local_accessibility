@@ -121,6 +121,21 @@ final class admin_test extends \advanced_testcase {
         $this->assertSame('100', $size->get_defaultsetting());
         $this->assertSame('125%', (string) $size->choices['125']);
         $this->assertSame('large', array_keys($settings['default_cursor']->choices)[1]);
+        // Every built-in font is available by default; uploads go to the system fonts area (spec §4).
+        $available = $settings['fonts_available'];
+        $this->assertInstanceOf(\admin_setting_configmulticheckbox::class, $available);
+        $available->load_choices();
+        $builtin = array_merge(local\fonts::BUNDLED, local\fonts::DEVICE);
+        $this->assertEqualsCanonicalizing($builtin, array_keys($available->choices));
+        $this->assertEqualsCanonicalizing($builtin, array_keys(array_filter($available->get_defaultsetting())));
+        $this->assertSame('Lexend', (string) $available->choices['lexend']);
+        $uploaded = $settings['fonts_uploaded'];
+        $this->assertInstanceOf(\admin_setting_configstoredfile::class, $uploaded);
+        $this->assertSame('local_accessibility', $uploaded->plugin);
+        $this->assertSame('fonts', (new \ReflectionProperty($uploaded, 'filearea'))->getValue($uploaded));
+        $options = (new \ReflectionProperty($uploaded, 'options'))->getValue($uploaded);
+        $this->assertSame(20, $options['maxfiles']);
+        $this->assertSame(['.woff2', '.woff', '.ttf', '.otf'], $options['accepted_types']);
         $this->assertSame('1', (string) $settings['shortcut']->get_defaultsetting());
         $this->assertSame('both', $settings['launcher']->get_defaultsetting());
     }

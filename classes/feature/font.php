@@ -16,8 +16,10 @@
 
 namespace local_accessibility\feature;
 
+use local_accessibility\local\fonts;
+
 /**
- * Font face: the site font, a device stack or a bundled font (spec §3, §4).
+ * Font face: the site font, a device stack, a bundled font or an admin-uploaded font (spec §3, §4).
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -53,13 +55,44 @@ class font extends base {
     }
 
     /**
-     * Allowed values: the site font, device stacks, bundled fonts and Japanese stacks (spec §3).
+     * Allowed values: the site font, the built-in fonts the admin made available, then uploaded fonts (spec §3, §4).
      *
      * @return string[]
      */
     public function values(): array {
-        return ['default', 'sans', 'serif', 'mono', 'readable', 'lexend', 'dyslexic', 'comic', 'jagothic', 'jamincho',
-            'jakyokasho'];
+        return array_merge(['default'], fonts::available(), array_keys(fonts::uploaded()));
+    }
+
+    /**
+     * Label of one value: an uploaded font's family name from its file name.
+     *
+     * @param string $value
+     * @return string
+     */
+    public function value_label(string $value): string {
+        if (str_starts_with($value, 'up_')) {
+            $font = fonts::uploaded()[$value] ?? null;
+            return $font === null ? s($value) : s($font['label']);
+        }
+        return parent::value_label($value);
+    }
+
+    /**
+     * Every option with its family stack, and for an uploaded font its faces, so a preview can load it.
+     *
+     * @return array
+     */
+    public function options(): array {
+        $uploaded = fonts::uploaded();
+        $out = [];
+        foreach (parent::options() as $option) {
+            $option['stack'] = self::stack($option['value']);
+            if (isset($uploaded[$option['value']])) {
+                $option['faces'] = $uploaded[$option['value']]['faces'];
+            }
+            $out[] = $option;
+        }
+        return $out;
     }
 
     /**
@@ -96,7 +129,11 @@ class font extends base {
      * @return string|null null for the site default or an unknown id
      */
     public static function stack(string $id): ?string {
-        return self::STACKS[$id] ?? null;
+        if (isset(self::STACKS[$id])) {
+            return self::STACKS[$id];
+        }
+        // An uploaded font's id is up_ plus a PARAM_ALPHANUMEXT slug, so it is safe in the style attribute.
+        return isset(fonts::uploaded()[$id]) ? '"local_accessibility_' . $id . '", system-ui, sans-serif' : null;
     }
 
     /**

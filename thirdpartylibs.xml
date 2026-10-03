@@ -32,4 +32,36 @@
     <licenseversion>1.1</licenseversion>
     <repository>https://github.com/googlefonts/atkinson-hyperlegible</repository>
   </library>
+  <library>
+    <location>fonts/lexend-regular.woff2</location>
+    <name>Lexend</name>
+    <version>1.007 (googlefonts/lexend @ 2049188, via google/fonts ofl/lexend @ e2332cf)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/googlefonts/lexend</repository>
+  </library>
+  <library>
+    <location>fonts/lexend-bold.woff2</location>
+    <name>Lexend Bold</name>
+    <version>1.007 (googlefonts/lexend @ 2049188, via google/fonts ofl/lexend @ e2332cf)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/googlefonts/lexend</repository>
+  </library>
+  <library>
+    <location>fonts/comicneue-regular.woff2</location>
+    <name>Comic Neue</name>
+    <version>2.003 (google/fonts ofl/comicneue @ 3dd7884)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/google/fonts/tree/main/ofl/comicneue</repository>
+  </library>
+  <library>
+    <location>fonts/comicneue-bold.woff2</location>
+    <name>Comic Neue Bold</name>
+    <version>2.003 (google/fonts ofl/comicneue @ 3dd7884)</version>
+    <license>SIL Open Font License</license>
+    <licenseversion>1.1</licenseversion>
+    <repository>https://github.com/google/fonts/tree/main/ofl/comicneue</repository>
+  </library>
 </libraries>

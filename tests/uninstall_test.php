@@ -27,6 +27,18 @@ namespace local_accessibility;
  */
 final class uninstall_test extends \advanced_testcase {
     /**
+     * Store a file in the uploaded fonts area.
+     *
+     * @param string $filename
+     * @return void
+     */
+    private static function store_font(string $filename): void {
+        get_file_storage()->create_file_from_string(['contextid' => \context_system::instance()->id,
+            'component' => 'local_accessibility', 'filearea' => 'fonts', 'itemid' => 0, 'filepath' => '/',
+            'filename' => $filename], 'font data');
+    }
+
+    /**
      * Uninstalling deletes every user's local_accessibility_* preferences and nothing else.
      */
     public function test_uninstall_deletes_user_preferences(): void {
@@ -53,5 +65,27 @@ final class uninstall_test extends \advanced_testcase {
         $kept = $DB->get_records_menu('user_preferences', ['userid' => $u2->id], '', 'name, value');
         $this->assertSame('kept', $kept['local_accessibilityx']);
         $this->assertSame('dark', $kept['theme_boost_colourmode']);
+    }
+
+    /**
+     * Uploaded fonts are files of the component, which core deletes on uninstall: uninstall_plugin() calls
+     * get_file_storage()->delete_component_files($component) (4.5 lib/adminlib.php:251, 5.2 public/lib/adminlib.php:251,
+     * 5.3 public/lib/adminlib.php:237). The plugin's own uninstall step keeps no reference to them.
+     */
+    public function test_uninstall_leaves_no_font_files(): void {
+        global $CFG, $DB;
+        $this->resetAfterTest();
+        self::store_font('MyFont-Regular.woff2');
+        self::store_font('MyFont-Bold.woff2');
+        $where = ['component' => 'local_accessibility', 'filearea' => 'fonts'];
+        $this->assertGreaterThan(0, $DB->count_records('files', $where));
+
+        require_once($CFG->dirroot . '/local/accessibility/db/uninstall.php');
+        $this->assertTrue(xmldb_local_accessibility_uninstall());
+        get_file_storage()->delete_component_files('local_accessibility');
+
+        $this->assertSame(0, $DB->count_records('files', $where));
+        local\fonts::reset_cache();
+        $this->assertSame([], local\fonts::uploaded());
     }
 }

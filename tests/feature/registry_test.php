@@ -29,6 +29,18 @@ namespace local_accessibility\feature;
  */
 final class registry_test extends \advanced_testcase {
     /**
+     * Store a file in the uploaded fonts area.
+     *
+     * @param string $filename
+     * @return void
+     */
+    private static function store_font(string $filename): void {
+        get_file_storage()->create_file_from_string(['contextid' => \context_system::instance()->id,
+            'component' => 'local_accessibility', 'filearea' => 'fonts', 'itemid' => 0, 'filepath' => '/',
+            'filename' => $filename], 'font data');
+    }
+
+    /**
      * The 16 features in display order (spec §3).
      */
     public function test_order(): void {
@@ -174,6 +186,20 @@ final class registry_test extends \advanced_testcase {
             'align center' => ['align', 'center', []],
             'links outline' => ['links', 'outline', []],
         ];
+    }
+
+    /**
+     * An uploaded font's custom property names its own family first.
+     */
+    public function test_css_properties_uploaded_font(): void {
+        $this->resetAfterTest();
+        \local_accessibility\local\fonts::reset_cache();
+        self::store_font('MyFont-Regular.woff2');
+        \local_accessibility\local\fonts::reset_cache();
+        $css = registry::get('font')->css_properties('up_myfont');
+        $this->assertStringStartsWith('"local_accessibility_up_myfont"', $css['--a11y-font']);
+        $this->assertSame([], registry::get('font')->css_properties('up_nosuch'));
+        \local_accessibility\local\fonts::reset_cache();
     }
 
     /**
