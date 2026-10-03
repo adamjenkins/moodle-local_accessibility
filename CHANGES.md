@@ -16,12 +16,16 @@ carried over on upgrade.
   keeps quick picks (100% to 300%). Values may go negative (spacing) or under 1.0 (line height) unless the
   administrator's new _Limits of number settings_ (`numericlimits`) is set to _Non-negative_; their site
   defaults are typed numbers.
-- Fonts: Atkinson Hyperlegible, Lexend and Comic Neue (included, SIL Open Font License), OpenDyslexic Alta (included; Bitstream Vera licence and CC BY 3.0), the
-  device's sans-serif, serif and monospace fonts, three Japanese UD font stacks, and fonts the administrator
-  uploads. Administrators choose which built-in fonts are offered.
+- Fonts: Atkinson Hyperlegible, Lexend and Comic Neue (included, SIL Open Font License), OpenDyslexic Alta with a
+  single-storey a (included; Bitstream Vera licence and CC BY 3.0), the device's sans-serif, serif and monospace
+  fonts, three Japanese UD font stacks, and fonts the administrator uploads. Administrators choose which built-in
+  fonts are offered.
 - New: alignment, line width, reading guide, stop motion, read aloud (browser voices; sentence by sentence, no
   visual highlight yet), saturation, focus ring (strong or extra thick), large or extra large cursor, and link
   (underline, outline or highlight) and image (dimmed, or hidden with alt text shown) options.
 - Profiles, site defaults and locks, validated site colour schemes, and starting from the device's
   reduced-motion and contrast settings.
 - Requires Moodle 4.5 or later.
+
+Known limitations: line height, letter spacing and word spacing do not yet apply to headings; content inside
+iframes (including H5P) is not changed. See the README for the full list.
