@@ -180,7 +180,15 @@ final class hook_callbacks_test extends \advanced_testcase {
         $this->assertStringContainsString('role="dialog"', $html);
         $this->assertStringContainsString('aria-modal="true"', $html);
         $this->assertStringContainsString('aria-expanded="false"', $html);
-        $this->assertStringContainsString('data-feature="size"', $html);
+        $this->assertStringContainsString('role="radiogroup"', $html);
+        $this->assertStringContainsString('role="radio"', $html);
+        $this->assertStringContainsString('data-tile="size"', $html);
+        $this->assertStringContainsString('data-view="size"', $html);
+        $this->assertStringContainsString('type="range"', $html);
+        $this->assertStringContainsString('data-action="back"', $html);
+        $this->assertStringContainsString('data-state="', $html);
+        // Tiles state their value in words: no value dots.
+        $this->assertStringNotContainsString('la-dots', $html);
     }
 
     /**
@@ -375,7 +383,7 @@ final class hook_callbacks_test extends \advanced_testcase {
     }
 
     /**
-     * Site colour presets carry the admin's name into the tile's value label and each swatch's accessible name.
+     * Site colour presets carry the admin's name into the tile's value text and each colour view swatch's label.
      */
     public function test_panel_site_preset_labels(): void {
         global $PAGE;
@@ -393,8 +401,9 @@ final class hook_callbacks_test extends \advanced_testcase {
         $context = (new output\panel())->export_for_template($renderer);
 
         $tile = array_values(array_filter($context['tiles'], fn($t) => $t['id'] === 'colour'))[0];
-        $this->assertSame('Forest', $tile['valuelabel']);
-        $labels = array_column($context['swatches'], 'label', 'id');
+        $this->assertSame('Forest', $tile['valuetext']);
+        $view = array_values(array_filter($context['views'], fn($v) => $v['id'] === 'colour'))[0];
+        $labels = array_column($view['options'], 'label', 'value');
         $this->assertSame('Navy & Gold', $labels['site_0']);
         $this->assertSame('Forest', $labels['site_1']);
         $this->assertSame('Site scheme 3', $labels['site_2']);
@@ -402,8 +411,14 @@ final class hook_callbacks_test extends \advanced_testcase {
 
         $html = $renderer->render_from_template('local_accessibility/panel', $context);
         $this->assertStringNotContainsString('[[', $html);
-        $this->assertMatchesRegularExpression('/la-colourlabel">\s*Forest\s*</', $html);
-        $this->assertMatchesRegularExpression('/data-scheme="site_0"[^>]*aria-label="Navy &amp; Gold"/', $html);
+        $this->assertMatchesRegularExpression('/data-tile="colour"[^>]*aria-label="Colours, Forest"/', $html);
+        $this->assertStringContainsString('<span class="la-value" aria-hidden="true">Forest</span>', $html);
+        // Each swatch is named by its visible label.
+        $this->assertMatchesRegularExpression(
+            '/data-value="site_0"[^>]*>(?:(?!role="radio").)*<span class="la-optlabel">Navy &amp; Gold<\/span>/s',
+            $html
+        );
+        $this->assertMatchesRegularExpression('/aria-checked="true"[^>]*data-feature="colour" data-value="site_1"/', $html);
         $this->assertDebuggingNotCalled();
     }
 

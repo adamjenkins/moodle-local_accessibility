@@ -17,46 +17,32 @@
 {{!
     @template local_accessibility/tile
 
-    One feature tile. Colour renders swatches; the custom editor lives in colour_editor (Task 11).
-    Every tile carries data-feature, the colour group too: panel.js finds a feature's tile by it.
+    One tile: its icon, name and current value in words (choices spec §2). A drawer tile controls its drawer
+    (local_accessibility/drawer, rendered by the panel); a detail tile opens its view. Behaviour is in
+    local_accessibility/panel.
 
     Context variables required for this template:
-    * id, label, icon - the feature
-    * value, valuelabel - the current value and its label
-    * values, valuelabels - JSON arrays of all values and their labels
-    * iscolour, twostate, pressed, dots, locked - display state
-    * swatches - resolved from the panel context for the colour tile
+    * id - tile id (a feature id, or "spacing" for the three spacing features)
+    * label, icon - the tile's name and Font Awesome icon
+    * kind - "drawer" or "detail"; isdrawer - whether kind is "drawer"
+    * valuetext - the current value in words
+    * active - whether any member differs from its default
+    * locked - whether the admin locked the tile
+    * iscolour - the colour tile, which shows the low-contrast warning icon
     * lowcontrast - resolved from the panel context: exact custom colours under 7:1 show the warning icon
 
     Example context (json):
-    {"id": "size", "label": "Text size", "icon": "fa-text-height", "value": "150", "valuelabel": "150%",
-     "values": "[\"100\",\"125\",\"150\"]", "valuelabels": "[\"100%\",\"125%\",\"150%\"]", "iscolour": false,
-     "twostate": false, "pressed": "true", "dots": [{"filled": true}, {"filled": false}], "locked": false}
+    {"id": "spacing", "label": "Spacing", "icon": "fa-arrows-up-down", "kind": "detail", "isdrawer": false,
+     "valuetext": "Line 1.8 · Letter 0.12", "active": true, "locked": false, "iscolour": false,
+     "members": ["lineheight", "letterspacing", "wordspacing"]}
 }}
-{{^iscolour}}
-<button type="button" class="la-tile" data-feature="{{id}}" data-value="{{value}}"
-        data-values="{{values}}" data-labels="{{valuelabels}}" data-label="{{label}}"
-        {{#twostate}}aria-pressed="{{pressed}}"{{/twostate}}
-        aria-label="{{label}}, {{valuelabel}}" {{#locked}}aria-disabled="true"{{/locked}}>
+<button type="button" class="la-tile" data-tile="{{id}}" data-kind="{{kind}}"
+        aria-label="{{label}}, {{valuetext}}"
+        {{#isdrawer}}aria-expanded="false" aria-controls="la-drawer-{{id}}"{{/isdrawer}}
+        {{#active}}data-active="true"{{/active}} {{#locked}}aria-disabled="true"{{/locked}}>
     <i class="icon fa {{icon}}" aria-hidden="true"></i>
     <span class="la-label" aria-hidden="true">{{label}}</span>
-    {{#dots.0}}<span class="la-dots" aria-hidden="true">{{#dots}}<i class="{{#filled}}la-on{{/filled}}"></i>{{/dots}}</span>{{/dots.0}}
+    <span class="la-value" aria-hidden="true">{{valuetext}}</span>
     {{#locked}}<i class="icon fa fa-lock la-lock" aria-hidden="true"></i>{{/locked}}
+    {{#iscolour}}<i class="icon fa fa-triangle-exclamation la-warn" aria-hidden="true" {{^lowcontrast}}hidden{{/lowcontrast}}></i>{{/iscolour}}
 </button>
-{{/iscolour}}
-{{#iscolour}}
-<div class="la-tile la-colour" data-feature="{{id}}" role="group" aria-label="{{label}}">
-    <div class="la-swatches">
-        {{#swatches}}
-        <button type="button" class="la-swatch" data-scheme="{{id}}" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}"
-                {{#bg}}style="background:{{bg}};color:{{text}}"{{/bg}} aria-label="{{label}}" {{#locked}}aria-disabled="true"{{/locked}}>Aa</button>
-        {{/swatches}}
-        <button type="button" class="la-swatch la-edit" data-action="customcolours" aria-label="{{#str}} customcolours, local_accessibility {{/str}}"
-                {{#locked}}aria-disabled="true"{{/locked}}>
-            <i class="icon fa fa-pen" aria-hidden="true"></i>
-        </button>
-    </div>
-    <span class="la-label la-colourlabel">{{valuelabel}}</span>
-    <i class="icon fa fa-triangle-exclamation la-warn" aria-hidden="true" {{^lowcontrast}}hidden{{/lowcontrast}}></i>
-</div>
-{{/iscolour}}

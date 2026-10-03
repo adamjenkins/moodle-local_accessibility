@@ -1,0 +1,44 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_accessibility/drawer
+
+    A short-list feature's options, shown under its tile's row across the grid (choices spec §2). Hidden until its
+    tile opens it. Behaviour is in local_accessibility/panel.
+
+    Context variables required for this template:
+    * id - the feature id; the drawer element id is la-drawer- followed by it (the tile's aria-controls)
+    * label - the feature name, which labels the radio group
+    * locked - whether the admin locked the feature
+    * options - radio options (see local_accessibility/option)
+
+    Example context (json):
+    {"id": "align", "label": "Alignment", "locked": false, "options": [
+        {"feature": "align", "value": "default", "label": "Site default", "icon": "fa-rotate-left", "sample": null,
+         "samplestyle": null, "labelstyle": null, "bar": null, "faces": null, "swatch": false, "checked": false,
+         "focusable": false, "locked": false},
+        {"feature": "align", "value": "center", "label": "Centre", "icon": "fa-align-center", "sample": null,
+         "samplestyle": null, "labelstyle": null, "bar": null, "faces": null, "swatch": false, "checked": true,
+         "focusable": true, "locked": false}
+    ]}
+}}
+<div class="la-drawer" id="la-drawer-{{id}}" data-drawer="{{id}}" hidden>
+    <p class="la-grouplabel" id="la-drawer-{{id}}-label">{{label}}</p>
+    <div class="la-options" role="radiogroup" aria-labelledby="la-drawer-{{id}}-label" {{#locked}}aria-disabled="true"{{/locked}}>
+        {{#options}}{{> local_accessibility/option }}{{/options}}
+    </div>
+</div>

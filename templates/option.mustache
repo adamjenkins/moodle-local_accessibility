@@ -1,0 +1,46 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_accessibility/option
+
+    One radio option: an icon or a visual preview, and its visible label (choices spec §2). The checked option of a
+    group (or the first, when none is checked) is its one Tab stop. Behaviour is in local_accessibility/panel.
+
+    Context variables required for this template:
+    * feature, value - the feature and the value this option chooses
+    * label - the value's label
+    * icon - Font Awesome icon, or null when the option shows a preview
+    * sample, samplestyle - preview text and its inline style (size, font, spacing or colours), or null
+    * labelstyle - inline style of the label (a font option's label is shown in its own font), or null
+    * bar - width in percent of a line width preview bar, or null
+    * faces - JSON list of an uploaded font's faces (url, weight, style, format), or null
+    * swatch - whether the option is a colour scheme swatch
+    * checked, focusable, locked - state
+
+    Example context (json):
+    {"feature": "font", "value": "jagothic", "label": "Japanese UD Gothic", "icon": null, "sample": "Aa",
+     "samplestyle": "font-family: \"BIZ UDPGothic\", sans-serif", "labelstyle": "font-family: \"BIZ UDPGothic\", sans-serif",
+     "bar": null, "faces": null, "swatch": false, "checked": true, "focusable": true, "locked": false}
+}}
+<div role="radio" class="la-option{{#swatch}} la-swatch{{/swatch}}" tabindex="{{#focusable}}0{{/focusable}}{{^focusable}}-1{{/focusable}}"
+     aria-checked="{{#checked}}true{{/checked}}{{^checked}}false{{/checked}}" data-feature="{{feature}}" data-value="{{value}}"
+     {{#swatch}}data-scheme="{{value}}"{{/swatch}} {{#faces}}data-faces="{{faces}}"{{/faces}} {{#locked}}aria-disabled="true"{{/locked}}>
+    {{#icon}}<i class="icon fa {{icon}}" aria-hidden="true"></i>{{/icon}}
+    {{#sample}}<span class="la-sample" aria-hidden="true"{{#samplestyle}} style="{{samplestyle}}"{{/samplestyle}}>{{sample}}</span>{{/sample}}
+    {{#bar}}<span class="la-bar" aria-hidden="true"><span class="la-barfill" style="inline-size: {{bar}}%"></span></span>{{/bar}}
+    <span class="la-optlabel{{#labelstyle}} la-sample{{/labelstyle}}"{{#labelstyle}} style="{{labelstyle}}"{{/labelstyle}}>{{label}}</span>
+</div>

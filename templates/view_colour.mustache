@@ -1,0 +1,56 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_accessibility/view_colour
+
+    The colour detail view (choices spec §3 colour): named swatches showing each scheme's colours, the Custom colours
+    button, and the custom editor (local_accessibility/colour_editor). Behaviour is in local_accessibility/panel and
+    local_accessibility/colour.
+
+    Context variables required for this template:
+    * id, label, locked - the view (id "colour")
+    * options - one swatch per scheme (see local_accessibility/option)
+    * custom - resolved from the panel context: the user's custom scheme, or null (used by the editor)
+
+    Example context (json):
+    {"id": "colour", "label": "Colours", "locked": false, "iscolour": true, "custom": null, "options": [
+        {"feature": "colour", "value": "default", "label": "Site default", "icon": null, "sample": "Aa",
+         "samplestyle": "background: #fff; color: #1d2125", "labelstyle": null, "bar": null, "faces": null,
+         "swatch": true, "checked": false, "focusable": false, "locked": false},
+        {"feature": "colour", "value": "cream", "label": "Cream", "icon": null, "sample": "Aa",
+         "samplestyle": "background: #fbf3df; color: #1f1f1f", "labelstyle": null, "bar": null, "faces": null,
+         "swatch": true, "checked": true, "focusable": true, "locked": false}
+    ]}
+}}
+<section class="la-view la-view-{{id}}" id="la-view-{{id}}" data-view="{{id}}" aria-labelledby="la-view-{{id}}-title" hidden>
+    <div class="la-viewhead">
+        <button type="button" class="btn btn-sm la-back" data-action="back">
+            <i class="icon fa fa-chevron-left" aria-hidden="true"></i>{{#str}} allsettings, local_accessibility {{/str}}
+        </button>
+        <h3 class="la-viewtitle" id="la-view-{{id}}-title" tabindex="-1">{{label}}</h3>
+        {{#locked}}<i class="icon fa fa-lock la-viewlock" aria-hidden="true"></i>{{/locked}}
+    </div>
+    <div class="la-options la-swatches" role="radiogroup" aria-labelledby="la-view-{{id}}-title" {{#locked}}aria-disabled="true"{{/locked}}>
+        {{#options}}{{> local_accessibility/option }}{{/options}}
+    </div>
+    <div class="la-row">
+        <button type="button" class="btn btn-sm la-customcolours" data-action="customcolours" {{#locked}}aria-disabled="true"{{/locked}}>
+            <i class="icon fa fa-pen" aria-hidden="true"></i>{{#str}} customcolours, local_accessibility {{/str}}
+        </button>
+    </div>
+    {{> local_accessibility/colour_editor }}
+</section>

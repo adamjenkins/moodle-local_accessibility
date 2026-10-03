@@ -17,18 +17,38 @@
 namespace local_accessibility\output;
 
 use local_accessibility\colour\scheme;
+use local_accessibility\feature\base;
 use local_accessibility\feature\colour;
 use local_accessibility\feature\registry;
 use local_accessibility\preferences;
 
 /**
- * The launcher and the dialog (spec §4).
+ * The launcher and the dialog: tiles that state their value, drawers and detail views (choices spec §2).
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class panel implements \renderable, \templatable {
+    /** @var string[] Text size quick picks in the size view (spec §3). */
+    private const QUICK_SIZES = ['100', '125', '150', '200', '250', '300'];
+
+    /** @var array<string, string> Spacing summary string per member (spec §3 Spacing). */
+    private const SPACING_PARTS = ['lineheight' => 'spacing_line', 'letterspacing' => 'spacing_letter',
+        'wordspacing' => 'spacing_word'];
+
+    /** @var array<string, string> Icons of tiles shared by several features; others use their feature's icon. */
+    private const TILE_ICONS = ['spacing' => 'fa-arrows-up-down'];
+
+    /**
+     * The site's own font: Bootstrap 5's body font (Moodle 5.x), else Bootstrap 4's (Moodle 4.5). A constant, so it is
+     * safe in a style attribute.
+     */
+    private const SITE_FONT = 'var(--bs-body-font-family, var(--font-family-sans-serif, sans-serif))';
+
+    /** @var string The site's own colours for the "Site default" swatch, with Boost's light values as fallbacks. */
+    private const SITE_COLOURS = 'background: var(--bs-body-bg, #fff); color: var(--bs-body-color, #1d2125)';
+
     /**
      * Template context.
      *
@@ -37,41 +57,32 @@ class panel implements \renderable, \templatable {
      */
     public function export_for_template(\renderer_base $output): array {
         global $PAGE;
-        $tiles = [];
-        foreach (preferences::enabled_ids() as $id) {
-            $f = registry::get($id);
-            $value = preferences::get($id);
-            $values = $f->values();
-            $level = array_search($value, $values, true);
-            $tiles[] = [
-                'id' => $id,
-                'label' => $f->label(),
-                'icon' => $f->icon(),
-                'value' => $value,
-                'valuelabel' => $f->value_label($value),
-                'values' => json_encode($values),
-                'valuelabels' => json_encode(array_map([$f, 'value_label'], $values)),
-                'iscolour' => $id === 'colour',
-                'twostate' => count($values) === 2,
-                'pressed' => $level > 0 ? 'true' : 'false',
-                'dots' => count($values) > 2
-                    ? array_map(fn($i) => ['filled' => $i <= $level], range(1, count($values) - 1))
-                    : [],
-                'locked' => preferences::is_locked($id),
-            ];
+        $enabled = preferences::enabled_ids();
+        $values = [];
+        foreach ($enabled as $id) {
+            $values[$id] = preferences::get($id);
         }
-        $swatches = [['id' => 'default', 'label' => get_string('feature_colour_default', 'local_accessibility'),
-            'selected' => preferences::get('colour') === 'default']];
-        foreach (scheme::presets() + colour::site_presets() as $id => $s) {
-            $swatches[] = ['id' => $id, 'bg' => $s->ramp['page'], 'text' => $s->text,
-                'label' => registry::get('colour')->value_label($id),
-                'selected' => in_array('colour', preferences::enabled_ids(), true) && preferences::get('colour') === $id];
+        $tiles = [];
+        $drawers = [];
+        $views = [];
+        foreach (registry::tiles($enabled) as $tileid => $members) {
+            $first = registry::get($members[0]);
+            $tile = self::tile($tileid, $members, $values);
+            $tiles[] = $tile;
+            if ($tile['isdrawer']) {
+                $drawers[] = ['id' => $tileid, 'label' => $tile['label'], 'locked' => $tile['locked'],
+                    'options' => self::radios($first, $values[$first->id()])];
+            } else {
+                $views[] = self::view($tileid, $members, $values, $tile);
+            }
         }
         $custom = preferences::custom_scheme();
         $mode = get_config('local_accessibility', 'launcher') ?: 'both';
         return [
             'tiles' => $tiles,
-            'swatches' => $swatches,
+            'drawers' => $drawers,
+            'views' => $views,
+            'state' => self::state($enabled, $values),
             'custom' => $custom ? ['bg' => $custom->ramp['page'], 'text' => $custom->text,
                 'link' => $custom->link, 'exact' => $custom->exact] : null,
             // Guests and secure-layout pages have no user menu, so they always get the floating launcher (R16).
@@ -80,5 +91,252 @@ class panel implements \renderable, \templatable {
             // Exact custom colours under 7:1 (R18): the tile's warning icon is toggled by its hidden attribute.
             'lowcontrast' => isset(preferences::html_attributes()['data-a11y-lowcontrast']),
         ];
+    }
+
+    /**
+     * One tile: its name, icon and current value in words (spec §2 "Tile face").
+     *
+     * @param string $tileid
+     * @param string[] $members enabled feature ids shown by the tile
+     * @param array $values feature id => current value of each enabled feature
+     * @return array
+     */
+    private static function tile(string $tileid, array $members, array $values): array {
+        $first = registry::get($members[0]);
+        $shared = $tileid !== $first->id();
+        $active = false;
+        foreach ($members as $id) {
+            $active = $active || $values[$id] !== registry::get($id)->default();
+        }
+        return [
+            'id' => $tileid,
+            'label' => $shared ? get_string('feature_' . $tileid, 'local_accessibility') : $first->label(),
+            'icon' => self::TILE_ICONS[$tileid] ?? $first->icon(),
+            'kind' => $first->kind(),
+            'isdrawer' => $first->kind() === 'drawer',
+            'iscolour' => $tileid === 'colour',
+            'valuetext' => $tileid === 'spacing' ? self::spacing_summary($members, $values)
+                : $first->value_label($values[$first->id()]),
+            'active' => $active,
+            // Features sharing a tile share its lock (spec §5).
+            'locked' => preferences::is_locked($first->id()),
+            'members' => $members,
+        ];
+    }
+
+    /**
+     * The spacing tile's value: its non-default members, e.g. "Line 1.8 · Letter 0.12", or "Site default".
+     *
+     * @param string[] $members
+     * @param array $values feature id => current value of each enabled feature
+     * @return string
+     */
+    private static function spacing_summary(array $members, array $values): string {
+        $parts = [];
+        foreach ($members as $id) {
+            $f = registry::get($id);
+            if ($values[$id] !== $f->default() && isset(self::SPACING_PARTS[$id])) {
+                $parts[] = get_string(self::SPACING_PARTS[$id], 'local_accessibility', $f->value_label($values[$id]));
+            }
+        }
+        return $parts ? implode(' · ', $parts) : get_string('sitedefault', 'local_accessibility');
+    }
+
+    /**
+     * One detail view (spec §2 "Rich features").
+     *
+     * @param string $tileid
+     * @param string[] $members
+     * @param array $values feature id => current value of each enabled feature
+     * @param array $tile the tile's context
+     * @return array
+     */
+    private static function view(string $tileid, array $members, array $values, array $tile): array {
+        $view = ['id' => $tileid, 'label' => $tile['label'], 'locked' => $tile['locked'], 'is' . $tileid => true];
+        $f = registry::get($members[0]);
+        switch ($tileid) {
+            case 'size':
+                $all = $f->values();
+                $view += [
+                    'value' => $values['size'],
+                    'valuetext' => $f->value_label($values['size']),
+                    'min' => (int) reset($all),
+                    'max' => (int) end($all),
+                    'step' => 10,
+                    'options' => self::radios($f, $values['size'], self::QUICK_SIZES),
+                ];
+                break;
+            case 'spacing':
+                $view['groups'] = [];
+                foreach ($members as $id) {
+                    $member = registry::get($id);
+                    $view['groups'][] = ['id' => $id, 'label' => $member->label(), 'locked' => $tile['locked'],
+                        'options' => self::radios($member, $values[$id])];
+                }
+                break;
+            case 'colour':
+                $view['options'] = self::swatches($values['colour'], $tile['locked']);
+                break;
+            default:
+                $view['options'] = self::radios($f, $values[$f->id()]);
+        }
+        return $view;
+    }
+
+    /**
+     * Radio options of one feature, each with an icon or a visual preview and its label (spec §2).
+     *
+     * @param base $f
+     * @param string $current the current value
+     * @param string[]|null $only values to offer, in this order; null for all
+     * @return array
+     */
+    private static function radios(base $f, string $current, ?array $only = null): array {
+        $locked = preferences::is_locked($f->id());
+        $options = array_column($f->options(), null, 'value');
+        if ($only !== null) {
+            $options = array_values(array_intersect_key($options, array_flip($only)));
+        }
+        $out = [];
+        foreach (array_values($options) as $o) {
+            $radio = [
+                'feature' => $f->id(),
+                'value' => $o['value'],
+                'label' => $o['label'],
+                'icon' => $o['icon'],
+                'checked' => $o['value'] === $current,
+                'locked' => $locked,
+                'sample' => null,
+                'samplestyle' => null,
+                'labelstyle' => null,
+                'bar' => null,
+                'faces' => null,
+                'swatch' => false,
+            ];
+            $out[] = self::preview($radio, $o) + $radio;
+        }
+        return self::roving($out);
+    }
+
+    /**
+     * The visual preview of one option (spec §3): text at its size, "Aa" and the label in its font, a bar as wide as
+     * its line, or sample text with its spacing. Every style is built from validated values or constants.
+     *
+     * @param array $radio the radio being built
+     * @param array $o the feature's option
+     * @return array preview keys to set
+     */
+    private static function preview(array $radio, array $o): array {
+        $sample = get_string('fontpreview', 'local_accessibility');
+        switch ($o['preview']) {
+            case 'size':
+                // Three quarters of the chosen size, so 300% still fits a chip.
+                return ['sample' => $sample, 'samplestyle' => 'font-size: ' . self::decimal((int) $o['value'] * 0.0075) . 'em'];
+            case 'font':
+                $style = 'font-family: ' . ($o['stack'] ?? self::SITE_FONT);
+                return ['sample' => $sample, 'samplestyle' => $style, 'labelstyle' => $style,
+                    'faces' => isset($o['faces']) ? json_encode($o['faces'], JSON_UNESCAPED_SLASHES) : null];
+            case 'bar':
+                return ['bar' => $o['value'] === 'off' ? 100 : (int) round((int) $o['value'] / 90 * 100)];
+            case 'spacing':
+                $property = ['lineheight' => 'line-height', 'letterspacing' => 'letter-spacing',
+                    'wordspacing' => 'word-spacing'][$radio['feature']];
+                $css = array_values($o['css']);
+                return ['sample' => get_string('spacingpreview', 'local_accessibility'),
+                    'samplestyle' => $property . ': ' . ($css[0] ?? 'normal')];
+        }
+        return [];
+    }
+
+    /**
+     * Colour scheme swatches: the site default, the built-in and site presets, and the user's custom scheme once
+     * saved; each named and showing its colours (spec §3 colour).
+     *
+     * @param string $current
+     * @param bool $locked
+     * @return array
+     */
+    private static function swatches(string $current, bool $locked): array {
+        $f = registry::get('colour');
+        $schemes = scheme::presets() + colour::site_presets();
+        $custom = preferences::custom_scheme();
+        if ($custom !== null) {
+            $schemes['custom'] = $custom;
+        }
+        $out = [self::swatch('default', $f->value_label('default'), self::SITE_COLOURS, $current, $locked)];
+        foreach ($schemes as $id => $s) {
+            // Validated #rrggbb values only (scheme::custom()), so they are safe in a style attribute.
+            $style = 'background: ' . $s->ramp['page'] . '; color: ' . $s->text;
+            $out[] = self::swatch($id, $f->value_label($id), $style, $current, $locked);
+        }
+        return self::roving($out);
+    }
+
+    /**
+     * One colour swatch radio.
+     *
+     * @param string $id
+     * @param string $label
+     * @param string $style
+     * @param string $current
+     * @param bool $locked
+     * @return array
+     */
+    private static function swatch(string $id, string $label, string $style, string $current, bool $locked): array {
+        return ['feature' => 'colour', 'value' => $id, 'label' => $label, 'icon' => null, 'checked' => $id === $current,
+            'locked' => $locked, 'sample' => get_string('fontpreview', 'local_accessibility'), 'samplestyle' => $style,
+            'labelstyle' => null, 'bar' => null, 'faces' => null, 'swatch' => true];
+    }
+
+    /**
+     * Give a radio group its one Tab stop: the checked option, else the first.
+     *
+     * @param array $options
+     * @return array
+     */
+    private static function roving(array $options): array {
+        $stop = array_search(true, array_column($options, 'checked'), true);
+        foreach ($options as $i => &$o) {
+            $o['focusable'] = $i === ($stop === false ? 0 : $stop);
+        }
+        return $options;
+    }
+
+    /**
+     * The state of every enabled feature for panel.js (choices plan Task 5): value, built-in default, tile, kind,
+     * lock and options with the CSS properties each one sets.
+     *
+     * @param string[] $enabled
+     * @param array $values feature id => current value of each enabled feature
+     * @return string JSON
+     */
+    private static function state(array $enabled, array $values): string {
+        $state = [];
+        foreach ($enabled as $id) {
+            $f = registry::get($id);
+            $options = [];
+            if ($id === 'colour') {
+                foreach (self::swatches($values[$id], false) as $s) {
+                    $options[] = ['value' => $s['value'], 'label' => $s['label'], 'css' => (object) []];
+                }
+            } else {
+                foreach ($f->options() as $o) {
+                    $options[] = ['value' => $o['value'], 'label' => $o['label'], 'css' => (object) $o['css']];
+                }
+            }
+            $state[$id] = ['value' => $values[$id], 'default' => $f->default(), 'tile' => $f->tile(),
+                'kind' => $f->kind(), 'locked' => preferences::is_locked($id), 'options' => $options];
+        }
+        return json_encode($state, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * A short decimal: 1.125, 0.75. %F, not %f: the CSS decimal point must not follow the locale.
+     *
+     * @param float $n
+     * @return string
+     */
+    private static function decimal(float $n): string {
+        return rtrim(rtrim(sprintf('%.3F', $n), '0'), '.');
     }
 }

@@ -17,12 +17,16 @@
 {{!
     @template local_accessibility/panel
 
-    The accessibility launcher and dialog (spec §4).
+    The accessibility launcher and dialog (choices spec §1-§2): profiles, a grid of tiles that state their values,
+    a drawer per short-list feature and a detail view per rich feature. data-state is the single source of feature
+    state for local_accessibility/panel.
 
     Context variables required for this template:
     * floating - whether to show the floating launcher button
-    * tiles - one entry per enabled feature (see local_accessibility/tile)
-    * swatches - colour scheme swatches, used by the colour tile
+    * state - JSON: per enabled feature its value, default, tile, kind, locked and options (value, label, css)
+    * tiles - one per tile (see local_accessibility/tile)
+    * drawers - one per enabled short-list feature (see local_accessibility/drawer)
+    * views - one per rich tile, with a flag naming its partial: issize, isfont, isspacing, isnarrow or iscolour
     * profiles - preset profiles: id, name, values (JSON of feature values)
     * custom - the user's custom scheme, or null
     * lowcontrast - whether the current scheme is exact and under 7:1 (shows the colour tile's warning icon)
@@ -30,11 +34,38 @@
     Example context (json):
     {
         "floating": true,
-        "tiles": [{"id": "size", "label": "Text size", "icon": "fa-text-height", "value": "150",
-            "valuelabel": "150%", "values": "[\"100\",\"125\",\"150\"]", "valuelabels": "[\"100%\",\"125%\",\"150%\"]",
-            "iscolour": false, "twostate": false, "pressed": "true", "dots": [{"filled": true}, {"filled": false}],
-            "locked": false}],
-        "swatches": [{"id": "default", "label": "Site default", "selected": true}],
+        "state": "{\"align\":{\"value\":\"center\",\"default\":\"default\",\"tile\":\"align\",\"kind\":\"drawer\",\"locked\":false,\"options\":[]} }",
+        "tiles": [
+            {"id": "size", "label": "Text size", "icon": "fa-text-height", "kind": "detail", "isdrawer": false,
+             "valuetext": "150%", "active": true, "locked": false, "iscolour": false, "members": ["size"]},
+            {"id": "align", "label": "Alignment", "icon": "fa-align-left", "kind": "drawer", "isdrawer": true,
+             "valuetext": "Centre", "active": true, "locked": false, "iscolour": false, "members": ["align"]},
+            {"id": "colour", "label": "Colours", "icon": "fa-palette", "kind": "detail", "isdrawer": false,
+             "valuetext": "Site default", "active": false, "locked": false, "iscolour": true, "members": ["colour"]}
+        ],
+        "drawers": [
+            {"id": "align", "label": "Alignment", "locked": false, "options": [
+                {"feature": "align", "value": "default", "label": "Site default", "icon": "fa-rotate-left",
+                 "sample": null, "samplestyle": null, "labelstyle": null, "bar": null, "faces": null, "swatch": false,
+                 "checked": false, "focusable": false, "locked": false},
+                {"feature": "align", "value": "center", "label": "Centre", "icon": "fa-align-center",
+                 "sample": null, "samplestyle": null, "labelstyle": null, "bar": null, "faces": null, "swatch": false,
+                 "checked": true, "focusable": true, "locked": false}
+            ]}
+        ],
+        "views": [
+            {"id": "size", "label": "Text size", "locked": false, "issize": true, "value": "150", "valuetext": "150%",
+             "min": 80, "max": 300, "step": 10, "options": [
+                {"feature": "size", "value": "150", "label": "150%", "icon": null, "sample": "Aa",
+                 "samplestyle": "font-size: 1.125em", "labelstyle": null, "bar": null, "faces": null,
+                 "swatch": false, "checked": true, "focusable": true, "locked": false}
+            ]},
+            {"id": "colour", "label": "Colours", "locked": false, "iscolour": true, "options": [
+                {"feature": "colour", "value": "default", "label": "Site default", "icon": null, "sample": "Aa",
+                 "samplestyle": "background: #fff; color: #1d2125", "labelstyle": null, "bar": null, "faces": null,
+                 "swatch": true, "checked": true, "focusable": true, "locked": false}
+            ]}
+        ],
         "profiles": [{"id": "dyslexia", "name": "Dyslexia", "values": "{\"font\":\"dyslexic\"}"}],
         "custom": null,
         "lowcontrast": false
@@ -49,7 +80,7 @@
 </button>
 {{/floating}}
 <div id="local-accessibility-panel" class="local-accessibility-panel" role="dialog" aria-modal="true"
-     aria-labelledby="local-accessibility-title" hidden>
+     aria-labelledby="local-accessibility-title" data-state="{{state}}" hidden>
     <div class="la-head">
         <h2 id="local-accessibility-title" class="la-title">{{#str}} pluginname, local_accessibility {{/str}}</h2>
         <button type="button" class="btn btn-sm la-reset" data-action="reset">{{#str}} resetall, local_accessibility {{/str}}</button>
@@ -65,8 +96,15 @@
     {{/profiles.0}}
     <div class="la-grid">
         {{#tiles}}{{> local_accessibility/tile }}{{/tiles}}
+        {{#drawers}}{{> local_accessibility/drawer }}{{/drawers}}
     </div>
-    {{> local_accessibility/colour_editor }}
+    {{#views}}
+        {{#issize}}{{> local_accessibility/view_size }}{{/issize}}
+        {{#isfont}}{{> local_accessibility/view_font }}{{/isfont}}
+        {{#isspacing}}{{> local_accessibility/view_spacing }}{{/isspacing}}
+        {{#isnarrow}}{{> local_accessibility/view_narrow }}{{/isnarrow}}
+        {{#iscolour}}{{> local_accessibility/view_colour }}{{/iscolour}}
+    {{/views}}
     <div class="la-live la-visually-hidden" aria-live="polite"></div>
 </div>
 {{> local_accessibility/readbar }}

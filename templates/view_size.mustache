@@ -1,0 +1,65 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_accessibility/view_size
+
+    The text size detail view (choices spec §3 size): smaller and larger buttons, a slider in steps of 10, quick
+    picks and a preview line. Behaviour is in local_accessibility/panel.
+
+    Context variables required for this template:
+    * id, label, locked - the view (id "size")
+    * value, valuetext - the current size and its label
+    * min, max, step - the slider's range
+    * options - the quick picks (see local_accessibility/option)
+
+    Example context (json):
+    {"id": "size", "label": "Text size", "locked": false, "issize": true, "value": "150", "valuetext": "150%",
+     "min": 80, "max": 300, "step": 10, "options": [
+        {"feature": "size", "value": "100", "label": "100%", "icon": null, "sample": "Aa",
+         "samplestyle": "font-size: 0.75em", "labelstyle": null, "bar": null, "faces": null, "swatch": false,
+         "checked": false, "focusable": false, "locked": false},
+        {"feature": "size", "value": "150", "label": "150%", "icon": null, "sample": "Aa",
+         "samplestyle": "font-size: 1.125em", "labelstyle": null, "bar": null, "faces": null, "swatch": false,
+         "checked": true, "focusable": true, "locked": false}
+    ]}
+}}
+<section class="la-view la-view-{{id}}" id="la-view-{{id}}" data-view="{{id}}" aria-labelledby="la-view-{{id}}-title" hidden>
+    <div class="la-viewhead">
+        <button type="button" class="btn btn-sm la-back" data-action="back">
+            <i class="icon fa fa-chevron-left" aria-hidden="true"></i>{{#str}} allsettings, local_accessibility {{/str}}
+        </button>
+        <h3 class="la-viewtitle" id="la-view-{{id}}-title" tabindex="-1">{{label}}</h3>
+        {{#locked}}<i class="icon fa fa-lock la-viewlock" aria-hidden="true"></i>{{/locked}}
+    </div>
+    <div class="la-sizecontrol">
+        <button type="button" class="btn la-step" data-action="smaller" {{#locked}}aria-disabled="true"{{/locked}}>
+            <i class="icon fa fa-minus" aria-hidden="true"></i>{{#str}} sizesmaller, local_accessibility {{/str}}
+        </button>
+        <input type="range" class="la-range" data-feature="size" min="{{min}}" max="{{max}}" step="{{step}}"
+               value="{{value}}" aria-valuetext="{{valuetext}}" aria-labelledby="la-view-{{id}}-title"
+               {{#locked}}disabled{{/locked}}>
+        <button type="button" class="btn la-step" data-action="larger" {{#locked}}aria-disabled="true"{{/locked}}>
+            <i class="icon fa fa-plus" aria-hidden="true"></i>{{#str}} sizelarger, local_accessibility {{/str}}
+        </button>
+        <span class="la-sizevalue" aria-hidden="true">{{valuetext}}</span>
+    </div>
+    <h4 class="la-grouplabel" id="la-view-{{id}}-quick">{{#str}} sizequick, local_accessibility {{/str}}</h4>
+    <div class="la-options" role="radiogroup" aria-labelledby="la-view-{{id}}-quick" {{#locked}}aria-disabled="true"{{/locked}}>
+        {{#options}}{{> local_accessibility/option }}{{/options}}
+    </div>
+    <p class="la-sizepreview">{{#str}} sizepreview, local_accessibility {{/str}}</p>
+</section>
