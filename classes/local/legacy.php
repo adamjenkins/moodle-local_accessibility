@@ -85,15 +85,17 @@ final class legacy {
     /**
      * Drop the new spacing and cursor features' values that are their default, so a legacy value still maps onto them.
      *
-     * Saving the admin settings page stores 'default' and 'off' for features the site never had; a stored default
-     * is not a choice that should outweigh the admin's or the user's old spacing or focus value.
+     * Saving the admin settings page stores 'default' and 'off' for features the site never had, and a fresh install
+     * stores '' (empty means the site default) for the numeric defaults; neither is a choice that should outweigh the
+     * admin's or the user's old spacing or focus value.
      *
      * @param array $values feature id => stored value
      * @return array
      */
     private static function without_new_defaults(array $values): array {
         foreach (['lineheight', 'letterspacing', 'wordspacing', 'cursor'] as $id) {
-            if (isset($values[$id]) && $values[$id] === \local_accessibility\feature\registry::get($id)->default()) {
+            $default = \local_accessibility\feature\registry::get($id)->default();
+            if (isset($values[$id]) && ($values[$id] === '' || $values[$id] === $default)) {
                 unset($values[$id]);
             }
         }
