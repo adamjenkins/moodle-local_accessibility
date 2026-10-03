@@ -310,9 +310,11 @@ final class panel_test extends \advanced_testcase {
             $html
         );
         $this->assertMatchesRegularExpression(
-            '/class="la-optlabel la-sample" style="font-family: &quot;BIZ UDPGothic&quot;[^"]*">\s*Japanese UD Gothic\s*</',
+            '/class="la-optlabel la-ownfont" style="font-family: &quot;BIZ UDPGothic&quot;[^"]*">\s*Japanese UD Gothic\s*</',
             $html
         );
+        // The label keeps its own font only: it is not a preview, so it still follows the user's spacing.
+        $this->assertStringNotContainsString('la-optlabel la-sample', $html);
         $this->assertStringContainsString('data-faces="', $html);
         $this->assertStringNotContainsString('[[', $html);
         $this->assertDebuggingNotCalled();
@@ -338,5 +340,128 @@ final class panel_test extends \advanced_testcase {
         $this->assertDoesNotMatchRegularExpression('/data-tile="size"[^>]*aria-expanded/', $html);
         $this->assertMatchesRegularExpression('/data-tile="align"[^>]*data-active/', $html);
         $this->assertStringContainsString('<span class="la-value" aria-hidden="true">Centre</span>', $html);
+    }
+
+    /**
+     * The "Site default" swatch shows the site's own colours as literals: a chosen scheme repoints --bs-body-* on the
+     * html element, so a var() of them would show the scheme instead.
+     */
+    public function test_site_default_swatch_is_literal(): void {
+        global $OUTPUT;
+        $this->setup_user();
+        preferences::set('colour', 'cream');
+        $context = self::context();
+        $swatches = array_column(self::view($context, 'colour')['options'], null, 'value');
+        $this->assertSame('background: #fff; color: #1d2125', $swatches['default']['samplestyle']);
+        $this->assertStringNotContainsString('var(', $swatches['default']['samplestyle']);
+        $this->assertNotSame($swatches['default']['samplestyle'], $swatches['cream']['samplestyle']);
+        $html = $OUTPUT->render_from_template('local_accessibility/panel', $context);
+        $this->assertMatchesRegularExpression(
+            '/data-value="default"[^>]*data-scheme="default"[^>]*>\s*<span class="la-sample" aria-hidden="true" '
+                . 'style="background: #fff; color: #1d2125">/',
+            $html
+        );
+        $this->assertStringNotContainsString('var(--bs-body-bg', $html);
+        $this->assertStringNotContainsString('var(--bs-body-color', $html);
+    }
+
+    /**
+     * The Custom swatch appears once a custom scheme is saved, last, in its own colours, and is checked when chosen.
+     */
+    public function test_custom_swatch_once_saved(): void {
+        $this->setup_user();
+        $values = array_column(self::view(self::context(), 'colour')['options'], 'value');
+        $this->assertNotContains('custom', $values);
+        $this->assertSame('default', $values[0]);
+        $state = json_decode(self::context()['state'], true);
+        $this->assertNotContains('custom', array_column($state['colour']['options'], 'value'));
+
+        preferences::set_custom_scheme(\local_accessibility\colour\scheme::custom('#14202b', '#e8eef3', '#8cc8ff', false));
+        $custom = preferences::custom_scheme();
+        $context = self::context();
+        $options = self::view($context, 'colour')['options'];
+        $last = end($options);
+        $this->assertSame('custom', $last['value']);
+        $this->assertTrue($last['checked']);
+        $this->assertTrue($last['focusable']);
+        $this->assertTrue($last['swatch']);
+        $this->assertNotSame('', trim($last['label']));
+        $this->assertSame('background: ' . $custom->ramp['page'] . '; color: ' . $custom->text, $last['samplestyle']);
+        $this->assertSame(['custom'], array_keys(array_filter(array_column($options, 'checked', 'value'))));
+        $state = json_decode($context['state'], true);
+        $this->assertContains('custom', array_column($state['colour']['options'], 'value'));
+
+        preferences::set('colour', 'cream');
+        $options = array_column(self::view(self::context(), 'colour')['options'], 'checked', 'value');
+        $this->assertArrayHasKey('custom', $options);
+        $this->assertFalse($options['custom']);
+        $this->assertTrue($options['cream']);
+    }
+
+    /**
+     * Locked features render every control as aria-disabled and still focusable, so a keyboard or screen reader user
+     * can reach them and hear that they are locked; unlocked features carry no aria-disabled.
+     */
+    public function test_locked_markup(): void {
+        global $OUTPUT;
+        $this->setup_user();
+        foreach (['size', 'spacing', 'colour', 'align'] as $tile) {
+            set_config('lock_' . $tile, 1, 'local_accessibility');
+        }
+        $context = self::context();
+        foreach (['size', 'spacing', 'colour', 'align'] as $id) {
+            $this->assertTrue(self::tile($context, $id)['locked'], $id);
+        }
+        $this->assertFalse(self::tile($context, 'font')['locked']);
+        foreach (self::radiogroups($context) as $name => $options) {
+            $locked = (bool) preg_match('/^(view size|spacing |view colour|drawer align)/', $name);
+            foreach ($options as $o) {
+                $this->assertSame($locked, $o['locked'], $name . ' ' . $o['value']);
+            }
+        }
+        $html = $OUTPUT->render_from_template('local_accessibility/panel', $context);
+        foreach (['size', 'spacing', 'colour', 'align'] as $id) {
+            $this->assertMatchesRegularExpression('/data-tile="' . $id . '"[^>]*aria-disabled="true"/', $html, $id);
+        }
+        $this->assertDoesNotMatchRegularExpression('/data-tile="font"[^>]*aria-disabled/', $html);
+        foreach (['align', 'lineheight', 'letterspacing', 'wordspacing', 'colour', 'size'] as $feature) {
+            $this->assertMatchesRegularExpression(
+                '/role="radio"[^>]*data-feature="' . $feature . '"[^>]*aria-disabled="true"/',
+                $html,
+                $feature
+            );
+        }
+        $this->assertDoesNotMatchRegularExpression('/role="radio"[^>]*data-feature="font"[^>]*aria-disabled/', $html);
+        // Each locked radiogroup: the drawer, the size quick picks, the three spacing groups and the swatches.
+        $this->assertSame(6, preg_match_all('/role="radiogroup"[^>]*aria-disabled="true"/', $html));
+        // The size view: the slider and both step buttons stay in the Tab order.
+        $this->assertMatchesRegularExpression('/<input type="range"[^>]*aria-disabled="true"/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<input type="range"[^>]*\sdisabled[\s>]/', $html);
+        $this->assertSame(2, preg_match_all('/class="btn la-step"[^>]*aria-disabled="true"/', $html));
+        $this->assertMatchesRegularExpression('/data-action="customcolours"[^>]*aria-disabled="true"/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<(input|button)[^>]*\sdisabled[\s>]/', $html);
+    }
+
+    /**
+     * The custom editor is a subsection of the colour view: an h4 under the view's h3, not a second dialog title.
+     */
+    public function test_editor_heading_level(): void {
+        global $OUTPUT;
+        $this->setup_user();
+        $html = $OUTPUT->render_from_template('local_accessibility/panel', self::context());
+        $this->assertMatchesRegularExpression('/<h4 class="la-edittitle">\s*Custom colours\s*<\/h4>/', $html);
+        $this->assertSame(1, substr_count($html, 'class="la-title"'));
+        $this->assertDoesNotMatchRegularExpression('/<h3[^>]*>\s*Custom colours/', $html);
+    }
+
+    /**
+     * Offered values come in the order asked for, and values the feature does not have are skipped.
+     */
+    public function test_radios_follow_only_order(): void {
+        $this->setup_user();
+        $radios = new \ReflectionMethod(panel::class, 'radios');
+        $options = $radios->invoke(null, \local_accessibility\feature\registry::get('size'), '100', ['150', '100', '999']);
+        $this->assertSame(['150', '100'], array_column($options, 'value'));
+        $this->assertSame([false, true], array_column($options, 'checked'));
     }
 }

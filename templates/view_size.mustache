@@ -51,7 +51,7 @@
         </button>
         <input type="range" class="la-range" data-feature="size" min="{{min}}" max="{{max}}" step="{{step}}"
                value="{{value}}" aria-valuetext="{{valuetext}}" aria-labelledby="la-view-{{id}}-title"
-               {{#locked}}disabled{{/locked}}>
+               {{#locked}}aria-disabled="true"{{/locked}}>
         <button type="button" class="btn la-step" data-action="larger" {{#locked}}aria-disabled="true"{{/locked}}>
             <i class="icon fa fa-plus" aria-hidden="true"></i>{{#str}} sizelarger, local_accessibility {{/str}}
         </button>

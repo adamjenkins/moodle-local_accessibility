@@ -46,8 +46,12 @@ class panel implements \renderable, \templatable {
      */
     private const SITE_FONT = 'var(--bs-body-font-family, var(--font-family-sans-serif, sans-serif))';
 
-    /** @var string The site's own colours for the "Site default" swatch, with Boost's light values as fallbacks. */
-    private const SITE_COLOURS = 'background: var(--bs-body-bg, #fff); color: var(--bs-body-color, #1d2125)';
+    /**
+     * The site's own colours for the "Site default" swatch: Boost's light body colours, as literals. Not
+     * var(--bs-body-*): a chosen scheme repoints those on the html element (styles.css section 7), so the swatch would
+     * show that scheme instead of the way back to the site's colours.
+     */
+    private const SITE_COLOURS = 'background: #fff; color: #1d2125';
 
     /**
      * Template context.
@@ -188,14 +192,14 @@ class panel implements \renderable, \templatable {
      *
      * @param base $f
      * @param string $current the current value
-     * @param string[]|null $only values to offer, in this order; null for all
+     * @param string[]|null $only values to offer, in this order (values the feature lacks are skipped); null for all
      * @return array
      */
     private static function radios(base $f, string $current, ?array $only = null): array {
         $locked = preferences::is_locked($f->id());
         $options = array_column($f->options(), null, 'value');
         if ($only !== null) {
-            $options = array_values(array_intersect_key($options, array_flip($only)));
+            $options = array_filter(array_map(fn($v) => $options[$v] ?? null, $only));
         }
         $out = [];
         foreach (array_values($options) as $o) {

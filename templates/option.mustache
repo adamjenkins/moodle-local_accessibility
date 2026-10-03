@@ -25,7 +25,8 @@
     * label - the value's label
     * icon - Font Awesome icon, or null when the option shows a preview
     * sample, samplestyle - preview text and its inline style (size, font, spacing or colours), or null
-    * labelstyle - inline style of the label (a font option's label is shown in its own font), or null
+    * labelstyle - inline style of the label (a font option's label is shown in its own font, and keeps the user's
+      spacing), or null
     * bar - width in percent of a line width preview bar, or null
     * faces - JSON list of an uploaded font's faces (url, weight, style, format), or null
     * swatch - whether the option is a colour scheme swatch
@@ -42,5 +43,5 @@
     {{#icon}}<i class="icon fa {{icon}}" aria-hidden="true"></i>{{/icon}}
     {{#sample}}<span class="la-sample" aria-hidden="true"{{#samplestyle}} style="{{samplestyle}}"{{/samplestyle}}>{{sample}}</span>{{/sample}}
     {{#bar}}<span class="la-bar" aria-hidden="true"><span class="la-barfill" style="inline-size: {{bar}}%"></span></span>{{/bar}}
-    <span class="la-optlabel{{#labelstyle}} la-sample{{/labelstyle}}"{{#labelstyle}} style="{{labelstyle}}"{{/labelstyle}}>{{label}}</span>
+    <span class="la-optlabel{{#labelstyle}} la-ownfont{{/labelstyle}}"{{#labelstyle}} style="{{labelstyle}}"{{/labelstyle}}>{{label}}</span>
 </div>

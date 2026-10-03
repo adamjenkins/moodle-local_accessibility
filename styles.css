@@ -86,8 +86,9 @@ html[data-a11y-size] {
 
 /* stylelint-disable max-line-length, selector-type-no-unknown -- long :where() lists; mjx-container is a custom element. */
 /* 3. Font: content and the plugin's own panel and readbar (R19 replaced); icons, code and maths excluded.
-   .la-sample marks a preview that shows its own font (the font options). */
-html[data-a11y-font] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *, .la-sample, .la-sample *, .la-guide, .la-guide *)) {
+   .la-sample marks a preview that shows its own font and spacing; .la-ownfont marks a font option's label, which
+   shows its own font but follows the user's spacing (section 4) like every other label. */
+html[data-a11y-font] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kbd, samp, code *, pre *, kbd *, samp *, .MathJax, .MathJax *, mjx-container, mjx-container *, .la-sample, .la-sample *, .la-ownfont, .la-ownfont *, .la-guide, .la-guide *)) {
     font-family: var(--a11y-font) !important; /* stylelint-disable-line declaration-no-important */
 }
 
@@ -675,6 +676,13 @@ html[data-a11y-colour] .local-accessibility-panel {
     gap: 0.5rem;
     padding: 0.625rem;
     font-size: 0.875rem;
+}
+/* The editor's heading: a subsection of the colour view, below its title. */
+.local-accessibility-panel .la-edittitle {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: var(--a11y-lh, 1.25);
 }
 .local-accessibility-panel .la-editor .la-row {
     display: flex;

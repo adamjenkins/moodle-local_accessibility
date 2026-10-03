@@ -268,4 +268,23 @@ final class styles_test extends \advanced_testcase {
         $this->assertStringContainsString("'hide'", $js);
         $this->assertStringNotContainsString("=== 'on'", $js);
     }
+
+    /**
+     * A font option's label keeps its own font (.la-ownfont) but, not being a preview (.la-sample), follows the user's
+     * line, letter and word spacing like every other label in the panel (choices spec §1).
+     */
+    public function test_font_labels_follow_spacing(): void {
+        $font = self::rules_with('html[data-a11y-font]');
+        $this->assertNotEmpty($font);
+        foreach ($font as [$selector]) {
+            $this->assertStringContainsString('.la-ownfont, .la-ownfont *', $selector);
+        }
+        foreach (['data-a11y-lineheight', 'data-a11y-letterspacing', 'data-a11y-wordspacing'] as $attr) {
+            $rules = self::rules_with('html[' . $attr . ']');
+            $this->assertNotEmpty($rules, $attr);
+            foreach ($rules as [$selector]) {
+                $this->assertStringNotContainsString('la-ownfont', $selector, $attr);
+            }
+        }
+    }
 }
