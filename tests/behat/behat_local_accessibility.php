@@ -259,6 +259,24 @@ class behat_local_accessibility extends behat_base {
     }
 
     /**
+     * Check an element's computed line height against its own font size, to within half a pixel.
+     *
+     * @Then /^the computed line height of "(?P<css>[^"]*)" should be (?P<factor>[0-9.]+) times its font size$/
+     * @param string $css
+     * @param string $factor
+     */
+    public function the_line_height_should_be_times_font_size(string $css, string $factor): void {
+        $this->check_script('const el = document.querySelector(' . json_encode($css) . ');
+            if (!el) {
+                return "No element matches " + ' . json_encode($css) . ';
+            }
+            const s = getComputedStyle(el);
+            const want = parseFloat(s.fontSize) * ' . (float) $factor . ';
+            return Math.abs(parseFloat(s.lineHeight) - want) <= 0.5 ? "" : "line-height " + s.lineHeight +
+                ", expected about " + want + "px (font-size " + s.fontSize + ")";');
+    }
+
+    /**
      * Compare one computed style property of two elements.
      *
      * @Then /^the computed "(?P<property>[^"]*)" of "(?P<css>[^"]*)" should differ from that of "(?P<other>[^"]*)"$/

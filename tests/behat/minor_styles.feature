@@ -11,8 +11,10 @@ Feature: Content styles leave structure, maths and theme behaviour alone
 
   Scenario: Spacing leaves rendered maths alone
     Given the following "user preferences" exist:
-      | user     | preference                  | value |
-      | student1 | local_accessibility_spacing | wcag  |
+      | user     | preference                        | value |
+      | student1 | local_accessibility_lineheight    | 150   |
+      | student1 | local_accessibility_letterspacing | 12    |
+      | student1 | local_accessibility_wordspacing   | 16    |
     And I log in as "student1"
     When the main region contains core controls
     And the page has the extra style ".MathJax, .MathJax span { letter-spacing: normal; word-spacing: normal; }"
