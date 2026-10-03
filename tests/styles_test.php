@@ -184,14 +184,77 @@ final class styles_test extends \advanced_testcase {
         $head = array_values(array_filter(self::rules(), fn($r) => $r[0] === '.local-accessibility-panel .la-head'));
         $this->assertNotEmpty($head);
         $this->assertStringContainsString('position: sticky', $head[0][1]);
-        $this->assertMatchesRegularExpression(
-            '/@media \(max-width: 767\.98px\)\s*\{\s*\.local-accessibility-panel\s*\{[^}]*inline-size: 100vw/',
-            self::css()
+        // The bottom sheet spans the viewport between its insets, not 100vw, which would include a classic scrollbar
+        // and put the panel's edge (and the Close button's padding) under it.
+        $this->assertSame(
+            1,
+            preg_match('/@media \(max-width: 767\.98px\)\s*\{\s*\.local-accessibility-panel\s*\{([^}]*)\}/', self::css(), $sheet)
         );
+        $this->assertStringContainsString('inset-inline: 0;', $sheet[1]);
+        $this->assertStringContainsString('inline-size: auto;', $sheet[1]);
+        $this->assertStringNotContainsString('100vw', $sheet[1]);
+        // The header wraps instead of pushing Close off a narrow screen, and the title's push is logical (RTL).
+        $this->assertStringContainsString('flex-wrap: wrap', $head[0][1]);
+        $title = array_values(array_filter(self::rules(), fn($r) => $r[0] === '.local-accessibility-panel .la-title'));
+        $this->assertNotEmpty($title);
+        $this->assertStringContainsString('margin-inline-end: auto', $title[0][1]);
+        $this->assertDoesNotMatchRegularExpression('/margin:\s*0 auto 0 0/', $title[0][1]);
         foreach (array_merge(self::rules_with('.local-accessibility-panel'), self::rules_with('.la-readbar')) as $rule) {
             [$selector, $declarations] = $rule;
             $this->assertDoesNotMatchRegularExpression('/font-size:\s*\d+(\.\d+)?px/', $declarations, $selector);
         }
+    }
+
+    /**
+     * Icons in the plugin's UI grow with the text: Boost caps every .icon at 30px wide and 24px tall
+     * (theme/boost/scss/moodle/icons.scss), which would let a rem-sized glyph overflow its box from 150% up.
+     */
+    public function test_ui_icons_uncapped(): void {
+        foreach (['.local-accessibility-panel .icon', '.la-readbar .icon'] as $needle) {
+            $uncapped = array_filter(
+                self::rules(),
+                fn($r) => in_array($needle, array_map('trim', explode(',', $r[0])), true)
+                    && str_contains($r[1], 'max-inline-size: none') && str_contains($r[1], 'max-block-size: none')
+            );
+            $this->assertNotEmpty($uncapped, $needle);
+        }
+    }
+
+    /**
+     * The panel and the readbar take the user's whole spacing: buttons, headings and form controls, which the
+     * browser and Bootstrap reset, inherit letter and word spacing, and fixed line heights are only fallbacks for
+     * when no line height is chosen. The colour swatches are fixed-size previews and keep theirs.
+     */
+    public function test_ui_follows_spacing(): void {
+        foreach (['.local-accessibility-panel', '.la-readbar'] as $root) {
+            $inherit = array_filter(
+                self::rules(),
+                fn($r) => str_contains($r[0], $root . ' :where(button')
+                    && str_contains($r[1], 'letter-spacing: inherit') && str_contains($r[1], 'word-spacing: inherit')
+            );
+            $this->assertNotEmpty($inherit, $root);
+        }
+        foreach (array_merge(self::rules_with('.local-accessibility-panel'), self::rules_with('.la-readbar')) as $rule) {
+            [$selector, $declarations] = $rule;
+            if (str_contains($selector, '.la-swatch')) {
+                continue;
+            }
+            if (preg_match_all('/(?<![-\w])line-height:\s*([^;]+);/', $declarations, $m)) {
+                foreach ($m[1] as $value) {
+                    $this->assertStringStartsWith('var(--a11y-lh,', trim($value), $selector);
+                }
+            }
+        }
+    }
+
+    /**
+     * Dimmed images fade once: a <picture> is not dimmed as well as its <img>, which would multiply to 0.16.
+     */
+    public function test_dim_not_doubled(): void {
+        $dim = array_filter(self::rules_with('data-a11y-images="dim"'), fn($r) => str_contains($r[1], 'opacity: 0.4'));
+        $this->assertCount(1, $dim);
+        // The element, not .userpicture.
+        $this->assertDoesNotMatchRegularExpression('/(?<![\w.-])picture\b/', reset($dim)[0]);
     }
 
     /**

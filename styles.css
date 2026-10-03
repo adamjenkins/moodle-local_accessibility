@@ -220,18 +220,19 @@ html[data-a11y-colour][data-a11y-links="highlight"] body :where(a:not(.btn, .qnb
 }
 
 /* 9. Images. "hide": hidden, with the alt text shown by images.js as a sibling span. "dim": faded, full opacity on
-   hover and focus (of the image or of a link around it). */
+   hover and focus (of the image or of a link around it). "dim" leaves <picture> out: opacity multiplies down the tree,
+   so dimming it as well as its <img> would rest at 0.16. */
 html[data-a11y-images="hide"] #page :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     visibility: hidden;
 }
 html[data-a11y-images="hide"] #page img:not(.icon, .activityicon, .userpicture):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     background-image: none !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-images="dim"] #page :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+html[data-a11y-images="dim"] #page :where(img:not(.icon, .activityicon, .userpicture), svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     opacity: 0.4;
 }
-html[data-a11y-images="dim"] #page :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]):where(:hover, :focus, :focus-within):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)),
-html[data-a11y-images="dim"] #page :where(a:hover, a:focus) :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+html[data-a11y-images="dim"] #page :where(img:not(.icon, .activityicon, .userpicture), svg[role="img"]):where(:hover, :focus, :focus-within):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)),
+html[data-a11y-images="dim"] #page :where(a:hover, a:focus) :where(img:not(.icon, .activityicon, .userpicture), svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     opacity: 1;
 }
 .la-alt {
@@ -360,6 +361,7 @@ html[data-a11y-colour] .local-accessibility-panel {
     inset-block-start: 0;
     z-index: 1;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.375rem;
     padding: 0.375rem 0.625rem;
@@ -367,22 +369,40 @@ html[data-a11y-colour] .local-accessibility-panel {
     color: var(--a11y-text, #fff);
     border-block-end: 1px solid var(--a11y-text, var(--bs-primary, #0f6cbf));
 }
+/* The header wraps rather than push Close past a narrow screen's edge at large text sizes; the title may break inside
+   its word as a last resort. */
 .local-accessibility-panel .la-title {
     font-size: 1.0625rem;
-    line-height: 1.25;
+    line-height: var(--a11y-lh, 1.25);
     font-weight: 600;
-    margin: 0 auto 0 0;
+    margin: 0;
+    margin-inline-end: auto;
+    overflow-wrap: anywhere;
 }
 .local-accessibility-panel .la-head .btn {
     color: inherit;
     border: 1px solid currentcolor;
     padding: 0.125rem 0.5rem;
     font-size: 0.875rem;
-    line-height: 1.5;
+    line-height: var(--a11y-lh, 1.5);
 }
 .local-accessibility-panel .la-head .icon {
     margin: 0;
     font-size: 1rem;
+}
+/* Boost caps every .icon at 30px x 24px (theme/boost/scss/moodle/icons.scss), so a rem-sized glyph would overflow its
+   box from 150% text size up. */
+.local-accessibility-panel .icon,
+.la-readbar .icon {
+    max-inline-size: none;
+    max-block-size: none;
+}
+/* The browser resets letter and word spacing on buttons and form controls; inside the plugin's UI they inherit the
+   user's spacing (section 4). Fixed line heights here are fallbacks for when no line height is chosen. */
+.local-accessibility-panel :where(button, h2, input, select, textarea),
+.la-readbar :where(button, input, select) {
+    letter-spacing: inherit;
+    word-spacing: inherit;
 }
 .local-accessibility-panel .la-profiles {
     display: flex;
@@ -423,7 +443,7 @@ html[data-a11y-colour] .local-accessibility-panel {
     background: transparent;
     color: inherit;
     font-size: 0.875rem;
-    line-height: 1.2;
+    line-height: var(--a11y-lh, 1.2);
     text-align: center;
     padding: 0.375rem 0.25rem;
 }
@@ -658,12 +678,13 @@ html[data-a11y-colour] .local-accessibility-panel {
     }
 }
 
-/* Below 768px the panel is a bottom sheet across the full width. */
+/* Below 768px the panel is a bottom sheet across the full width: it spans the viewport between its insets, because
+   100vw includes a classic (non-overlay) scrollbar and would put the panel's edge under it. */
 @media (max-width: 767.98px) {
     .local-accessibility-panel {
         inset-inline: 0;
         inset-block-end: 0;
-        inline-size: 100vw;
+        inline-size: auto;
         max-block-size: 80vh;
         border-radius: 0.625rem 0.625rem 0 0;
     }
@@ -691,6 +712,9 @@ html[data-a11y-colour] .local-accessibility-panel {
 .la-readbar[hidden],
 .local-accessibility-panel .la-tile[hidden] {
     display: none;
+}
+.la-readbar .btn {
+    line-height: var(--a11y-lh, 1.5);
 }
 .la-readbar .la-rate {
     display: flex;
