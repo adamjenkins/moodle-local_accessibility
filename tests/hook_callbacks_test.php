@@ -27,6 +27,22 @@ namespace local_accessibility;
  */
 final class hook_callbacks_test extends \advanced_testcase {
     /**
+     * Uploaded fonts are memoised per request; every test starts without the memo.
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        local\fonts::reset_cache();
+    }
+
+    /**
+     * Drop the memo even when a test fails, so later tests do not see uploads that were rolled back.
+     */
+    protected function tearDown(): void {
+        local\fonts::reset_cache();
+        parent::tearDown();
+    }
+
+    /**
      * Store a file in the uploaded fonts area.
      *
      * @param string $filename
@@ -412,7 +428,6 @@ final class hook_callbacks_test extends \advanced_testcase {
      */
     public function test_head_injects_uploaded_font(): void {
         $this->resetAfterTest();
-        local\fonts::reset_cache();
         preferences::sync_features_table();
         self::store_font('MyFont-Regular.woff2');
         local\fonts::reset_cache();
@@ -447,7 +462,6 @@ final class hook_callbacks_test extends \advanced_testcase {
         $DB->set_field('local_accessibility_widgets', 'enabled', 0, ['name' => 'font']);
         \cache::make('local_accessibility', 'enabled')->purge();
         $this->assertSame('', $this->head_output());
-        local\fonts::reset_cache();
     }
 
     /**

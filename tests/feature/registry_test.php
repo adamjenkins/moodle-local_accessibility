@@ -29,6 +29,22 @@ namespace local_accessibility\feature;
  */
 final class registry_test extends \advanced_testcase {
     /**
+     * Uploaded fonts are memoised per request; every test starts without the memo.
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        \local_accessibility\local\fonts::reset_cache();
+    }
+
+    /**
+     * Drop the memo even when a test fails, so later tests do not see uploads that were rolled back.
+     */
+    protected function tearDown(): void {
+        \local_accessibility\local\fonts::reset_cache();
+        parent::tearDown();
+    }
+
+    /**
      * Store a file in the uploaded fonts area.
      *
      * @param string $filename
@@ -193,13 +209,11 @@ final class registry_test extends \advanced_testcase {
      */
     public function test_css_properties_uploaded_font(): void {
         $this->resetAfterTest();
-        \local_accessibility\local\fonts::reset_cache();
         self::store_font('MyFont-Regular.woff2');
         \local_accessibility\local\fonts::reset_cache();
         $css = registry::get('font')->css_properties('up_myfont');
         $this->assertStringStartsWith('"local_accessibility_up_myfont"', $css['--a11y-font']);
         $this->assertSame([], registry::get('font')->css_properties('up_nosuch'));
-        \local_accessibility\local\fonts::reset_cache();
     }
 
     /**
