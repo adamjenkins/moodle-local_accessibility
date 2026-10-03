@@ -16,9 +16,9 @@
 /**
  * Show alt text in place of hidden images (spec §5).
  *
- * The text must reach assistive technology exactly once. While Images is on, styles.css hides the image with
+ * The text must reach assistive technology exactly once. While Images is "hide", styles.css hides the image with
  * visibility:hidden, which takes it (and its alt) out of the accessibility tree, so the span is left exposed.
- * While Images is off, the span is display:none and the image carries the alt itself.
+ * Otherwise ("off" or "dim"), the span is display:none and the image carries the alt itself.
  *
  * @module     local_accessibility/images
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
@@ -46,11 +46,11 @@ const addAlts = () => {
  * Initialise.
  */
 export const init = () => {
-    if (document.documentElement.getAttribute('data-a11y-images') === 'on') {
+    if (document.documentElement.getAttribute('data-a11y-images') === 'hide') {
         addAlts();
     }
     document.addEventListener('local_accessibility:changed', (e) => {
-        if (e.detail.feature === 'images' && e.detail.value === 'on') {
+        if (e.detail.feature === 'images' && e.detail.value === 'hide') {
             addAlts();
         }
     });
