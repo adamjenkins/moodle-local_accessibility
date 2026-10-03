@@ -198,6 +198,18 @@ final class styles_test extends \advanced_testcase {
         $title = array_values(array_filter(self::rules(), fn($r) => $r[0] === '.local-accessibility-panel .la-title'));
         $this->assertNotEmpty($title);
         $this->assertStringContainsString('margin-inline-end: auto', $title[0][1]);
+        // The sticky header is bounded independently of the user's text size and line height, so at 300% text on a
+        // short screen it cannot cover the settings under it: its size is capped by the viewport, its padding is in em
+        // of that capped size, and its line height follows the user's only up to 1.5 (WCAG 1.4.12).
+        $this->assertStringContainsString('--la-head-size: min(1rem, max(16px, 4.5vmin));', $head[0][1]);
+        $this->assertStringContainsString('font-size: var(--la-head-size);', $head[0][1]);
+        $this->assertDoesNotMatchRegularExpression('/(padding|gap):[^;]*rem/', $head[0][1]);
+        $btn = array_values(array_filter(self::rules(), fn($r) => $r[0] === '.local-accessibility-panel .la-head .btn'));
+        $this->assertNotEmpty($btn);
+        foreach ([$title[0][1], $btn[0][1]] as $declarations) {
+            $this->assertMatchesRegularExpression('/line-height: min\(var\(--a11y-lh, 1\.(25|5)\), 1\.5\);/', $declarations);
+            $this->assertDoesNotMatchRegularExpression('/(font-size|padding):[^;]*rem/', $declarations);
+        }
         $this->assertDoesNotMatchRegularExpression('/margin:\s*0 auto 0 0/', $title[0][1]);
         foreach (array_merge(self::rules_with('.local-accessibility-panel'), self::rules_with('.la-readbar')) as $rule) {
             [$selector, $declarations] = $rule;
@@ -241,6 +253,12 @@ final class styles_test extends \advanced_testcase {
             }
             if (preg_match_all('/(?<![-\w])line-height:\s*([^;]+);/', $declarations, $m)) {
                 foreach ($m[1] as $value) {
+                    // The sticky header caps the user's line height at 1.5 so it cannot cover the panel (spec section 1).
+                    if (str_contains($selector, '.la-head') || str_contains($selector, '.la-title')) {
+                        $capped = '/^min\(var\(--a11y-lh, [0-9.]+\), 1\.5\)$/';
+                        $this->assertMatchesRegularExpression($capped, trim($value), $selector);
+                        continue;
+                    }
                     $this->assertStringStartsWith('var(--a11y-lh,', trim($value), $selector);
                 }
             }

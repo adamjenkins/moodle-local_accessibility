@@ -178,6 +178,9 @@ class behat_local_accessibility extends behat_base {
     /** @var bool whether this scenario switched on forced-colours emulation */
     private bool $forcedcolours = false;
 
+    /** @var bool whether this scenario switched on screen-size emulation */
+    private bool $screenemulated = false;
+
     /**
      * Colour helpers shared by the style steps: parse a computed colour, find the colour behind an element and
      * compute the WCAG contrast ratio.
@@ -516,6 +519,65 @@ class behat_local_accessibility extends behat_base {
     private function set_forced_colours(string $value): void {
         $cdp = new \Facebook\WebDriver\Chrome\ChromeDevToolsDriver($this->getSession()->getDriver()->getWebDriver());
         $cdp->execute('Emulation.setEmulatedMedia', ['features' => [['name' => 'forced-colors', 'value' => $value]]]);
+    }
+
+    /**
+     * Emulate a screen of an exact size in Chrome through the DevTools protocol (set it before the page loads).
+     *
+     * A desktop Chrome window has a minimum width of about 500px, so "I change viewport size to" cannot reach a 320px
+     * phone. The step checks the page really sees the size.
+     *
+     * @Given /^the browser emulates a (?P<width>\d+)x(?P<height>\d+) screen$/
+     * @param string $width
+     * @param string $height
+     */
+    public function the_browser_emulates_a_screen(string $width, string $height): void {
+        $cdp = new \Facebook\WebDriver\Chrome\ChromeDevToolsDriver($this->getSession()->getDriver()->getWebDriver());
+        $metrics = ['width' => (int) $width, 'height' => (int) $height, 'deviceScaleFactor' => 1, 'mobile' => false];
+        $cdp->execute('Emulation.setDeviceMetricsOverride', $metrics);
+        $this->screenemulated = true;
+        $this->check_script('return window.innerWidth === ' . (int) $width . ' && window.innerHeight === ' . (int) $height .
+            ' ? "" : "The page sees " + window.innerWidth + "x" + window.innerHeight;');
+    }
+
+    /**
+     * Stop screen-size emulation after a scenario that started it, if its browser session is still open.
+     *
+     * @AfterScenario
+     */
+    public function stop_emulating_screen(): void {
+        if (!$this->screenemulated) {
+            return;
+        }
+        $this->screenemulated = false;
+        $session = $this->getSession();
+        if ($session->isStarted() && $session->getDriver()->getWebDriver()) {
+            $cdp = new \Facebook\WebDriver\Chrome\ChromeDevToolsDriver($session->getDriver()->getWebDriver());
+            $cdp->execute('Emulation.clearDeviceMetricsOverride', []);
+        }
+    }
+
+    /**
+     * Check that the open panel's sticky header leaves most of the panel for the settings scrolling under it, and that
+     * the panel stays within 80% of the viewport height (spec section 1: the header always stays visible and the panel
+     * stays operable).
+     *
+     * @Then /^the accessibility panel header should take at most (?P<pct>\d+)% of the panel's height$/
+     * @param string $pct
+     */
+    public function the_panel_header_should_take_at_most(string $pct): void {
+        $this->check_script('const panel = document.getElementById("local-accessibility-panel");
+            const head = panel && panel.querySelector(".la-head");
+            if (!panel || !head || panel.hidden) {
+                return "The accessibility panel is not open";
+            }
+            const p = panel.getBoundingClientRect().height;
+            const h = head.getBoundingClientRect().height;
+            if (p > window.innerHeight * 0.8 + 1) {
+                return "Panel is " + p + "px tall in a " + window.innerHeight + "px viewport";
+            }
+            return h <= p * ' . ((int) $pct / 100) . ' ? "" : "Header is " + h + "px of a " + p + "px panel (" +
+                Math.round(100 * h / p) + "%) at " + window.innerWidth + "x" + window.innerHeight;');
     }
 
     /**

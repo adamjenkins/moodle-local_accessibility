@@ -100,6 +100,24 @@ Feature: Choosing any value from a drawer or a detail view
       | 100  | 16px |
       | 150  | 24px |
 
+  Scenario Outline: The header leaves room for the settings at 300% text and the widest spacing on a <viewport> screen
+    Given the following "user preferences" exist:
+      | user     | preference                        | value |
+      | student1 | local_accessibility_size          | 300   |
+      | student1 | local_accessibility_lineheight    | 250   |
+      | student1 | local_accessibility_letterspacing | 30    |
+      | student1 | local_accessibility_wordspacing   | 60    |
+    And the browser emulates a <viewport> screen
+    And I log in as "student1"
+    When I click on "Accessibility settings" "button"
+    Then the accessibility panel header should take at most 35% of the panel's height
+
+    Examples:
+      | viewport |
+      | 320x568  |
+      | 568x320  |
+      | 1366x768 |
+
   Scenario: Images can be dimmed or hidden from the drawer
     Given the following "courses" exist:
       | fullname | shortname |
