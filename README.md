@@ -5,23 +5,63 @@ It is one plugin with all features built in.
 
 ## Features ##
 
-- A compact panel with one tile per setting. Open it with the floating button, the user menu entry or the
-  keyboard shortcut Alt+A.
-- Colour schemes: presets, or your own background, text and link colours. Custom colours are adjusted to a 7:1
-  contrast ratio unless you choose to keep your exact colours.
-- Text size scales the whole page in proportion. Spacing follows the WCAG 1.4.12 values.
-- Fonts: Readable (Atkinson Hyperlegible) and OpenDyslexic.
-- Reading guide, stop motion, saturation, strong focus ring, large cursor, link and image options.
-- Read aloud using the browser's own voices, sentence by sentence (no visual highlight yet).
+- A panel with one tile per setting. Each tile shows its current setting in words, for example
+  "Font, OpenDyslexic". Open the panel with the floating button, the user menu entry or the keyboard
+  shortcut Alt+A.
+- Every option is shown and can be chosen directly, each with an icon or a preview and a label. Short lists
+  open in a drawer under the tile; longer ones (text size, font, spacing, line width, colours) open a detail
+  view. Arrow keys move between options and Enter or Space chooses one.
+- The panel follows your own text size, font, spacing and colours. Alignment, line width, link and image
+  options and the reading guide are not applied to the panel itself.
 - Profiles: one-click bundles of settings (Dyslexia, Focus, Low vision, Seizure-safe).
 - Settings can start from the device's reduced-motion and contrast preferences.
+
+| Setting | Choices |
+|---|---|
+| Text size | 80% to 300% in steps of 10, plus 125% (default 100%). The whole page scales in proportion. |
+| Font | Site default; the device's sans-serif, serif and monospace fonts; Atkinson Hyperlegible, Lexend, OpenDyslexic and Comic Neue (included); Japanese UD Gothic, Japanese UD Mincho and Japanese textbook (device fonts); fonts uploaded by the administrator. Each option is shown in its own font. |
+| Spacing: line height | Site default, 1.2, 1.5, 1.8, 2.0, 2.5. Paragraph spacing follows the line height. |
+| Spacing: letter spacing | Site default, 0.05, 0.10, 0.12, 0.16, 0.20, 0.30 (em) |
+| Spacing: word spacing | Site default, 0.10, 0.16, 0.24, 0.40, 0.60 (em) |
+| Alignment | Site default, Left, Centre, Right, Justified |
+| Colours | Site default, High contrast, Yellow on black, Black on white, Cream, Dark, the site's own schemes, and Custom (your own background, text and link colours, adjusted to a 7:1 contrast ratio unless you keep your exact colours) |
+| Line width | Full width, 90, 80, 70, 60, 50 or 40 characters |
+| Links | Off, Underlined, Underline and outline, Highlighted |
+| Images | Shown, Dimmed, Hidden (alt text shown) |
+| Guide | Off, Reading ruler, Reading mask |
+| Motion | On, Stopped |
+| Read | Off, Read aloud bar shown (the browser's own voices, sentence by sentence; no visual highlight yet) |
+| Saturation | Normal, Low, Greyscale, High |
+| Focus ring | Standard, Strong, Extra thick |
+| Cursor | Standard, Large, Extra large |
+
+The spacing values include the WCAG 1.4.12 text spacing values (line height 1.5, letter spacing 0.12, word
+spacing 0.16).
+
+### Included fonts ###
+
+All four are under the SIL Open Font License 1.1 (licence texts in `fonts/`, sources in `thirdpartylibs.xml`):
+Atkinson Hyperlegible, Lexend, OpenDyslexic and Comic Neue, each in regular and bold.
+
+The device fonts are font stacks: nothing is downloaded, and a device without any font in a stack shows its
+own default font of that kind.
 
 ## Settings for administrators ##
 
 Under _Site administration > Plugins > Local plugins > Accessibility_:
 
 - Where users open the panel from (floating button, user menu, or both) and whether Alt+A is active.
-- Site defaults for each setting, with a lock per setting so that everyone uses the default.
+- Site defaults for each setting, with a lock per tile so that everyone uses the default. Line height, letter
+  spacing and word spacing have a default each and share one lock, _Lock Spacing_ (`lock_spacing`).
+- _Fonts users may choose_ (`fonts_available`): which included and device fonts the Font view offers. All are
+  offered by default; the site font always is.
+- _Uploaded fonts_ (`fonts_uploaded`): up to 20 font files (.woff2, .woff, .ttf or .otf) offered as extra
+  fonts. The file name sets the family and face: the part before the first hyphen or underscore is the family
+  name, a rest containing "Bold" makes a bold face and one containing "Italic" or "Oblique" an italic face.
+  For example `Family-Regular.woff2` and `Family-Bold.woff2` make one font, Family, with two faces. Names may
+  use only letters, digits, spaces, dots, hyphens and underscores; other files are ignored. Check that each
+  font's licence allows serving it on the web, and delete a file to stop offering it. Uploaded fonts are served
+  without a login, so they also work on the login page, and only font files from this setting are served.
 - Site colour schemes (each is checked for contrast) and your own profiles.
 - _Features_ page: enable, disable and order the features.
 
@@ -42,7 +82,9 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 
 ## Upgrading from 2.x ##
 
-Existing users' settings are carried over. Moodle 4.5 or later is required.
+Existing users' settings are carried over. Moodle 4.5 or later is required. Text size, line height and letter
+spacing move to the nearest new value; paragraph widths of 25, 50 and 75 become line widths of 50, 60 and 70
+characters; highlighted links become _Underline and outline_ and hidden images _Hidden (alt text shown)_.
 
 The upgrade uninstalls an old `accessibility_*` widget plugin only when its folder is already gone from
 `local/accessibility/widgets/`. If the old widget folders are still there after the upgrade (for example after
