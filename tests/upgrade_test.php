@@ -137,8 +137,8 @@ final class upgrade_test extends \advanced_testcase {
         $this->assertTrue(xmldb_local_accessibility_upgrade(2026100502));
 
         // Preferences exist and the table is gone: the migration read the table before the drop.
-        // 1.75 maps straight to the nearest new step (plan D2/D5), not to the 3.0-dev 175.
-        $this->assertSame('180', get_user_preferences('local_accessibility_size', null, $u1->id));
+        // 1.75 keeps its own value: text size takes any whole percentage.
+        $this->assertSame('175', get_user_preferences('local_accessibility_size', null, $u1->id));
         $this->assertSame('custom', get_user_preferences('local_accessibility_colour', null, $u1->id));
         $s = colour\scheme::from_json(get_user_preferences('local_accessibility_colourcustom', null, $u1->id));
         $this->assertSame('#ffff00', $s->text);
@@ -228,7 +228,7 @@ final class upgrade_test extends \advanced_testcase {
 
         // Preferences.
         $this->assertSame(['align' => 'left', 'cursor' => 'large', 'focus' => 'ring', 'font' => 'dyslexic',
-            'images' => 'hide', 'letterspacing' => '16', 'lineheight' => '180', 'links' => 'outline', 'size' => '180',
+            'images' => 'hide', 'letterspacing' => '16', 'lineheight' => '180', 'links' => 'outline', 'size' => '175',
             'wordspacing' => '24'], $this->prefs($u1->id));
         $this->assertSame([], $this->prefs($u2->id));
         $this->assertSame(['size' => '150'], $this->prefs($u3->id));
@@ -245,7 +245,8 @@ final class upgrade_test extends \advanced_testcase {
         $this->assertSame('1', $c->lock_cursor);
         $this->assertSame('1', $c->lock_focus);
         $this->assertSame('outline', $c->default_links);
-        $this->assertSame('180', $c->default_size);
+        // Text size takes any whole percentage, so the development value 175 is no longer renamed.
+        $this->assertSame('175', $c->default_size);
         // Profiles are mapped when read, never rewritten (plan D12).
         $this->assertSame($profiles, $c->profiles);
         $this->assertEquals(2026100600, $c->version);

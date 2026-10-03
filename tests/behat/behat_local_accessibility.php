@@ -108,6 +108,43 @@ class behat_local_accessibility extends behat_base {
     }
 
     /**
+     * Type into a numeric setting's stepper field, replacing its text, and press Enter, as a keyboard user does.
+     *
+     * @When /^I type "(?P<text>[^"]*)" in the "(?P<feature>[a-z]+)" stepper and press enter$/
+     * @param string $text ASCII text to type
+     * @param string $feature the feature id, for example "letterspacing"
+     */
+    public function i_type_in_the_stepper(string $text, string $feature): void {
+        $id = 'la-field-' . $feature;
+        $this->find('css', '#' . $id)->click();
+        $script = 'return (function(el) { if (!el) { return false; } el.focus(); el.select(); '
+            . 'return document.activeElement === el; })(document.getElementById(' . json_encode($id) . '));';
+        if (!$this->evaluate_script($script)) {
+            throw new ExpectationException("Stepper field #$id not found or not focusable", $this->getSession());
+        }
+        behat_base::type_keys($this->getSession(), array_merge(str_split($text), [behat_keys::ENTER]));
+    }
+
+    /**
+     * Check the text in a numeric setting's stepper field (its value property, which typing changes).
+     *
+     * @Then /^the "(?P<feature>[a-z]+)" stepper field should show "(?P<text>[^"]*)"$/
+     * @param string $feature
+     * @param string $text
+     */
+    public function the_stepper_field_should_show(string $feature, string $text): void {
+        $this->spin(function () use ($feature, $text) {
+            $actual = $this->evaluate_script('return (document.getElementById(' . json_encode('la-field-' . $feature)
+                . ') || {}).value;');
+            if ($actual !== $text) {
+                throw new ExpectationException("Expected the $feature stepper to show \"$text\", got "
+                    . var_export($actual, true), $this->getSession());
+            }
+            return true;
+        });
+    }
+
+    /**
      * Press Escape on the focused element inside the accessibility dialog.
      *
      * In Chrome under Behat, the core Escape step did not close the colour editor while its colour field had focus

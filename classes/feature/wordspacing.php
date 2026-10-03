@@ -19,12 +19,35 @@ namespace local_accessibility\feature;
 /**
  * Word spacing: extra space between words (spec §3).
  *
+ * Hundredths of an em; negative values squeeze words together.
+ *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class wordspacing extends base {
+class wordspacing extends numeric {
+    /** @var int One press of − or +. */
+    protected const STEP = 2;
+    /** @var int Largest value. */
+    protected const MAX = 1000;
+    /** @var int Smallest value while the site allows the full range. */
+    protected const MIN_UNLIMITED = -1000;
+    /** @var int Smallest value while the site keeps values non-negative. */
+    protected const MIN_NONNEGATIVE = 0;
+    /** @var int Stepping from the default starts here. */
+    protected const START = 0;
+    /** @var string CSS custom property. */
+    protected const PROPERTY = '--a11y-ws';
+    /** @var int Encoding scale. */
+    protected const SCALE = 100;
+    /** @var string CSS unit. */
+    protected const CSSUNIT = 'em';
+    /** @var string|null Lang string that labels a value. */
+    protected const LABELSTRING = null;
+    /** @var string|null Lang string of the unit beside the value field. */
+    protected const UNITSTRING = 'unit_em';
+
     /**
      * Stable id, stored in preferences.
      *
@@ -32,15 +55,6 @@ class wordspacing extends base {
      */
     public function id(): string {
         return 'wordspacing';
-    }
-
-    /**
-     * Allowed values: the site default, then hundredths of an em (spec §3).
-     *
-     * @return string[]
-     */
-    public function values(): array {
-        return ['default', '10', '16', '24', '40', '60'];
     }
 
     /**
@@ -77,25 +91,5 @@ class wordspacing extends base {
      */
     public function preview(): ?string {
         return 'spacing';
-    }
-
-    /**
-     * Label of one value: "Site default" or the value as a decimal in em.
-     *
-     * @param string $value
-     * @return string
-     */
-    public function value_label(string $value): string {
-        return $value === 'default' ? parent::value_label($value) : format_float((int) $value / 100, 2);
-    }
-
-    /**
-     * The word spacing custom property.
-     *
-     * @param string $value
-     * @return array<string, string>
-     */
-    public function css_properties(string $value): array {
-        return $this->is_numeric_choice($value) ? ['--a11y-ws' => self::hundredths((int) $value) . 'em'] : [];
     }
 }

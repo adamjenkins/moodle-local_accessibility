@@ -27,6 +27,7 @@ require_once(__DIR__ . '/fixtures/legacy_configs.php');
  * @category   test
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \local_accessibility\admin\setting_numericdefault
  * @covers     \local_accessibility\admin\setting_sitepresets
  * @covers     \local_accessibility\plugininfo\accessibility
  */
@@ -72,6 +73,38 @@ final class admin_test extends \advanced_testcase {
     }
 
     /**
+     * A numeric site default is empty or a value the feature accepts under the site's limits, checked by the feature.
+     */
+    public function test_numeric_default_validation(): void {
+        $this->resetAfterTest();
+        $ls = new admin\setting_numericdefault(feature\registry::get('letterspacing'));
+        $size = new admin\setting_numericdefault(feature\registry::get('size'));
+        foreach (['', '  ', '12', '-5', '-500', '500', 'default'] as $ok) {
+            $this->assertTrue($ls->validate($ok), "'$ok'");
+        }
+        foreach (['501', '-501', '1e3', '12.5', '--1', 'x', '0.12', '012'] as $bad) {
+            $this->assertIsString($ls->validate($bad), $bad);
+        }
+        $this->assertTrue($size->validate('175'));
+        $this->assertTrue($size->validate('1'));
+        $this->assertIsString($size->validate('0'));
+        $this->assertIsString($size->validate('1001'));
+        // Restricted to non-negative values, a negative default is refused.
+        set_config('numericlimits', 'nonnegative', 'local_accessibility');
+        $this->assertIsString($ls->validate('-5'));
+        $this->assertTrue($ls->validate('0'));
+        $this->assertIsString($size->validate('5'));
+        // A stored non-numeric default shows as empty; a stored number shows as itself.
+        set_config('default_letterspacing', 'default', 'local_accessibility');
+        $this->assertSame('', $ls->get_setting());
+        set_config('default_letterspacing', '12', 'local_accessibility');
+        $this->assertSame('12', $ls->get_setting());
+        $this->assertSame('', $ls->write_setting(''));
+        $this->assertSame('', get_config('local_accessibility', 'default_letterspacing'));
+        $this->assertNotSame('', $ls->write_setting('-5'));
+    }
+
+    /**
      * The settings tree builds with every expected setting and the features page.
      */
     public function test_settings_tree(): void {
@@ -114,12 +147,14 @@ final class admin_test extends \advanced_testcase {
             get_string('lockfeature', 'local_accessibility', get_string('feature_spacing', 'local_accessibility')),
             (string) $settings['lock_spacing']->visiblename
         );
-        // The size default lists its values ascending, labelled as percentages, defaulting to 100.
-        $size = $settings['default_size'];
-        $size->load_choices();
-        $this->assertSame(feature\registry::get('size')->values(), array_map('strval', array_keys($size->choices)));
-        $this->assertSame('100', $size->get_defaultsetting());
-        $this->assertSame('125%', (string) $size->choices['125']);
+        // The numeric defaults take a number, empty for the feature's own default; the limits default to unlimited.
+        foreach (['size', 'lineheight', 'letterspacing', 'wordspacing', 'narrow'] as $id) {
+            $this->assertInstanceOf(admin\setting_numericdefault::class, $settings['default_' . $id], $id);
+            $this->assertSame('', $settings['default_' . $id]->get_defaultsetting(), $id);
+        }
+        $this->assertSame('unlimited', $settings['numericlimits']->get_defaultsetting());
+        $settings['numericlimits']->load_choices();
+        $this->assertSame(['unlimited', 'nonnegative'], array_keys($settings['numericlimits']->choices));
         $this->assertSame('large', array_keys($settings['default_cursor']->choices)[1]);
         // Every built-in font is available by default; uploads go to the system fonts area (spec §4).
         $available = $settings['fonts_available'];

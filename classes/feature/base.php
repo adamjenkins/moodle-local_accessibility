@@ -111,17 +111,23 @@ abstract class base {
      *     css: array<string, string>}>
      */
     public function options(): array {
-        $out = [];
-        foreach ($this->values() as $value) {
-            $out[] = [
-                'value' => $value,
-                'label' => $this->value_label($value),
-                'icon' => $this->option_icon($value),
-                'preview' => $this->preview(),
-                'css' => $this->css_properties($value),
-            ];
-        }
-        return $out;
+        return array_map(fn($value) => $this->option($value), $this->values());
+    }
+
+    /**
+     * One option: what the panel shows for a value.
+     *
+     * @param string $value
+     * @return array{value: string, label: string, icon: ?string, preview: ?string, css: array<string, string>}
+     */
+    public function option(string $value): array {
+        return [
+            'value' => $value,
+            'label' => $this->value_label($value),
+            'icon' => $this->option_icon($value),
+            'preview' => $this->preview(),
+            'css' => $this->css_properties($value),
+        ];
     }
 
     /**
@@ -132,16 +138,6 @@ abstract class base {
      */
     public function css_properties(string $value): array {
         return [];
-    }
-
-    /**
-     * Whether a value is a valid, non-default value made of digits only: the precondition for a numeric property.
-     *
-     * @param string $value
-     * @return bool
-     */
-    protected function is_numeric_choice(string $value): bool {
-        return $value !== $this->default() && ctype_digit($value) && $this->validate($value);
     }
 
     /**

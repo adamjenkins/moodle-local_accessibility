@@ -11,9 +11,13 @@ carried over on upgrade.
   and colours.
 - Colour schemes: presets plus your own background, text and link colours. These are adjusted to a 7:1 contrast
   ratio unless you choose to keep your exact colours.
-- Text size from 80% to 300% (steps of 10, plus 125%) scales the whole page in proportion (no longer flattens
-  headings). Line height, letter spacing and word spacing are chosen separately, including the WCAG 1.4.12
-  values.
+- Text size scales the whole page in proportion (no longer flattens headings). Line height, letter spacing and
+  word spacing are set separately, and the WCAG 1.4.12 values are within reach.
+- Text size, line height, letter spacing, word spacing and line width have no fixed list of values: − and +
+  buttons that repeat while held, a field that takes a typed number, and a _Site default_ button. Text size
+  keeps quick picks (100% to 300%). Values may go negative (spacing) or under 1.0 (line height) unless the
+  administrator's new _Limits of number settings_ (`numericlimits`) is set to _Non-negative_; their site
+  defaults are typed numbers.
 - Fonts: Atkinson Hyperlegible, Lexend, OpenDyslexic and Comic Neue (included, SIL Open Font License), the
   device's sans-serif, serif and monospace fonts, three Japanese UD font stacks, and fonts the administrator
   uploads. Administrators choose which built-in fonts are offered.

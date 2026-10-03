@@ -1,0 +1,62 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+{{!
+    @template local_accessibility/stepper
+
+    A −/+ stepper for a numeric setting (numeric steppers brief): Smaller/Less and Larger/More buttons that repeat
+    while held, a field that takes a typed number, the unit, a "Site default" button and the setting's preview.
+    Behaviour is in local_accessibility/panel.
+
+    Context variables required for this template:
+    * feature - the feature id
+    * label, showlabel - the setting's name, and whether to show it as the group's heading
+    * labelid - id of the element naming the group (the heading, or the view's title)
+    * fieldvalue - the value in the user's units, empty at a non-numeric default
+    * placeholder - the default's label, shown in the empty field
+    * unit - the unit shown after the field, or empty
+    * issize - the text size stepper, whose buttons say Smaller and Larger
+    * locked, mindisabled, maxdisabled - state
+    * sample, samplestyle - sample text and its spacing, or null
+    * bar - width in percent of the line width preview bar, or null
+
+    Example context (json):
+    {"feature": "letterspacing", "label": "Letter spacing", "labelid": "la-group-letterspacing", "showlabel": true,
+     "fieldvalue": "0.12", "placeholder": "", "unit": "em", "issize": false, "locked": false,
+     "mindisabled": false, "maxdisabled": false, "sample": "Aa Bb Cc Dd", "samplestyle": "letter-spacing: 0.12em",
+     "bar": null}
+}}
+<div class="la-group la-stepper" role="group" aria-labelledby="{{labelid}}" data-feature="{{feature}}"{{#locked}} aria-disabled="true"{{/locked}}>
+    {{#showlabel}}<h4 class="la-grouplabel" id="{{labelid}}">{{label}}</h4>{{/showlabel}}
+    <div class="la-stepcontrols">
+        <button type="button" class="btn la-step" data-action="stepdown" data-feature="{{feature}}"{{#mindisabled}} aria-disabled="true"{{/mindisabled}}>
+            <i class="icon fa fa-minus" aria-hidden="true"></i>{{#issize}}{{#str}} sizesmaller, local_accessibility {{/str}}{{/issize}}{{^issize}}{{#str}} stepless, local_accessibility {{/str}}{{/issize}}
+        </button>
+        <span class="la-stepfield">
+            <input type="text" inputmode="decimal" class="form-control la-stepvalue" id="la-field-{{feature}}"
+                   data-feature="{{feature}}" value="{{fieldvalue}}" placeholder="{{placeholder}}" size="6" autocomplete="off"
+                   aria-labelledby="{{labelid}}{{#unit}} la-unit-{{feature}}{{/unit}}"{{#locked}} readonly aria-disabled="true"{{/locked}}>
+            {{#unit}}<span class="la-stepunit" id="la-unit-{{feature}}">{{unit}}</span>{{/unit}}
+        </span>
+        <button type="button" class="btn la-step" data-action="stepup" data-feature="{{feature}}"{{#maxdisabled}} aria-disabled="true"{{/maxdisabled}}>
+            <i class="icon fa fa-plus" aria-hidden="true"></i>{{#issize}}{{#str}} sizelarger, local_accessibility {{/str}}{{/issize}}{{^issize}}{{#str}} stepmore, local_accessibility {{/str}}{{/issize}}
+        </button>
+        <button type="button" class="btn la-stepdefault" data-action="stepdefault" data-feature="{{feature}}"{{#locked}} aria-disabled="true"{{/locked}}>
+            <i class="icon fa fa-rotate-left" aria-hidden="true"></i>{{#str}} sitedefault, local_accessibility {{/str}}
+        </button>
+    </div>
+    {{#sample}}<p class="la-sample la-stepsample" aria-hidden="true" style="{{samplestyle}}">{{sample}}</p>{{/sample}}
+    {{#bar}}<span class="la-bar" aria-hidden="true"><span class="la-barfill" style="inline-size: {{bar}}%"></span></span>{{/bar}}
+</div>

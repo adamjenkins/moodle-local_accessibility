@@ -17,22 +17,19 @@
 {{!
     @template local_accessibility/view_narrow
 
-    The line width detail view (choices spec §3 narrow): each option shows a bar as wide as its line. Behaviour is in
-    local_accessibility/panel.
+    The line width detail view (numeric steppers brief): a Less/More stepper in characters, with a bar as wide as the
+    line. Behaviour is in local_accessibility/panel.
 
     Context variables required for this template:
     * id, label, locked - the view (id "narrow")
-    * options - one per width (see local_accessibility/option), each with its bar width
+    * stepper - the line width stepper (see local_accessibility/stepper)
 
     Example context (json):
-    {"id": "narrow", "label": "Line width", "locked": false, "isnarrow": true, "options": [
-        {"feature": "narrow", "value": "off", "label": "Full width", "icon": null, "sample": null, "samplestyle": null,
-         "labelstyle": null, "bar": 100, "faces": null, "swatch": false, "checked": true, "focusable": true,
-         "locked": false},
-        {"feature": "narrow", "value": "60", "label": "60 characters", "icon": null, "sample": null,
-         "samplestyle": null, "labelstyle": null, "bar": 67, "faces": null, "swatch": false, "checked": false,
-         "focusable": false, "locked": false}
-    ]}
+    {"id": "narrow", "label": "Line width", "locked": false, "isnarrow": true,
+     "stepper": {"feature": "narrow", "label": "Line width", "labelid": "la-view-narrow-title", "showlabel": false,
+        "fieldvalue": "60", "placeholder": "", "unit": "characters", "issize": false, "locked": false,
+        "mindisabled": false, "maxdisabled": false, "sample": null, "samplestyle": null, "bar": 67}
+    }
 }}
 <section class="la-view la-view-{{id}}" id="la-view-{{id}}" data-view="{{id}}" aria-labelledby="la-view-{{id}}-title" hidden>
     <div class="la-viewhead">
@@ -42,7 +39,5 @@
         <h3 class="la-viewtitle" id="la-view-{{id}}-title" tabindex="-1">{{label}}</h3>
         {{#locked}}<i class="icon fa fa-lock la-viewlock" aria-hidden="true"></i>{{/locked}}
     </div>
-    <div class="la-options la-widths" role="radiogroup" aria-labelledby="la-view-{{id}}-title" {{#locked}}aria-disabled="true"{{/locked}}>
-        {{#options}}{{> local_accessibility/option }}{{/options}}
-    </div>
+    {{#stepper}}{{> local_accessibility/stepper }}{{/stepper}}
 </section>

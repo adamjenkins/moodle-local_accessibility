@@ -56,28 +56,38 @@ Feature: Choosing any value from a drawer or a detail view
     Then ".la-grid" "css_element" should be visible
     And the focused element is "Text size, 150%" "button"
 
-  Scenario: The size stepper walks every size, 125 included
+  Scenario: The size stepper steps by 10 from any size, takes a typed size and goes back to the site default
     Given the following "user preferences" exist:
       | user     | preference               | value |
-      | student1 | local_accessibility_size | 120   |
+      | student1 | local_accessibility_size | 125   |
     And I log in as "student1"
     And I click on "Accessibility settings" "button"
-    When I click on "Text size, 120%" "button"
+    When I click on "Text size, 125%" "button"
     And I click on "Larger" "button" in the "[data-view='size']" "css_element"
-    Then the page root should have attribute "data-a11y-size" with value "125"
-    When I click on "Larger" "button" in the "[data-view='size']" "css_element"
-    Then the page root should have attribute "data-a11y-size" with value "130"
+    Then the page root should have attribute "data-a11y-size" with value "135"
+    And "Text size, 135%" "button" should exist
+    And the "size" stepper field should show "135"
     When I click on "Smaller" "button" in the "[data-view='size']" "css_element"
     Then the page root should have attribute "data-a11y-size" with value "125"
+    When I type "333" in the "size" stepper and press enter
+    Then the page root should have attribute "data-a11y-size" with value "333"
+    And "//div[contains(@class, 'la-live')][contains(., 'Text size: 333%')]" "xpath_element" should exist
+    When I type "1000" in the "size" stepper and press enter
+    Then the "aria-disabled" attribute of "Larger" "button" should contain "true"
+    When I click on "Site default" "button" in the "[data-view='size']" "css_element"
+    Then the page root should not have attribute "data-a11y-size"
+    And "Text size, 100%" "button" should exist
+    And I reload the page
+    And the page root should not have attribute "data-a11y-size"
 
   Scenario: The spacing view sets line, letter and word spacing and summarises them on the tile
     Given I log in as "student1"
     And the main region contains core controls
     And I click on "Accessibility settings" "button"
     When I click on "Spacing, Site default" "button"
-    And I click on "[data-feature='lineheight'][data-value='180']" "css_element"
-    And I click on "[data-feature='letterspacing'][data-value='12']" "css_element"
-    And I click on "[data-feature='wordspacing'][data-value='16']" "css_element"
+    And I type "1.8" in the "lineheight" stepper and press enter
+    And I type "0.12" in the "letterspacing" stepper and press enter
+    And I type "0.16" in the "wordspacing" stepper and press enter
     Then the page root should have attribute "data-a11y-lineheight" with value "180"
     And the page root should have attribute "data-a11y-letterspacing" with value "12"
     And the page root should have attribute "data-a11y-wordspacing" with value "16"
@@ -146,8 +156,9 @@ Feature: Choosing any value from a drawer or a detail view
     And I click on "Accessibility settings" "button"
     Then the "aria-disabled" attribute of "[data-tile='spacing']" "css_element" should contain "true"
     When I click on "[data-tile='spacing']" "css_element"
-    And I click on "[data-feature='lineheight'][data-value='250']" "css_element"
+    And I click on "More" "button" in the ".la-stepper[data-feature='lineheight']" "css_element"
     Then the page root should have attribute "data-a11y-lineheight" with value "150"
+    And the "lineheight" stepper field should show "1.5"
 
   Scenario: A save the server refuses puts the option back and says so
     Given I log in as "student1"

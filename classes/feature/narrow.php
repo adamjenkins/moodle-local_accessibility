@@ -19,12 +19,39 @@ namespace local_accessibility\feature;
 /**
  * Line width: limits the length of content lines (spec §3).
  *
+ * Characters per line; stepping down from full width starts at 90.
+ *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class narrow extends base {
+class narrow extends numeric {
+    /** @var string Default: full width. */
+    protected const DEFAULT = 'off';
+    /** @var int One press of − or +. */
+    protected const STEP = 5;
+    /** @var int Largest value. */
+    protected const MAX = 300;
+    /** @var int Smallest value while the site allows the full range. */
+    protected const MIN_UNLIMITED = 1;
+    /** @var int Smallest value while the site keeps values non-negative. */
+    protected const MIN_NONNEGATIVE = 10;
+    /** @var int Stepping from the default starts here. */
+    protected const START = 95;
+    /** @var string CSS custom property. */
+    protected const PROPERTY = '--a11y-measure';
+    /** @var int Encoding scale. */
+    protected const SCALE = 1;
+    /** @var string CSS unit. */
+    protected const CSSUNIT = 'ch';
+    /** @var string|null Lang string that labels a value. */
+    protected const LABELSTRING = 'characters';
+    /** @var string|null Lang string of the unit beside the value field. */
+    protected const UNITSTRING = 'unit_characters';
+    /** @var bool Full width is wider than any number of characters, so + does nothing there. */
+    protected const DEFAULT_IS_MAX = true;
+
     /**
      * Stable id, stored in preferences.
      *
@@ -32,15 +59,6 @@ class narrow extends base {
      */
     public function id(): string {
         return 'narrow';
-    }
-
-    /**
-     * Allowed values: full width, then line widths in characters (spec §3).
-     *
-     * @return string[]
-     */
-    public function values(): array {
-        return ['off', '90', '80', '70', '60', '50', '40'];
     }
 
     /**
@@ -68,25 +86,5 @@ class narrow extends base {
      */
     public function preview(): ?string {
         return 'bar';
-    }
-
-    /**
-     * Label of one value: "Full width" or a number of characters.
-     *
-     * @param string $value
-     * @return string
-     */
-    public function value_label(string $value): string {
-        return $value === 'off' ? parent::value_label($value) : get_string('characters', 'local_accessibility', $value);
-    }
-
-    /**
-     * The content measure in characters.
-     *
-     * @param string $value
-     * @return array<string, string>
-     */
-    public function css_properties(string $value): array {
-        return $this->is_numeric_choice($value) ? ['--a11y-measure' => (int) $value . 'ch'] : [];
     }
 }

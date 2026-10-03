@@ -18,9 +18,9 @@ Feature: Admin controls
     And I click on "Accessibility settings" "button"
     And the "aria-disabled" attribute of "Spacing, Line 1.5" "button" should contain "true"
     And I click on "Spacing, Line 1.5" "button"
-    And the "aria-disabled" attribute of "[data-view='spacing'] [role='radiogroup']" "css_element" should contain "true"
-    And I click on "[data-feature='lineheight'][data-value='250']" "css_element"
-    And I click on "[data-feature='wordspacing'][data-value='60']" "css_element"
+    And the "aria-disabled" attribute of ".la-stepper[data-feature='lineheight']" "css_element" should contain "true"
+    And I click on "More" "button" in the ".la-stepper[data-feature='lineheight']" "css_element"
+    And I click on "More" "button" in the ".la-stepper[data-feature='wordspacing']" "css_element"
     And the page root should have attribute "data-a11y-lineheight" with value "150"
     And the page root should not have attribute "data-a11y-wordspacing"
 

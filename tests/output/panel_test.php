@@ -105,8 +105,8 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
-     * Every radio group in the context: drawers, the size quick picks, the font, line width and colour views, and
-     * each spacing group.
+     * Every radio group in the context: drawers, the size quick picks and the font and colour views. Size, spacing and
+     * line width are steppers.
      *
      * @param array $context
      * @return array<string, array> group name => options
@@ -117,11 +117,7 @@ final class panel_test extends \advanced_testcase {
             $groups['drawer ' . $drawer['id']] = $drawer['options'];
         }
         foreach ($context['views'] as $view) {
-            if (!empty($view['groups'])) {
-                foreach ($view['groups'] as $group) {
-                    $groups['spacing ' . $group['id']] = $group['options'];
-                }
-            } else {
+            if (isset($view['options'])) {
                 $groups['view ' . $view['id']] = $view['options'];
             }
         }
@@ -192,7 +188,8 @@ final class panel_test extends \advanced_testcase {
         $tiles = array_column($context['tiles'], 'id');
         $this->assertSame(2, array_search('spacing', $tiles, true));
         $this->assertSame(['letterspacing', 'wordspacing'], self::tile($context, 'spacing')['members']);
-        $this->assertSame(['letterspacing', 'wordspacing'], array_column(self::view($context, 'spacing')['groups'], 'id'));
+        $steppers = array_column(self::view($context, 'spacing')['steppers'], 'feature');
+        $this->assertSame(['letterspacing', 'wordspacing'], $steppers);
         $this->assertArrayNotHasKey('lineheight', json_decode($context['state'], true));
 
         self::disable(['letterspacing', 'wordspacing']);
@@ -222,11 +219,14 @@ final class panel_test extends \advanced_testcase {
         }
         $size = self::view($context, 'size');
         $this->assertSame(['100', '125', '150', '200', '250', '300'], array_column($size['options'], 'value'));
-        $this->assertSame([80, 300, 10], [$size['min'], $size['max'], $size['step']]);
-        $this->assertSame('100', $size['value']);
-        $this->assertSame('100%', $size['valuetext']);
-        $narrow = array_column(self::view($context, 'narrow')['options'], 'bar', 'value');
-        $this->assertSame(['off' => 100, '90' => 100, '80' => 89, '70' => 78, '60' => 67, '50' => 56, '40' => 44], $narrow);
+        $this->assertSame('100', $size['stepper']['fieldvalue']);
+        $this->assertSame('%', $size['stepper']['unit']);
+        $this->assertSame('la-view-size-title', $size['stepper']['labelid']);
+        $narrow = self::view($context, 'narrow')['stepper'];
+        $this->assertSame(['', 'Full width', 100], [$narrow['fieldvalue'], $narrow['placeholder'], $narrow['bar']]);
+        // Full width is already the widest, so + does nothing there; − is available.
+        $this->assertSame([false, true], [$narrow['mindisabled'], $narrow['maxdisabled']]);
+        $this->assertArrayNotHasKey('options', self::view($context, 'narrow'));
     }
 
     /**
@@ -238,7 +238,7 @@ final class panel_test extends \advanced_testcase {
         preferences::set('links', 'highlight');
         preferences::set('colour', 'cream');
         $groups = self::radiogroups(self::context());
-        $this->assertCount(9 + 4 + 3, $groups);
+        $this->assertCount(9 + 3, $groups);
         foreach ($groups as $name => $options) {
             $this->assertNotEmpty($options, $name);
             foreach ($options as $o) {
@@ -269,8 +269,11 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('detail', $state['size']['kind']);
         $this->assertSame('spacing', $state['wordspacing']['tile']);
         $this->assertSame('drawer', $state['align']['kind']);
-        $option = ['value' => '150', 'label' => '150%', 'css' => ['--a11y-size' => '150']];
-        $this->assertContains($option, $state['size']['options']);
+        $this->assertSame([['value' => '100', 'label' => '100%', 'css' => []]], $state['size']['options']);
+        $range = array_intersect_key($state['size']['stepper'], ['step' => 0, 'min' => 0, 'max' => 0]);
+        $this->assertSame(['step' => 10, 'min' => 1, 'max' => 1000], $range);
+        $this->assertSame('--a11y-ls', $state['letterspacing']['stepper']['property']);
+        $this->assertArrayNotHasKey('stepper', $state['align']);
         $this->assertFalse($state['lineheight']['locked']);
 
         set_config('lock_spacing', 1, 'local_accessibility');
@@ -414,7 +417,7 @@ final class panel_test extends \advanced_testcase {
         }
         $this->assertFalse(self::tile($context, 'font')['locked']);
         foreach (self::radiogroups($context) as $name => $options) {
-            $locked = (bool) preg_match('/^(view size|spacing |view colour|drawer align)/', $name);
+            $locked = (bool) preg_match('/^(view size|view colour|drawer align)/', $name);
             foreach ($options as $o) {
                 $this->assertSame($locked, $o['locked'], $name . ' ' . $o['value']);
             }
@@ -424,7 +427,7 @@ final class panel_test extends \advanced_testcase {
             $this->assertMatchesRegularExpression('/data-tile="' . $id . '"[^>]*aria-disabled="true"/', $html, $id);
         }
         $this->assertDoesNotMatchRegularExpression('/data-tile="font"[^>]*aria-disabled/', $html);
-        foreach (['align', 'lineheight', 'letterspacing', 'wordspacing', 'colour', 'size'] as $feature) {
+        foreach (['align', 'colour', 'size'] as $feature) {
             $this->assertMatchesRegularExpression(
                 '/role="radio"[^>]*data-feature="' . $feature . '"[^>]*aria-disabled="true"/',
                 $html,
@@ -432,12 +435,17 @@ final class panel_test extends \advanced_testcase {
             );
         }
         $this->assertDoesNotMatchRegularExpression('/role="radio"[^>]*data-feature="font"[^>]*aria-disabled/', $html);
-        // Each locked radiogroup: the drawer, the size quick picks, the three spacing groups and the swatches.
-        $this->assertSame(6, preg_match_all('/role="radiogroup"[^>]*aria-disabled="true"/', $html));
-        // The size view: the slider and both step buttons stay in the Tab order.
-        $this->assertMatchesRegularExpression('/<input type="range"[^>]*aria-disabled="true"/', $html);
-        $this->assertDoesNotMatchRegularExpression('/<input type="range"[^>]*\sdisabled[\s>]/', $html);
-        $this->assertSame(2, preg_match_all('/class="btn la-step"[^>]*aria-disabled="true"/', $html));
+        // Each locked radiogroup: the drawer, the size quick picks and the swatches.
+        $this->assertSame(3, preg_match_all('/role="radiogroup"[^>]*aria-disabled="true"/', $html));
+        // The four locked steppers (size and the three spacing ones): group, field and every button stay in the Tab
+        // order, marked aria-disabled; the unlocked line width stepper is not.
+        $this->assertSame(4, preg_match_all('/class="la-group la-stepper"[^>]*aria-disabled="true"/', $html));
+        $this->assertSame(4, preg_match_all('/<input type="text"[^>]*readonly aria-disabled="true"/', $html));
+        // Plus the unlocked line width stepper's +, which does nothing at full width.
+        $this->assertSame(8 + 1, preg_match_all('/class="btn la-step"[^>]*aria-disabled="true"/', $html));
+        $this->assertSame(4, preg_match_all('/class="btn la-stepdefault"[^>]*aria-disabled="true"/', $html));
+        $this->assertSame(1, preg_match_all('/data-feature="narrow"[^>]*aria-disabled/', $html));
+        $this->assertMatchesRegularExpression('/data-action="stepup" data-feature="narrow" aria-disabled="true"/', $html);
         $this->assertMatchesRegularExpression('/data-action="customcolours"[^>]*aria-disabled="true"/', $html);
         $this->assertDoesNotMatchRegularExpression('/<(input|button)[^>]*\sdisabled[\s>]/', $html);
     }
@@ -460,8 +468,54 @@ final class panel_test extends \advanced_testcase {
     public function test_radios_follow_only_order(): void {
         $this->setup_user();
         $radios = new \ReflectionMethod(panel::class, 'radios');
-        $options = $radios->invoke(null, \local_accessibility\feature\registry::get('size'), '100', ['150', '100', '999']);
+        $options = $radios->invoke(null, \local_accessibility\feature\registry::get('size'), '100', ['150', '100', '9999']);
         $this->assertSame(['150', '100'], array_column($options, 'value'));
         $this->assertSame([false, true], array_column($options, 'checked'));
+    }
+
+    /**
+     * The steppers render with labelled groups and fields, their units, the buttons' state at the limits and their
+     * previews; unlimited, the minus button is never disabled at the minimum.
+     */
+    public function test_steppers(): void {
+        global $OUTPUT;
+        $this->setup_user();
+        preferences::set('letterspacing', '-500');
+        preferences::set('wordspacing', '1000');
+        preferences::set('narrow', '60');
+        $context = self::context();
+        $steppers = array_column(self::view($context, 'spacing')['steppers'], null, 'feature');
+        $ls = $steppers['letterspacing'];
+        $this->assertSame(['-5', 'em', false, false], [$ls['fieldvalue'], $ls['unit'], $ls['mindisabled'], $ls['maxdisabled']]);
+        $this->assertSame('letter-spacing: -5em', $ls['samplestyle']);
+        $this->assertTrue($steppers['wordspacing']['maxdisabled']);
+        $this->assertSame(['', 'Site default', 'line-height: normal'], [$steppers['lineheight']['fieldvalue'],
+            $steppers['lineheight']['placeholder'], $steppers['lineheight']['samplestyle']]);
+        $this->assertSame(67, self::view($context, 'narrow')['stepper']['bar']);
+        $this->assertSame('Letter -5 · Word 10', self::tile($context, 'spacing')['valuetext']);
+        $this->assertSame('60 characters', self::tile($context, 'narrow')['valuetext']);
+
+        $html = $OUTPUT->render_from_template('local_accessibility/panel', $context);
+        $this->assertMatchesRegularExpression(
+            '/role="group" aria-labelledby="la-group-letterspacing" data-feature="letterspacing"/',
+            $html
+        );
+        $this->assertMatchesRegularExpression('/<input type="text" inputmode="decimal"[^>]*id="la-field-letterspacing"'
+            . '[^>]*value="-5"[^>]*aria-labelledby="la-group-letterspacing la-unit-letterspacing"/', $html);
+        $this->assertMatchesRegularExpression('/role="group" aria-labelledby="la-view-size-title" data-feature="size"/', $html);
+        $this->assertMatchesRegularExpression(
+            '/data-action="stepup" data-feature="wordspacing" aria-disabled="true"/',
+            $html
+        );
+        $this->assertDoesNotMatchRegularExpression('/data-action="stepdown" data-feature="letterspacing" aria-disabled/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<input type="range"/', $html);
+        $this->assertStringNotContainsString('[[', $html);
+
+        // Restricted to non-negative values, minus is disabled at the minimum.
+        set_config('numericlimits', 'nonnegative', 'local_accessibility');
+        preferences::set('letterspacing', '0');
+        $ls = array_column(self::view(self::context(), 'spacing')['steppers'], null, 'feature')['letterspacing'];
+        $this->assertTrue($ls['mindisabled']);
+        $this->assertFalse($ls['maxdisabled']);
     }
 }

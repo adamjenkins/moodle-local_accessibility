@@ -68,15 +68,15 @@ final class registry_test extends \advanced_testcase {
      * Values match spec §3 exactly.
      */
     public function test_values(): void {
-        $size = array_map('strval', array_merge(range(80, 120, 10), [125], range(130, 300, 10)));
-        $this->assertSame($size, registry::get('size')->values());
+        // Numeric features list only their default: any number in their range is a value (numeric_test).
+        $this->assertSame(['100'], registry::get('size')->values());
         $this->assertSame(['default', 'sans', 'serif', 'mono', 'readable', 'lexend', 'dyslexic', 'comic', 'jagothic',
             'jamincho', 'jakyokasho'], registry::get('font')->values());
-        $this->assertSame(['default', '120', '150', '180', '200', '250'], registry::get('lineheight')->values());
-        $this->assertSame(['default', '5', '10', '12', '16', '20', '30'], registry::get('letterspacing')->values());
-        $this->assertSame(['default', '10', '16', '24', '40', '60'], registry::get('wordspacing')->values());
+        $this->assertSame(['default'], registry::get('lineheight')->values());
+        $this->assertSame(['default'], registry::get('letterspacing')->values());
+        $this->assertSame(['default'], registry::get('wordspacing')->values());
         $this->assertSame(['default', 'left', 'center', 'right', 'justify'], registry::get('align')->values());
-        $this->assertSame(['off', '90', '80', '70', '60', '50', '40'], registry::get('narrow')->values());
+        $this->assertSame(['off'], registry::get('narrow')->values());
         $this->assertSame(['off', 'underline', 'outline', 'highlight'], registry::get('links')->values());
         $this->assertSame(['off', 'hide', 'dim'], registry::get('images')->values());
         $this->assertSame(['off', 'ruler', 'mask'], registry::get('guide')->values());
@@ -92,7 +92,7 @@ final class registry_test extends \advanced_testcase {
     }
 
     /**
-     * Size defaults to 100 although its values ascend from 80 (D1); every default is one of its feature's values.
+     * Size defaults to 100 (D1); every default is one of its feature's values.
      */
     public function test_defaults(): void {
         $this->assertSame('100', registry::get('size')->default());
@@ -183,7 +183,15 @@ final class registry_test extends \advanced_testcase {
             'size 100 default' => ['size', '100', []],
             'size injected' => ['size', '150;x', []],
             'size exponent' => ['size', '1e2', []],
-            'size not offered' => ['size', '175', []],
+            'size 175' => ['size', '175', ['--a11y-size' => '175']],
+            'size 1' => ['size', '1', ['--a11y-size' => '1']],
+            'size over the cap' => ['size', '1010', []],
+            'letterspacing negative' => ['letterspacing', '-5', ['--a11y-ls' => '-0.05em']],
+            'wordspacing negative' => ['wordspacing', '-150', ['--a11y-ws' => '-1.5em']],
+            'lineheight 0' => ['lineheight', '0', ['--a11y-lh' => '0']],
+            'lineheight 85' => ['lineheight', '85', ['--a11y-lh' => '0.85']],
+            'narrow 300' => ['narrow', '300', ['--a11y-measure' => '300ch']],
+            'narrow 1' => ['narrow', '1', ['--a11y-measure' => '1ch']],
             'lineheight 150' => ['lineheight', '150', ['--a11y-lh' => '1.5']],
             'lineheight 200' => ['lineheight', '200', ['--a11y-lh' => '2']],
             'lineheight 120' => ['lineheight', '120', ['--a11y-lh' => '1.2']],
@@ -242,9 +250,10 @@ final class registry_test extends \advanced_testcase {
         $this->assertTrue(registry::get('size')->validate('125'));
         $this->assertTrue(registry::get('size')->validate('80'));
         $this->assertTrue(registry::get('size')->validate('300'));
-        $this->assertFalse(registry::get('size')->validate('175'));
-        $this->assertFalse(registry::get('size')->validate('310'));
-        $this->assertFalse(registry::get('size')->validate('50'));
+        $this->assertTrue(registry::get('size')->validate('175'));
+        $this->assertTrue(registry::get('size')->validate('1000'));
+        $this->assertFalse(registry::get('size')->validate('1001'));
+        $this->assertFalse(registry::get('size')->validate('0'));
         $this->assertFalse(registry::get('size')->validate('150" onload="x'));
         $this->assertFalse(registry::get('colour')->validate('site_99'));
         $this->assertNull(registry::get('nonexistent'));

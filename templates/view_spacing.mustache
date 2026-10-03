@@ -17,23 +17,18 @@
 {{!
     @template local_accessibility/view_spacing
 
-    The spacing detail view (choices spec §3 Spacing): one radio group per enabled spacing feature, each option
-    showing sample text with its spacing. Behaviour is in local_accessibility/panel.
+    The spacing detail view (numeric steppers brief): one Less/More stepper per enabled spacing feature, each with a
+    sample line showing its spacing. Behaviour is in local_accessibility/panel.
 
     Context variables required for this template:
     * id, label, locked - the view (id "spacing")
-    * groups - id, label, locked and options (see local_accessibility/option) per enabled spacing feature
+    * steppers - one per enabled spacing feature (see local_accessibility/stepper)
 
     Example context (json):
-    {"id": "spacing", "label": "Spacing", "locked": false, "isspacing": true, "groups": [
-        {"id": "lineheight", "label": "Line height", "locked": false, "options": [
-            {"feature": "lineheight", "value": "default", "label": "Site default", "icon": null, "sample": "Aa Bb Cc Dd",
-             "samplestyle": "line-height: normal", "labelstyle": null, "bar": null, "faces": null, "swatch": false,
-             "checked": false, "focusable": false, "locked": false},
-            {"feature": "lineheight", "value": "180", "label": "1.8", "icon": null, "sample": "Aa Bb Cc Dd",
-             "samplestyle": "line-height: 1.8", "labelstyle": null, "bar": null, "faces": null, "swatch": false,
-             "checked": true, "focusable": true, "locked": false}
-        ]}
+    {"id": "spacing", "label": "Spacing", "locked": false, "isspacing": true, "steppers": [
+        {"feature": "lineheight", "label": "Line height", "labelid": "la-group-lineheight", "showlabel": true,
+         "fieldvalue": "1.8", "placeholder": "", "unit": "", "issize": false, "locked": false, "mindisabled": false,
+         "maxdisabled": false, "sample": "Aa Bb Cc Dd", "samplestyle": "line-height: 1.8", "bar": null}
     ]}
 }}
 <section class="la-view la-view-{{id}}" id="la-view-{{id}}" data-view="{{id}}" aria-labelledby="la-view-{{id}}-title" hidden>
@@ -44,12 +39,5 @@
         <h3 class="la-viewtitle" id="la-view-{{id}}-title" tabindex="-1">{{label}}</h3>
         {{#locked}}<i class="icon fa fa-lock la-viewlock" aria-hidden="true"></i>{{/locked}}
     </div>
-    {{#groups}}
-    <div class="la-group">
-        <h4 class="la-grouplabel" id="la-group-{{id}}">{{label}}</h4>
-        <div class="la-options la-spacings" role="radiogroup" aria-labelledby="la-group-{{id}}" {{#locked}}aria-disabled="true"{{/locked}}>
-            {{#options}}{{> local_accessibility/option }}{{/options}}
-        </div>
-    </div>
-    {{/groups}}
+    {{#steppers}}{{> local_accessibility/stepper }}{{/steppers}}
 </section>

@@ -546,10 +546,6 @@ html[data-a11y-colour] .local-accessibility-panel {
 .local-accessibility-panel .la-fonts .la-sample:first-child {
     font-size: 1.375em;
 }
-.local-accessibility-panel .la-spacings .la-sample {
-    display: inline-block;
-    max-inline-size: 5.5em;
-}
 .local-accessibility-panel .la-swatch .la-sample {
     padding: 0.125em 0.5em;
     border: 1px solid #8f959e;
@@ -611,23 +607,45 @@ html[data-a11y-colour] .local-accessibility-panel {
     flex-direction: column;
     gap: 0.375em;
 }
-.local-accessibility-panel .la-sizecontrol {
+.local-accessibility-panel .la-stepcontrols {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5em;
 }
-.local-accessibility-panel .la-sizecontrol .la-step {
+.local-accessibility-panel .la-stepcontrols .btn {
     min-block-size: 2.75em;
 }
-.local-accessibility-panel .la-range {
-    flex: 1 1 8em;
-    min-inline-size: 8em;
-    accent-color: var(--la-accent);
+.local-accessibility-panel .la-view .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
-.local-accessibility-panel .la-sizevalue {
+.local-accessibility-panel .la-stepfield {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+}
+.local-accessibility-panel .la-stepvalue {
+    inline-size: 6em;
+    min-block-size: 2.75em;
+    color: inherit;
+    background: transparent;
+    border: 1px solid currentcolor;
+    text-align: end;
+}
+.local-accessibility-panel .la-stepunit {
     font-weight: 700;
-    min-inline-size: 3.5em;
+}
+.local-accessibility-panel .la-stepsample {
+    margin: 0;
+    padding: 0.375em 0.625em;
+    border: 1px dashed var(--bs-border-color, #dee2e6);
+    border-radius: 0.375em;
+    overflow-wrap: anywhere;
+}
+.local-accessibility-panel .la-stepper .la-bar {
+    inline-size: 100%;
+    max-inline-size: 16em;
 }
 .local-accessibility-panel .la-sizepreview {
     margin: 0;
@@ -647,7 +665,7 @@ html[data-a11y-colour] .local-accessibility-panel {
 .local-accessibility-panel .la-option:focus-visible,
 .local-accessibility-panel .la-view .btn:focus-visible,
 .local-accessibility-panel .la-viewtitle:focus-visible,
-.local-accessibility-panel .la-range:focus-visible {
+.local-accessibility-panel .la-stepvalue:focus-visible {
     outline: 3px solid var(--a11y-text, var(--bs-body-color, #1d2125));
     outline-offset: 2px;
 }

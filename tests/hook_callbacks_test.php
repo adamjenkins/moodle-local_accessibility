@@ -184,7 +184,10 @@ final class hook_callbacks_test extends \advanced_testcase {
         $this->assertStringContainsString('role="radio"', $html);
         $this->assertStringContainsString('data-tile="size"', $html);
         $this->assertStringContainsString('data-view="size"', $html);
-        $this->assertStringContainsString('type="range"', $html);
+        // Numeric settings have steppers, not sliders.
+        $this->assertStringNotContainsString('type="range"', $html);
+        $this->assertStringContainsString('class="la-group la-stepper" role="group"', $html);
+        $this->assertStringContainsString('inputmode="decimal"', $html);
         $this->assertStringContainsString('data-action="back"', $html);
         $this->assertStringContainsString('data-state="', $html);
         // Tiles state their value in words: no value dots.

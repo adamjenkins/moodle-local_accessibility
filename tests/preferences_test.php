@@ -69,7 +69,7 @@ final class preferences_test extends \advanced_testcase {
     public function test_invalid_refused(): void {
         $this->setUser($this->getDataGenerator()->create_user());
         $this->expectException(\invalid_parameter_exception::class);
-        preferences::set('size', '50');
+        preferences::set('size', '1001');
     }
 
     /**
@@ -143,7 +143,8 @@ final class preferences_test extends \advanced_testcase {
         $this->assertSame('24', preferences::get('wordspacing'));
         $this->assertSame('outline', preferences::get('links'));
         $this->assertSame('left', preferences::get('align'));
-        $this->assertSame('180', preferences::get('size'));
+        // Text size takes any whole percentage, so the development value 175 is kept as it is.
+        $this->assertSame('175', preferences::get('size'));
         $this->assertSame('ring', preferences::get('focus'));
         $this->assertSame('large', preferences::get('cursor'));
     }

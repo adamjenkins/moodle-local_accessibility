@@ -110,4 +110,4 @@ Feature: Accessibility panel
     Then "//div[contains(@class, 'la-live')][contains(., 'could not be saved')]" "xpath_element" should exist
     And "Text size, 100%" "button" should exist
     And the page root should not have attribute "data-a11y-size"
-    And the "aria-valuetext" attribute of "[data-view='size'] .la-range" "css_element" should contain "100%"
+    And the "size" stepper field should show "100"

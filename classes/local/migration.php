@@ -44,23 +44,22 @@ final class migration {
      */
     public static function map_user(array $old): array {
         $out = [];
+        // Numeric settings keep the user's own value, rounded to the 3.0 encoding and kept inside the feature's range.
         $size = self::number($old['fontsize'] ?? null, 100);
         if ($size !== null && $size > 0) {
-            // The nearest 10-step in 80..300, half up; 125 is a step of its own. 100 is the default.
-            $step = abs($size - 125) <= 0.5 ? 125 : (int) round($size / 10) * 10;
-            $step = max(80, min(300, $step));
-            if ($step !== 100) {
-                $out[self::P . 'size'] = (string) $step;
+            $size = self::within($size, 'size');
+            if ($size !== '100') {
+                $out[self::P . 'size'] = $size;
             }
         }
         // Line height and letter spacing at or below normal were never increases: omitted.
         $lh = self::number($old['lineheight'] ?? null, 100);
         if ($lh !== null && $lh > 100) {
-            $out[self::P . 'lineheight'] = self::nearest($lh, \local_accessibility\feature\registry::get('lineheight'));
+            $out[self::P . 'lineheight'] = self::within($lh, 'lineheight');
         }
         $ls = self::number($old['letterspacing'] ?? null, 100);
         if ($ls !== null && $ls > 0) {
-            $out[self::P . 'letterspacing'] = self::nearest($ls, \local_accessibility\feature\registry::get('letterspacing'));
+            $out[self::P . 'letterspacing'] = self::within($ls, 'letterspacing');
         }
         if (!empty($old['fontkerning']) && !isset($out[self::P . 'letterspacing'])) {
             $out[self::P . 'letterspacing'] = '10';
@@ -121,23 +120,15 @@ final class migration {
     }
 
     /**
-     * The feature's numeric value nearest to a wanted one; a tie goes to the larger value.
+     * A wanted value rounded half up to a whole number and kept inside a numeric feature's range.
      *
      * @param float $want
-     * @param \local_accessibility\feature\base $feature a feature whose non-default values are digits
+     * @param string $id a numeric feature's id
      * @return string
      */
-    private static function nearest(float $want, \local_accessibility\feature\base $feature): string {
-        $best = null;
-        foreach ($feature->values() as $v) {
-            if (!ctype_digit($v)) {
-                continue;
-            }
-            if ($best === null || abs((int) $v - $want) <= abs((int) $best - $want)) {
-                $best = $v;
-            }
-        }
-        return (string) $best;
+    private static function within(float $want, string $id): string {
+        $feature = \local_accessibility\feature\registry::get($id);
+        return (string) max($feature->min(), min($feature->max(), (int) round($want)));
     }
 
     /**

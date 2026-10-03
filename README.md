@@ -11,6 +11,9 @@ It is one plugin with all features built in.
 - Every option is shown and can be chosen directly, each with an icon or a preview and a label. Short lists
   open in a drawer under the tile; longer ones (text size, font, spacing, line width, colours) open a detail
   view. Arrow keys move between options and Enter or Space chooses one.
+- Text size, line height, letter spacing, word spacing and line width have no fixed list of values. Each has
+  − and + buttons (hold one to keep stepping), a field where you can type a number and press Enter, and a
+  _Site default_ button. Changes show at once and are saved a moment after the last one.
 - The panel follows your own text size, font, spacing and colours. Alignment, line width, link and image
   options and the reading guide are not applied to the panel itself.
 - Profiles: one-click bundles of settings (Dyslexia, Focus, Low vision, Seizure-safe).
@@ -18,14 +21,14 @@ It is one plugin with all features built in.
 
 | Setting | Choices |
 |---|---|
-| Text size | 80% to 300% in steps of 10, plus 125% (default 100%). The whole page scales in proportion. |
+| Text size | Any percentage up to 1000% (steps of 10; default 100%), with quick picks 100%, 125%, 150%, 200%, 250% and 300%. The whole page scales in proportion. |
 | Font | Site default; the device's sans-serif, serif and monospace fonts; Atkinson Hyperlegible, Lexend, OpenDyslexic and Comic Neue (included); Japanese UD Gothic, Japanese UD Mincho and Japanese textbook (device fonts); fonts uploaded by the administrator. Each option is shown in its own font. |
-| Spacing: line height | Site default, 1.2, 1.5, 1.8, 2.0, 2.5. Paragraph spacing follows the line height. |
-| Spacing: letter spacing | Site default, 0.05, 0.10, 0.12, 0.16, 0.20, 0.30 (em) |
-| Spacing: word spacing | Site default, 0.10, 0.16, 0.24, 0.40, 0.60 (em) |
+| Spacing: line height | Site default, or any value from 0 to 10 in steps of 0.1 (typed values to 0.01). Paragraph spacing follows the line height. |
+| Spacing: letter spacing | Site default, or any value from −5 to 5 em in steps of 0.01 em |
+| Spacing: word spacing | Site default, or any value from −10 to 10 em in steps of 0.02 em |
 | Alignment | Site default, Left, Centre, Right, Justified |
 | Colours | Site default, High contrast, Yellow on black, Black on white, Cream, Dark, the site's own schemes, and Custom (your own background, text and link colours, adjusted to a 7:1 contrast ratio unless you keep your exact colours) |
-| Line width | Full width, 90, 80, 70, 60, 50 or 40 characters |
+| Line width | Full width, or any width from 1 to 300 characters in steps of 5 |
 | Links | Off, Underlined, Underline and outline, Highlighted |
 | Images | Shown, Dimmed, Hidden (alt text shown) |
 | Guide | Off, Reading ruler, Reading mask |
@@ -35,8 +38,9 @@ It is one plugin with all features built in.
 | Focus ring | Standard, Strong, Extra thick |
 | Cursor | Standard, Large, Extra large |
 
-The spacing values include the WCAG 1.4.12 text spacing values (line height 1.5, letter spacing 0.12, word
-spacing 0.16).
+The ranges include the WCAG 1.4.12 text spacing values (line height 1.5, letter spacing 0.12, word spacing
+0.16). The lower ends above (negative spacing, line heights under 1, text size and line width down to 1) apply
+while the administrator's _Limits of number settings_ is _Unlimited_, the default.
 
 ### Included fonts ###
 
@@ -52,7 +56,14 @@ Under _Site administration > Plugins > Local plugins > Accessibility_:
 
 - Where users open the panel from (floating button, user menu, or both) and whether Alt+A is active.
 - Site defaults for each setting, with a lock per tile so that everyone uses the default. Line height, letter
-  spacing and word spacing have a default each and share one lock, _Lock Spacing_ (`lock_spacing`).
+  spacing and word spacing have a default each and share one lock, _Lock Spacing_ (`lock_spacing`). The
+  defaults of text size, line height, letter and word spacing and line width are whole numbers in the stored
+  units (percent, hundredths, hundredths of an em, characters), or empty for the normal value.
+- _Limits of number settings_ (`numericlimits`): _Unlimited_ (the default) lets users choose negative letter
+  and word spacing, which squeezes text together, and a line height under 1.0, which makes lines overlap.
+  _Non-negative_ keeps spacing at zero or more, line height at 1.0 or more, and text size and line width at 10
+  or more. Changing it does not rewrite saved settings: a saved value outside the limits is ignored and the
+  site default is used instead.
 - _Fonts users may choose_ (`fonts_available`): which included and device fonts the Font view offers. All are
   offered by default; the site font always is.
 - _Uploaded fonts_ (`fonts_uploaded`): up to 20 font files (.woff2, .woff, .ttf or .otf) offered as extra
@@ -83,7 +94,7 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 ## Upgrading from 2.x ##
 
 Existing users' settings are carried over. Moodle 4.5 or later is required. Text size, line height and letter
-spacing move to the nearest new value; paragraph widths of 25, 50 and 75 become line widths of 50, 60 and 70
+spacing keep their value, rounded to a whole percent or hundredth; paragraph widths of 25, 50 and 75 become line widths of 50, 60 and 70
 characters; highlighted links become _Underline and outline_ and hidden images _Hidden (alt text shown)_.
 
 The upgrade uninstalls an old `accessibility_*` widget plugin only when its folder is already gone from

@@ -19,6 +19,7 @@ namespace local_accessibility\output;
 use local_accessibility\colour\scheme;
 use local_accessibility\feature\base;
 use local_accessibility\feature\colour;
+use local_accessibility\feature\numeric;
 use local_accessibility\feature\registry;
 use local_accessibility\preferences;
 
@@ -160,23 +161,17 @@ class panel implements \renderable, \templatable {
         $f = registry::get($members[0]);
         switch ($tileid) {
             case 'size':
-                $all = $f->values();
-                $view += [
-                    'value' => $values['size'],
-                    'valuetext' => $f->value_label($values['size']),
-                    'min' => (int) reset($all),
-                    'max' => (int) end($all),
-                    'step' => 10,
-                    'options' => self::radios($f, $values['size'], self::QUICK_SIZES),
-                ];
+                $view['stepper'] = self::stepper($f, $values['size'], $tile['locked'], 'la-view-size-title');
+                $view['options'] = self::radios($f, $values['size'], self::QUICK_SIZES);
                 break;
             case 'spacing':
-                $view['groups'] = [];
+                $view['steppers'] = [];
                 foreach ($members as $id) {
-                    $member = registry::get($id);
-                    $view['groups'][] = ['id' => $id, 'label' => $member->label(), 'locked' => $tile['locked'],
-                        'options' => self::radios($member, $values[$id])];
+                    $view['steppers'][] = self::stepper(registry::get($id), $values[$id], $tile['locked']);
                 }
+                break;
+            case 'narrow':
+                $view['stepper'] = self::stepper($f, $values['narrow'], $tile['locked'], 'la-view-narrow-title');
                 break;
             case 'colour':
                 $view['options'] = self::swatches($values['colour'], $tile['locked']);
@@ -192,15 +187,14 @@ class panel implements \renderable, \templatable {
      *
      * @param base $f
      * @param string $current the current value
-     * @param string[]|null $only values to offer, in this order (values the feature lacks are skipped); null for all
+     * @param string[]|null $only values to offer, in this order (values the feature does not accept are skipped); null
+     *     for all of the feature's listed values
      * @return array
      */
     private static function radios(base $f, string $current, ?array $only = null): array {
         $locked = preferences::is_locked($f->id());
-        $options = array_column($f->options(), null, 'value');
-        if ($only !== null) {
-            $options = array_filter(array_map(fn($v) => $options[$v] ?? null, $only));
-        }
+        $options = $only === null ? $f->options()
+            : array_map(fn($v) => $f->option($v), array_values(array_filter($only, fn($v) => $f->validate($v))));
         $out = [];
         foreach (array_values($options) as $o) {
             $radio = [
@@ -241,7 +235,7 @@ class panel implements \renderable, \templatable {
                 return ['sample' => $sample, 'samplestyle' => $style, 'labelstyle' => $style,
                     'faces' => isset($o['faces']) ? json_encode($o['faces'], JSON_UNESCAPED_SLASHES) : null];
             case 'bar':
-                return ['bar' => $o['value'] === 'off' ? 100 : (int) round((int) $o['value'] / 90 * 100)];
+                return ['bar' => self::bar($o['value'])];
             case 'spacing':
                 $property = ['lineheight' => 'line-height', 'letterspacing' => 'letter-spacing',
                     'wordspacing' => 'word-spacing'][$radio['feature']];
@@ -250,6 +244,59 @@ class panel implements \renderable, \templatable {
                     'samplestyle' => $property . ': ' . ($css[0] ?? 'normal')];
         }
         return [];
+    }
+
+    /**
+     * One −/+ stepper of a numeric feature (numeric steppers brief): the value in the user's units, the buttons'
+     * state and the feature's preview. Every style is built from validated values or constants.
+     *
+     * @param numeric $f
+     * @param string $value its current, validated value
+     * @param bool $locked
+     * @param string|null $labelid id of the element that names the stepper; null to show the feature's name as its
+     *     own heading
+     * @return array
+     */
+    private static function stepper(numeric $f, string $value, bool $locked, ?string $labelid = null): array {
+        $meta = $f->stepper();
+        $isnumber = (bool) preg_match('/^-?\d+$/D', $value);
+        $id = $f->id();
+        $stepper = [
+            'feature' => $id,
+            'label' => $f->label(),
+            'labelid' => $labelid ?? 'la-group-' . $id,
+            'showlabel' => $labelid === null,
+            'fieldvalue' => $f->field_value($value),
+            'placeholder' => $isnumber ? '' : $f->value_label($value),
+            'unit' => $meta['unit'],
+            'locked' => $locked,
+            'issize' => $id === 'size',
+            'mindisabled' => $locked || ($meta['nonnegative'] && $isnumber && (int) $value <= $meta['min']),
+            'maxdisabled' => $locked || ($isnumber ? (int) $value >= $meta['max'] : $meta['defaultismax']),
+            'sample' => null,
+            'samplestyle' => null,
+            'bar' => null,
+        ];
+        if ($f->preview() === 'spacing') {
+            $property = ['lineheight' => 'line-height', 'letterspacing' => 'letter-spacing',
+                'wordspacing' => 'word-spacing'][$id];
+            $css = array_values($f->css_properties($value));
+            $stepper['sample'] = get_string('spacingpreview', 'local_accessibility');
+            $stepper['samplestyle'] = $property . ': ' . ($css[0] ?? 'normal');
+        } else if ($f->preview() === 'bar') {
+            $stepper['bar'] = self::bar($value);
+        }
+        return $stepper;
+    }
+
+    /**
+     * Width in percent of the line width preview bar: 90 characters or more, and full width, fill it.
+     *
+     * @param string $value
+     * @return int
+     */
+    private static function bar(string $value): int {
+        return preg_match('/^-?\d+$/D', $value) ? max(1, min(100, (int) round((int) $value / 90 * 100))) : 100;
     }
 
     /**
@@ -308,7 +355,7 @@ class panel implements \renderable, \templatable {
 
     /**
      * The state of every enabled feature for panel.js (choices plan Task 5): value, built-in default, tile, kind,
-     * lock and options with the CSS properties each one sets.
+     * lock and options with the CSS properties each one sets; numeric features add their stepper's range and units.
      *
      * @param string[] $enabled
      * @param array $values feature id => current value of each enabled feature
@@ -330,6 +377,10 @@ class panel implements \renderable, \templatable {
             }
             $state[$id] = ['value' => $values[$id], 'default' => $f->default(), 'tile' => $f->tile(),
                 'kind' => $f->kind(), 'locked' => preferences::is_locked($id), 'options' => $options];
+            if ($f instanceof numeric) {
+                // Any number in the range is a value: panel.js steps, labels and applies it from this.
+                $state[$id]['stepper'] = $f->stepper();
+            }
         }
         return json_encode($state, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }

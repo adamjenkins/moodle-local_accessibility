@@ -54,7 +54,7 @@ final class profiles_test extends \advanced_testcase {
         $this->resetAfterTest();
         set_config(
             'profiles',
-            json_encode(['x' => ['name' => 'X', 'values' => ['size' => '999', 'links' => 'outline', 'nosuch' => 'on']]]),
+            json_encode(['x' => ['name' => 'X', 'values' => ['size' => '1001', 'links' => 'outline', 'nosuch' => 'on']]]),
             'local_accessibility'
         );
         $this->assertSame(['links' => 'outline'], profiles::all()['x']['values']);
@@ -68,7 +68,7 @@ final class profiles_test extends \advanced_testcase {
         $json = json_encode(['p' => ['name' => 'P', 'values' => ['spacing' => 'wcag', 'links' => 'on', 'size' => '175']]]);
         set_config('profiles', $json, 'local_accessibility');
         $this->assertEqualsCanonicalizing(
-            ['lineheight' => '150', 'letterspacing' => '12', 'wordspacing' => '16', 'links' => 'outline', 'size' => '180'],
+            ['lineheight' => '150', 'letterspacing' => '12', 'wordspacing' => '16', 'links' => 'outline', 'size' => '175'],
             profiles::all()['p']['values']
         );
         $this->assertSame($json, get_config('local_accessibility', 'profiles'));

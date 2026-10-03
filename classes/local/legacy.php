@@ -30,18 +30,20 @@ final class legacy {
         'extra' => ['lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24'],
     ];
 
-    /** @var array<string, array<string, string>> Feature id => old value => new value (spec §6, D2). */
+    /**
+     * @var array<string, array<string, string>> Feature id => old value => new value (spec §6, D2). The 3.0
+     * development size 175 is no longer renamed: text size takes any whole percentage, so 175 is a value of its own.
+     */
     private const RENAMED = [
         'align' => ['on' => 'left'],
         'links' => ['on' => 'outline'],
         'images' => ['on' => 'hide'],
         'focus' => ['cursor' => 'ring'],
-        'size' => ['175' => '180'],
     ];
 
     /** @var string[] Feature ids whose stored values the upgrade reads: the legacy ones and the ones they map to. */
     private const UPGRADED = ['spacing', 'lineheight', 'letterspacing', 'wordspacing', 'align', 'links', 'images',
-        'focus', 'cursor', 'size'];
+        'focus', 'cursor'];
 
     /** @var string The features' enabled/order table. */
     private const TABLE = 'local_accessibility_widgets';

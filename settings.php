@@ -79,26 +79,43 @@ if ($hassiteconfig) {
             new lang_string('defaults', 'local_accessibility'),
             new lang_string('defaults_desc', 'local_accessibility')
         ));
+        // How far the numeric settings may go (size, line height, letter and word spacing, line width).
+        $page->add(new admin_setting_configselect(
+            'local_accessibility/numericlimits',
+            new lang_string('numericlimits', 'local_accessibility'),
+            new lang_string('numericlimits_desc', 'local_accessibility'),
+            \local_accessibility\feature\numeric::UNLIMITED,
+            [
+                \local_accessibility\feature\numeric::UNLIMITED =>
+                    new lang_string('numericlimits_unlimited', 'local_accessibility'),
+                \local_accessibility\feature\numeric::NONNEGATIVE =>
+                    new lang_string('numericlimits_nonnegative', 'local_accessibility'),
+            ]
+        ));
         // One default per feature (the three spacing features each have one) and one lock per tile (spec §5),
-        // placed after the tile's last member.
+        // placed after the tile's last member. Numeric features take a number rather than a choice from a list.
         $tiles = \local_accessibility\feature\registry::tiles(array_keys(\local_accessibility\feature\registry::all()));
         foreach (\local_accessibility\feature\registry::all() as $id => $f) {
             if ($id === 'read') {
                 continue;
             }
-            $choices = [];
-            foreach ($f->values() as $v) {
-                if ($v !== 'custom') {
-                    $choices[$v] = $f->value_label($v);
+            if ($f instanceof \local_accessibility\feature\numeric) {
+                $page->add(new \local_accessibility\admin\setting_numericdefault($f));
+            } else {
+                $choices = [];
+                foreach ($f->values() as $v) {
+                    if ($v !== 'custom') {
+                        $choices[$v] = $f->value_label($v);
+                    }
                 }
+                $page->add(new admin_setting_configselect(
+                    "local_accessibility/default_$id",
+                    $f->label(),
+                    '',
+                    $f->default(),
+                    $choices
+                ));
             }
-            $page->add(new admin_setting_configselect(
-                "local_accessibility/default_$id",
-                $f->label(),
-                '',
-                $f->default(),
-                $choices
-            ));
             if (end($tiles[$f->tile()]) !== $id) {
                 continue;
             }

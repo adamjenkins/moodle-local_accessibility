@@ -14,10 +14,13 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Accessibility dialog: open/close, focus trap, choosing values in drawers and detail views (choices spec §2).
+ * Accessibility dialog: open/close, focus trap, choosing values in drawers and detail views (choices spec §2), and the
+ * −/+ steppers of the numeric settings (numeric steppers brief).
  *
  * The dialog's data-state (classes/output/panel.php) is the single source of every enabled feature's value, built-in
- * default, tile, kind, lock and options, with the CSS custom properties each option sets.
+ * default, tile, kind, lock and options, with the CSS custom properties each option sets. A numeric feature also has a
+ * stepper: its step, range, encoding scale, CSS property and units, from which any value in its range is labelled
+ * and applied here as the server does (classes/feature/numeric.php).
  *
  * @module     local_accessibility/panel
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -27,6 +30,7 @@
 import {configure, save, reset} from 'local_accessibility/store';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
+import Pending from 'core/pending';
 import {check, closeDrawer, hideView, initKeys, isDisabled, loadFaces, replaceDrawer, showView, tileOf,
     toggleDrawer} from 'local_accessibility/choices';
 import {init as initColour} from 'local_accessibility/colour';
@@ -50,6 +54,19 @@ let opener = null;
 let state = {};
 // Tile id => the number of its latest value-text update, so a slower earlier one cannot win.
 const tileUpdates = {};
+// Steppers save this long after the last change, so holding a button does not send a request per step.
+const SAVE_DELAY = 500;
+// Holding a stepper button repeats after this long, then at the second interval.
+const REPEAT_DELAY = 400;
+const REPEAT_INTERVAL = 80;
+// Feature id => the value the server has, once the feature has been changed in this page.
+const saved = {};
+// Feature id => {id, resolve, pending} of a save waiting for SAVE_DELAY.
+const timers = {};
+// Feature id => the chain of its saves, so they reach the server in order.
+const chains = {};
+// The stepper button being held: {button, timer}.
+let held = null;
 
 /**
  * The option of a feature with a value.
@@ -59,6 +76,86 @@ const tileUpdates = {};
  * @returns {Object|undefined} {value, label, css}
  */
 const optionOf = (feature, value) => state[feature]?.options.find((o) => o.value === value);
+
+/**
+ * Whether a value is an integer string in a numeric feature's encoding.
+ *
+ * @param {string} value
+ * @returns {boolean}
+ */
+const isNumber = (value) => /^-?\d+$/.test(value);
+
+/**
+ * Hundredths as a short decimal with '.' (CSS) or the user's decimal separator: 180 => 1.8, -5 => -0.05.
+ *
+ * @param {number} n
+ * @param {string} sep
+ * @returns {string}
+ */
+const hundredths = (n, sep = '.') => (n / 100).toFixed(2).replace(/\.?0+$/, '').replace('.', sep);
+
+/**
+ * A numeric value in the user's units, as typed in its field: "1.8", "0.12", "150", "60".
+ *
+ * @param {string} feature
+ * @param {string|number} value an integer in the feature's encoding
+ * @returns {string}
+ */
+const userNumber = (feature, value) => {
+    const m = state[feature].stepper;
+    return m.scale === 100 ? hundredths(Number(value), m.decsep) : String(Number(value));
+};
+
+/**
+ * Whether a feature accepts a value: one of its options, or, for a numeric feature, an integer in its range
+ * (as classes/feature/numeric.php validate(); the server checks again).
+ *
+ * @param {string} feature
+ * @param {string} value
+ * @returns {boolean}
+ */
+const isValid = (feature, value) => {
+    const m = state[feature]?.stepper;
+    if (!m || value === state[feature].default) {
+        return !!optionOf(feature, value);
+    }
+    return /^-?\d{1,4}$/.test(value) && String(Number(value)) === value && Number(value) >= m.min && Number(value) <= m.max;
+};
+
+/**
+ * The label of a value: its option's, or a numeric value in the user's units ("1.8", "150%", "60 characters").
+ *
+ * @param {string} feature
+ * @param {string} value
+ * @returns {Promise<string>}
+ */
+const labelOf = async(feature, value) => {
+    const m = state[feature]?.stepper;
+    if (!m || !isNumber(value)) {
+        return optionOf(feature, value)?.label || value;
+    }
+    const n = userNumber(feature, value);
+    return m.labelstring ? getString(m.labelstring, 'local_accessibility', n) : n;
+};
+
+/**
+ * The CSS custom properties a value sets: its option's, or a numeric feature's property built from the integer.
+ *
+ * @param {string} feature
+ * @param {string} value
+ * @returns {Object} property => value
+ */
+const cssOf = (feature, value) => {
+    const m = state[feature]?.stepper;
+    if (!m) {
+        return optionOf(feature, value)?.css || {};
+    }
+    if (value === state[feature].default || !isValid(feature, value)) {
+        return {};
+    }
+    const n = Number(value);
+    return {[m.property]: (m.scale === 100 ? hundredths(n) : String(n)) + m.cssunit};
+};
 
 /**
  * Put a feature value on the page: the data-a11y-* attribute on <html> (absent for the default) and the CSS custom
@@ -76,7 +173,10 @@ const apply = (feature, value) => {
         html.setAttribute('data-a11y-' + feature, value);
     }
     s.options.forEach((o) => Object.keys(o.css || {}).forEach((p) => html.style.removeProperty(p)));
-    Object.entries(optionOf(feature, value)?.css || {}).forEach(([p, v]) => html.style.setProperty(p, v));
+    if (s.stepper) {
+        html.style.removeProperty(s.stepper.property);
+    }
+    Object.entries(cssOf(feature, value)).forEach(([p, v]) => html.style.setProperty(p, v));
     document.dispatchEvent(new CustomEvent('local_accessibility:changed', {detail: {feature, value}}));
     // A new text size or spacing reflows the grid.
     replaceDrawer(panel);
@@ -200,11 +300,11 @@ const updateTile = async(tileid) => {
     const changed = members.filter((f) => state[f].value !== state[f].default);
     let text;
     if (tileid === 'spacing') {
-        const parts = await Promise.all(changed.filter((f) => SPACING_PARTS[f]).map((f) =>
-            getString(SPACING_PARTS[f], 'local_accessibility', optionOf(f, state[f].value)?.label || state[f].value)));
+        const parts = await Promise.all(changed.filter((f) => SPACING_PARTS[f]).map(async(f) =>
+            getString(SPACING_PARTS[f], 'local_accessibility', await labelOf(f, state[f].value))));
         text = parts.length ? parts.join(' · ') : await getString('sitedefault', 'local_accessibility');
     } else {
-        text = optionOf(members[0], state[members[0]].value)?.label || state[members[0]].value;
+        text = await labelOf(members[0], state[members[0]].value);
     }
     if (mine !== tileUpdates[tileid]) {
         return;
@@ -219,25 +319,43 @@ const updateTile = async(tileid) => {
 };
 
 /**
- * Show the size view's current value on its slider and value text.
+ * Show a numeric feature's value in its stepper: the field (empty, with the default's label, at a non-numeric
+ * default), which buttons can act, and the preview.
  *
+ * @param {string} feature
  * @param {string} value
  */
-const showSize = (value) => {
-    const label = optionOf('size', value)?.label || value;
-    const range = panel.querySelector('.la-range[data-feature="size"]');
-    if (range) {
-        range.value = value;
-        range.setAttribute('aria-valuetext', label);
+const showStepper = async(feature, value) => {
+    const s = state[feature];
+    const stepper = panel.querySelector('.la-stepper[data-feature="' + feature + '"]');
+    if (!s.stepper || !stepper) {
+        return;
     }
-    const shown = panel.querySelector('.la-sizevalue');
-    if (shown) {
-        shown.textContent = label;
+    const m = s.stepper;
+    const number = isNumber(value);
+    const field = stepper.querySelector('.la-stepvalue');
+    field.value = number ? userNumber(feature, value) : '';
+    field.placeholder = number ? '' : await labelOf(feature, value);
+    const down = stepper.querySelector('[data-action="stepdown"]');
+    const up = stepper.querySelector('[data-action="stepup"]');
+    if (!s.locked) {
+        // Unlimited, the minus button is never disabled: pressing it at the minimum keeps the minimum.
+        down.setAttribute('aria-disabled', m.nonnegative && number && Number(value) <= m.min ? 'true' : 'false');
+        up.setAttribute('aria-disabled', (number ? Number(value) >= m.max : m.defaultismax) ? 'true' : 'false');
+    }
+    const sample = stepper.querySelector('.la-stepsample');
+    if (sample) {
+        const property = {lineheight: 'line-height', letterspacing: 'letter-spacing', wordspacing: 'word-spacing'}[feature];
+        sample.style.setProperty(property, Object.values(cssOf(feature, value))[0] || 'normal');
+    }
+    const fill = stepper.querySelector('.la-barfill');
+    if (fill) {
+        fill.style.inlineSize = (number ? Math.max(1, Math.min(100, Math.round(Number(value) / 90 * 100))) : 100) + '%';
     }
 };
 
 /**
- * Make a value current: the page, the options that offer it, the size controls and the tile.
+ * Make a value current: the page, the options that offer it, its stepper and the tile.
  *
  * @param {string} feature
  * @param {string} value
@@ -246,100 +364,217 @@ const setValue = (feature, value) => {
     state[feature].value = value;
     apply(feature, value);
     check(panel, feature, value);
-    if (feature === 'size') {
-        showSize(value);
-    }
+    showStepper(feature, value).catch(Notification.exception);
     updateTile(state[feature].tile).catch(Notification.exception);
 };
 
 /**
- * Choose a value. The change shows at once; it is announced once saved, and put back and announced as not saved when
- * the save fails (offline, a lock set after the page loaded). The live region is used rather than an error modal,
- * which would open behind this dialog. A locked feature does nothing.
+ * Save a feature's current value unless the server has it already, and announce it. When the save fails (offline,
+ * a lock set after the page loaded) the value the server has is put back and announced as not saved. The live region
+ * is used rather than an error modal, which would open behind this dialog.
+ *
+ * @param {string} feature
+ */
+const commit = async(feature) => {
+    const value = state[feature].value;
+    if (value !== saved[feature]) {
+        try {
+            await save(feature, value);
+            saved[feature] = value;
+        } catch (error) {
+            if (state[feature].value === value) {
+                setValue(feature, saved[feature]);
+            }
+            announce(await getString('savefailed', 'local_accessibility', featureLabel(feature)));
+            return;
+        }
+    }
+    let label = await labelOf(feature, value);
+    const unit = state[feature].stepper?.unit;
+    if (unit && isNumber(value) && !state[feature].stepper.labelstring) {
+        label += ' ' + unit;
+    }
+    announce(await getString('settingchanged', 'local_accessibility', {feature: featureLabel(feature), value: label}));
+};
+
+/**
+ * Choose a value. The change shows at once and is saved, after a delay for the steppers so that a held button saves
+ * once; it is announced once saved. A locked feature, or a value the feature does not accept, does nothing.
  *
  * @param {string} feature
  * @param {string} value
+ * @param {number} delay milliseconds to wait for further changes before saving
+ * @returns {Promise} resolved once this change is saved, or replaced by a later one
  */
-const choose = async(feature, value) => {
+const choose = (feature, value, delay = 0) => {
     const s = state[feature];
-    if (!s || s.locked || !optionOf(feature, value)) {
-        return;
+    if (!s || s.locked || !isValid(feature, value)) {
+        return Promise.resolve();
     }
-    const before = s.value;
-    if (value === before) {
-        // Nothing to save; the slider's own preview may still need putting back.
-        setValue(feature, value);
-        return;
+    if (!(feature in saved)) {
+        saved[feature] = s.value;
     }
     setValue(feature, value);
-    try {
-        await save(feature, value);
-    } catch (error) {
-        setValue(feature, before);
-        announce(await getString('savefailed', 'local_accessibility', featureLabel(feature)));
-        return;
+    const previous = timers[feature];
+    if (previous) {
+        clearTimeout(previous.id);
+        previous.resolve();
     }
-    announce(await getString('settingchanged', 'local_accessibility',
-        {feature: featureLabel(feature), value: optionOf(feature, value).label}));
+    // Behat and other waiters see the change as pending until it is saved.
+    const pending = previous ? previous.pending : new Pending('local_accessibility/panel:choose');
+    return new Promise((resolve) => {
+        timers[feature] = {pending, resolve, id: setTimeout(() => {
+            delete timers[feature];
+            chains[feature] = (chains[feature] || Promise.resolve()).then(() => commit(feature))
+                .catch(Notification.exception)
+                .finally(() => {
+                    pending.resolve();
+                    resolve();
+                });
+        }, delay)};
+    });
 };
 
 /**
- * The size values in order, and the position of a size among them (the nearest one when it is not offered).
+ * The value one press of a stepper button gives: a step from the current number, or from the feature's starting
+ * number at a non-numeric default, kept inside the range. Null when + is pressed at a default that is already the
+ * widest (full width).
  *
- * @param {string|number} value
- * @returns {{values: string[], index: number}}
+ * @param {string} feature
+ * @param {number} direction 1 or -1
+ * @returns {string|null}
  */
-const sizeIndex = (value) => {
-    const values = state.size.options.map((o) => o.value);
-    let index = 0;
-    values.forEach((v, i) => {
-        if (Math.abs(Number(v) - Number(value)) < Math.abs(Number(values[index]) - Number(value))) {
-            index = i;
-        }
-    });
-    return {values, index};
+const stepped = (feature, direction) => {
+    const s = state[feature];
+    const m = s.stepper;
+    const number = isNumber(s.value);
+    if (!number && direction > 0 && m.defaultismax) {
+        return null;
+    }
+    const from = number ? Number(s.value) : m.start;
+    return String(Math.min(m.max, Math.max(m.min, from + direction * m.step)));
 };
 
 /**
- * The size control: Smaller and Larger walk every size in order (so 120, 125, 130); the slider previews while it moves
- * and saves when it is let go, snapped to the nearest offered size.
+ * Press a stepper button once: step, or put the default back.
+ *
+ * @param {HTMLElement} button
+ * @returns {boolean} whether the button could act
  */
-const initSize = () => {
-    const view = panel.querySelector('.la-view[data-view="size"]');
-    if (!view || !state.size) {
+const pressStep = (button) => {
+    const feature = button.dataset.feature;
+    if (!state[feature]?.stepper || isDisabled(button) || state[feature].locked) {
+        return false;
+    }
+    if (button.dataset.action === 'stepdefault') {
+        choose(feature, state[feature].default).catch(Notification.exception);
+        return true;
+    }
+    const value = stepped(feature, button.dataset.action === 'stepup' ? 1 : -1);
+    if (value === null) {
+        return false;
+    }
+    choose(feature, value, SAVE_DELAY).catch(Notification.exception);
+    return true;
+};
+
+/**
+ * Stop repeating a held stepper button.
+ */
+const release = () => {
+    if (held) {
+        clearTimeout(held.timer);
+        held = null;
+    }
+};
+
+/**
+ * Apply the number typed in a stepper's field: rounded to the feature's encoding, or the default when the field is
+ * empty. An entry that is not a number in the range is put back and announced.
+ *
+ * @param {HTMLInputElement} field
+ */
+const applyField = async(field) => {
+    const feature = field.dataset.feature;
+    const s = state[feature];
+    if (!s?.stepper || s.locked) {
         return;
     }
-    view.addEventListener('click', (e) => {
-        const button = e.target.closest('[data-action="smaller"], [data-action="larger"]');
-        if (!button || state.size.locked) {
-            return;
-        }
-        const {values, index} = sizeIndex(state.size.value);
-        const next = values[Math.min(Math.max(index + (button.dataset.action === 'larger' ? 1 : -1), 0), values.length - 1)];
-        choose('size', next).catch(Notification.exception);
-    });
-    const range = view.querySelector('.la-range');
-    if (!range) {
+    const m = s.stepper;
+    const typed = field.value.trim();
+    // Accept a typographic minus, the user's decimal separator or a point, and a trailing unit such as % or em.
+    const text = typed.replace(/\u2212/g, '-').replace(/\s+/g, '').split(m.decsep).join('.')
+        .replace(/(\d)[^\d.]+$/, '$1');
+    let value = null;
+    if (typed === '') {
+        value = s.default;
+    } else if (/^-?(\d+\.?\d*|\.\d+)$/.test(text)) {
+        value = String(Math.round(Number(text) * m.scale) || 0);
+    }
+    if (value === s.value) {
+        await showStepper(feature, value);
         return;
     }
-    range.addEventListener('input', () => {
-        if (state.size.locked) {
-            range.value = state.size.value;
+    if (value === null || !isValid(feature, value)) {
+        await showStepper(feature, s.value);
+        announce(await getString('stepperinvalid', 'local_accessibility', {value: typed, feature: featureLabel(feature),
+            min: userNumber(feature, m.min), max: userNumber(feature, m.max)}));
+        return;
+    }
+    await choose(feature, value);
+};
+
+/**
+ * The steppers: buttons step on a click or a key and repeat while held; the field applies a typed number on Enter or
+ * when it loses focus.
+ */
+const initSteppers = () => {
+    panel.addEventListener('pointerdown', (e) => {
+        const button = e.target.closest('.la-step[data-action]');
+        if (!button || e.button !== 0) {
             return;
         }
-        const {values, index} = sizeIndex(range.value);
-        apply('size', values[index]);
-        const label = optionOf('size', values[index]).label;
-        range.setAttribute('aria-valuetext', label);
-        view.querySelector('.la-sizevalue').textContent = label;
+        release();
+        // The click that follows this press is not a second step.
+        button.dataset.pressed = '1';
+        if (!pressStep(button)) {
+            return;
+        }
+        const repeat = (wait) => {
+            held = {button, timer: setTimeout(() => {
+                if (pressStep(button)) {
+                    repeat(REPEAT_INTERVAL);
+                } else {
+                    release();
+                }
+            }, wait)};
+        };
+        repeat(REPEAT_DELAY);
     });
-    range.addEventListener('change', () => {
-        if (state.size.locked) {
-            showSize(state.size.value);
-            return;
+    document.addEventListener('pointerup', release);
+    document.addEventListener('pointercancel', release);
+    panel.addEventListener('pointerout', (e) => {
+        if (held && e.target.closest('.la-step') === held.button && !held.button.contains(e.relatedTarget)) {
+            release();
         }
-        const {values, index} = sizeIndex(range.value);
-        choose('size', values[index]).catch(Notification.exception);
+    });
+    panel.addEventListener('keydown', (e) => {
+        const step = e.target.closest('.la-step');
+        if (step) {
+            // A key press is never the click of an earlier pointer press.
+            delete step.dataset.pressed;
+        }
+        const field = e.target.closest('.la-stepvalue');
+        if (field && e.key === 'Enter') {
+            e.preventDefault();
+            applyField(field).catch(Notification.exception);
+        }
+    });
+    panel.addEventListener('change', (e) => {
+        const field = e.target.closest('.la-stepvalue');
+        if (field) {
+            applyField(field).catch(Notification.exception);
+        }
     });
 };
 
@@ -572,6 +807,16 @@ export const init = (config) => {
                 }
                 return;
             }
+            const step = e.target.closest('.la-step[data-action], .la-stepdefault');
+            if (step) {
+                if (step.dataset.pressed) {
+                    // Already stepped on pointerdown.
+                    delete step.dataset.pressed;
+                } else {
+                    pressStep(step);
+                }
+                return;
+            }
             // Colour swatches are local_accessibility/colour's: choosing a scheme reloads the page.
             const option = e.target.closest('.la-option[data-feature]:not(.la-swatch)');
             if (option) {
@@ -639,7 +884,7 @@ export const init = (config) => {
         });
     }
     window.addEventListener('resize', () => replaceDrawer(panel));
-    initSize();
+    initSteppers();
     initColour(panel);
     initForcedColours().catch(Notification.exception);
     initGuide();

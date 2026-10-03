@@ -68,7 +68,7 @@ final class legacy_test extends \basic_testcase {
             'focus cursor' => [['focus' => 'cursor'], ['focus' => 'ring', 'cursor' => 'large']],
             'focus cursor keeps cursor' => [['focus' => 'cursor', 'cursor' => 'xlarge'], ['focus' => 'ring', 'cursor' => 'xlarge']],
             'focus ring' => [['focus' => 'ring'], ['focus' => 'ring']],
-            'size 175' => [['size' => '175'], ['size' => '180']],
+            'size 175 is a value of its own' => [['size' => '175'], ['size' => '175']],
             'size 150' => [['size' => '150'], ['size' => '150']],
             'new values' => [['links' => 'underline', 'images' => 'dim', 'align' => 'center'],
                 ['links' => 'underline', 'images' => 'dim', 'align' => 'center']],
@@ -77,7 +77,7 @@ final class legacy_test extends \basic_testcase {
             'empty' => [[], []],
             'everything' => [
                 ['size' => '175', 'spacing' => 'extra', 'align' => 'on', 'links' => 'on', 'images' => 'on', 'focus' => 'cursor'],
-                ['size' => '180', 'lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24', 'align' => 'left',
+                ['size' => '175', 'lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24', 'align' => 'left',
                     'links' => 'outline', 'images' => 'hide', 'focus' => 'ring', 'cursor' => 'large'],
             ],
         ];

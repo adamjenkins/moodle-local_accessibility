@@ -19,12 +19,35 @@ namespace local_accessibility\feature;
 /**
  * Line height: multiples of the font size (spec §3).
  *
+ * Hundredths of the font size (180 = 1.8); line heights under 1.0 overlap lines.
+ *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class lineheight extends base {
+class lineheight extends numeric {
+    /** @var int One press of − or +. */
+    protected const STEP = 10;
+    /** @var int Largest value. */
+    protected const MAX = 1000;
+    /** @var int Smallest value while the site allows the full range. */
+    protected const MIN_UNLIMITED = 0;
+    /** @var int Smallest value while the site keeps values non-negative. */
+    protected const MIN_NONNEGATIVE = 100;
+    /** @var int Stepping from the default starts here. */
+    protected const START = 150;
+    /** @var string CSS custom property. */
+    protected const PROPERTY = '--a11y-lh';
+    /** @var int Encoding scale. */
+    protected const SCALE = 100;
+    /** @var string CSS unit. */
+    protected const CSSUNIT = '';
+    /** @var string|null Lang string that labels a value. */
+    protected const LABELSTRING = null;
+    /** @var string|null Lang string of the unit beside the value field. */
+    protected const UNITSTRING = null;
+
     /**
      * Stable id, stored in preferences.
      *
@@ -32,15 +55,6 @@ class lineheight extends base {
      */
     public function id(): string {
         return 'lineheight';
-    }
-
-    /**
-     * Allowed values: the site default, then hundredths (spec §3).
-     *
-     * @return string[]
-     */
-    public function values(): array {
-        return ['default', '120', '150', '180', '200', '250'];
     }
 
     /**
@@ -77,25 +91,5 @@ class lineheight extends base {
      */
     public function preview(): ?string {
         return 'spacing';
-    }
-
-    /**
-     * Label of one value: "Site default" or the value as a decimal.
-     *
-     * @param string $value
-     * @return string
-     */
-    public function value_label(string $value): string {
-        return $value === 'default' ? parent::value_label($value) : format_float((int) $value / 100, 1);
-    }
-
-    /**
-     * The line height custom property.
-     *
-     * @param string $value
-     * @return array<string, string>
-     */
-    public function css_properties(string $value): array {
-        return $this->is_numeric_choice($value) ? ['--a11y-lh' => self::hundredths((int) $value)] : [];
     }
 }

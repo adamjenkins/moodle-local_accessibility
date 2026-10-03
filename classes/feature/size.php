@@ -19,12 +19,37 @@ namespace local_accessibility\feature;
 /**
  * Text size: scales the root font size (spec §3).
  *
+ * Percent of the site's text size; 100 is the default.
+ *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class size extends base {
+class size extends numeric {
+    /** @var string Default: 100%. */
+    protected const DEFAULT = '100';
+    /** @var int One press of − or +. */
+    protected const STEP = 10;
+    /** @var int Largest value. */
+    protected const MAX = 1000;
+    /** @var int Smallest value while the site allows the full range. */
+    protected const MIN_UNLIMITED = 1;
+    /** @var int Smallest value while the site keeps values non-negative. */
+    protected const MIN_NONNEGATIVE = 10;
+    /** @var int Stepping from the default starts here. */
+    protected const START = 100;
+    /** @var string CSS custom property. */
+    protected const PROPERTY = '--a11y-size';
+    /** @var int Encoding scale. */
+    protected const SCALE = 1;
+    /** @var string CSS unit. */
+    protected const CSSUNIT = '';
+    /** @var string|null Lang string that labels a value. */
+    protected const LABELSTRING = 'percent';
+    /** @var string|null Lang string of the unit beside the value field. */
+    protected const UNITSTRING = 'unit_percent';
+
     /**
      * Stable id, stored in preferences.
      *
@@ -35,30 +60,12 @@ class size extends base {
     }
 
     /**
-     * Allowed values, ascending: 80 to 300 in steps of 10, plus 125 (spec §3, plan D1).
-     *
-     * @return string[]
-     */
-    public function values(): array {
-        return array_map('strval', array_merge(range(80, 120, 10), [125], range(130, 300, 10)));
-    }
-
-    /**
      * Font Awesome icon name for the tile.
      *
      * @return string
      */
     public function icon(): string {
         return 'fa-text-height';
-    }
-
-    /**
-     * Default value: 100%, which is not the first value (plan D1).
-     *
-     * @return string
-     */
-    public function default(): string {
-        return '100';
     }
 
     /**
@@ -77,25 +84,5 @@ class size extends base {
      */
     public function preview(): ?string {
         return 'size';
-    }
-
-    /**
-     * Label of one value: a percentage.
-     *
-     * @param string $value
-     * @return string
-     */
-    public function value_label(string $value): string {
-        return get_string('percent', 'local_accessibility', $value);
-    }
-
-    /**
-     * The root font size as a percentage.
-     *
-     * @param string $value
-     * @return array<string, string>
-     */
-    public function css_properties(string $value): array {
-        return $this->is_numeric_choice($value) ? ['--a11y-size' => (string) (int) $value] : [];
     }
 }
