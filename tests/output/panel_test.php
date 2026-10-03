@@ -152,7 +152,7 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('Centre', self::tile($context, 'align')['valuetext']);
         $this->assertTrue(self::tile($context, 'align')['active']);
         $this->assertSame('150%', self::tile($context, 'size')['valuetext']);
-        $this->assertSame('OpenDyslexic', self::tile($context, 'font')['valuetext']);
+        $this->assertSame('OpenDyslexic Alta', self::tile($context, 'font')['valuetext']);
         $this->assertFalse(self::tile($context, 'links')['active']);
     }
 

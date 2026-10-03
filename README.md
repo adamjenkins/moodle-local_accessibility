@@ -6,7 +6,7 @@ It is one plugin with all features built in.
 ## Features ##
 
 - A panel with one tile per setting. Each tile shows its current setting in words, for example
-  "Font, OpenDyslexic". Open the panel with the floating button, the user menu entry or the keyboard
+  "Font, OpenDyslexic Alta". Open the panel with the floating button, the user menu entry or the keyboard
   shortcut Alt+A.
 - Every option is shown and can be chosen directly, each with an icon or a preview and a label. Short lists
   open in a drawer under the tile; longer ones (text size, font, spacing, line width, colours) open a detail
@@ -22,7 +22,7 @@ It is one plugin with all features built in.
 | Setting | Choices |
 |---|---|
 | Text size | Any percentage up to 1000% (steps of 10; default 100%), with quick picks 100%, 125%, 150%, 200%, 250% and 300%. The whole page scales in proportion. |
-| Font | Site default; the device's sans-serif, serif and monospace fonts; Atkinson Hyperlegible, Lexend, OpenDyslexic and Comic Neue (included); Japanese UD Gothic, Japanese UD Mincho and Japanese textbook (device fonts); fonts uploaded by the administrator. Each option is shown in its own font. |
+| Font | Site default; the device's sans-serif, serif and monospace fonts; Atkinson Hyperlegible, Lexend, OpenDyslexic Alta and Comic Neue (included); Japanese UD Gothic, Japanese UD Mincho and Japanese textbook (device fonts); fonts uploaded by the administrator. Each option is shown in its own font. |
 | Spacing: line height | Site default, or any value from 0 to 10 in steps of 0.1 (typed values to 0.01). Paragraph spacing follows the line height. |
 | Spacing: letter spacing | Site default, or any value from −5 to 5 em in steps of 0.01 em |
 | Spacing: word spacing | Site default, or any value from −10 to 10 em in steps of 0.02 em |
@@ -44,8 +44,10 @@ while the administrator's _Limits of number settings_ is _Unlimited_, the defaul
 
 ### Included fonts ###
 
-All four are under the SIL Open Font License 1.1 (licence texts in `fonts/`, sources in `thirdpartylibs.xml`):
-Atkinson Hyperlegible, Lexend, OpenDyslexic and Comic Neue, each in regular and bold.
+Atkinson Hyperlegible, Lexend and Comic Neue (regular and bold) are under the SIL Open Font License 1.1.
+OpenDyslexic Alta (regular, bold and italic) is OpenDyslexic 2 by Abelardo Gonzalez, with a single-storey "a":
+the original Bitstream glyphs are under the Bitstream Vera licence and the OpenDyslexic changes under CC BY 3.0.
+Licence texts are in `fonts/`, sources in `thirdpartylibs.xml`.
 
 The device fonts are font stacks: nothing is downloaded, and a device without any font in a stack shows its
 own default font of that kind.

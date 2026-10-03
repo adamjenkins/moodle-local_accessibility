@@ -2,19 +2,27 @@
 <libraries>
   <library>
     <location>fonts/opendyslexic-regular.woff2</location>
-    <name>OpenDyslexic</name>
-    <version>OpenDyslexic 3 (main @ 1824da5, 2025-08-11)</version>
-    <license>SIL Open Font License</license>
-    <licenseversion>1.1</licenseversion>
-    <repository>https://github.com/antijingoist/opendyslexic</repository>
+    <name>OpenDyslexic Alta</name>
+    <version>2.001 (OpenDyslexic2 Alt-A, itch.io, downloaded 2026-10-03)</version>
+    <license>Bitstream Vera Fonts License; OpenDyslexic changes CC BY 3.0 (see fonts/LICENSE-opendyslexic.txt)</license>
+    <licenseversion>CC BY 3.0</licenseversion>
+    <repository>https://antijingoist.itch.io/opendyslexic</repository>
   </library>
   <library>
     <location>fonts/opendyslexic-bold.woff2</location>
-    <name>OpenDyslexic Bold</name>
-    <version>OpenDyslexic 3 (main @ 1824da5, 2025-08-11)</version>
-    <license>SIL Open Font License</license>
-    <licenseversion>1.1</licenseversion>
-    <repository>https://github.com/antijingoist/opendyslexic</repository>
+    <name>OpenDyslexic Alta Bold</name>
+    <version>2.001 (OpenDyslexic2 Alt-A, itch.io, downloaded 2026-10-03)</version>
+    <license>Bitstream Vera Fonts License; OpenDyslexic changes CC BY 3.0 (see fonts/LICENSE-opendyslexic.txt)</license>
+    <licenseversion>CC BY 3.0</licenseversion>
+    <repository>https://antijingoist.itch.io/opendyslexic</repository>
+  </library>
+  <library>
+    <location>fonts/opendyslexic-italic.woff2</location>
+    <name>OpenDyslexic Alta Italic</name>
+    <version>2.001 (OpenDyslexic2 Alt-A, itch.io, downloaded 2026-10-03)</version>
+    <license>Bitstream Vera Fonts License; OpenDyslexic changes CC BY 3.0 (see fonts/LICENSE-opendyslexic.txt)</license>
+    <licenseversion>CC BY 3.0</licenseversion>
+    <repository>https://antijingoist.itch.io/opendyslexic</repository>
   </library>
   <library>
     <location>fonts/atkinsonhyperlegible-regular.woff2</location>

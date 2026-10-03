@@ -18,7 +18,7 @@ carried over on upgrade.
   keeps quick picks (100% to 300%). Values may go negative (spacing) or under 1.0 (line height) unless the
   administrator's new _Limits of number settings_ (`numericlimits`) is set to _Non-negative_; their site
   defaults are typed numbers.
-- Fonts: Atkinson Hyperlegible, Lexend, OpenDyslexic and Comic Neue (included, SIL Open Font License), the
+- Fonts: Atkinson Hyperlegible, Lexend and Comic Neue (included, SIL Open Font License), OpenDyslexic Alta (included; Bitstream Vera licence and CC BY 3.0), the
   device's sans-serif, serif and monospace fonts, three Japanese UD font stacks, and fonts the administrator
   uploads. Administrators choose which built-in fonts are offered.
 - New: alignment, line width, reading guide, stop motion, read aloud (browser voices; sentence by sentence, no
