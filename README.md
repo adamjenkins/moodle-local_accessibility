@@ -85,6 +85,7 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 
 ## Known limitations ##
 
+- Line height, letter spacing and word spacing do not yet apply to headings.
 - Content inside iframes (including H5P) is not changed.
 - The Moodle mobile app does not load the plugin.
 - The colour contrast guarantee covers only the surfaces the plugin recolours. Content with its own
@@ -96,8 +97,9 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 ## Upgrading from 2.x ##
 
 Existing users' settings are carried over. Moodle 4.5 or later is required. Text size, line height and letter
-spacing keep their value, rounded to a whole percent or hundredth; paragraph widths of 25, 50 and 75 become line widths of 50, 60 and 70
-characters; highlighted links become _Underline and outline_ and hidden images _Hidden (alt text shown)_.
+spacing keep their value, rounded to a whole percent or hundredth; paragraph widths of 25, 50 and 75 become line
+widths of 50, 60 and 70 characters; highlighted links become _Underline and outline_ and hidden images _Hidden
+(alt text shown)_.
 
 The upgrade uninstalls an old `accessibility_*` widget plugin only when its folder is already gone from
 `local/accessibility/widgets/`. If the old widget folders are still there after the upgrade (for example after
@@ -114,12 +116,14 @@ directory in `{your/moodle/dirroot}/local/accessibility` and run
 
 ## Credits ##
 
+- Adam Jenkins, maintainer and author of the 3.0 rebuild.
 - Ponlawat Weerapanpisit, original author of the plugin and its widget framework.
 - Bartlomiej Jencz, for the 2024 work on moving the plugin to Moodle's hooks API.
 
 ## License ##
 
 2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
+2026 Adam Jenkins <adam@wisecat.net>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
