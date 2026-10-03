@@ -300,6 +300,32 @@ class behat_local_accessibility extends behat_base {
     }
 
     /**
+     * Check that a checked box or radio is distinguishable from an unchecked one. A natively drawn control (Bootstrap 4,
+     * Moodle 4.5) shows its own check mark; a restyled one (appearance: none, Bootstrap 5) must differ in background.
+     *
+     * @Then /^the checked control "(?P<css>[^"]*)" should look different from the unchecked "(?P<other>[^"]*)"$/
+     * @param string $css
+     * @param string $other
+     */
+    public function the_checked_control_should_look_different(string $css, string $other): void {
+        $this->check_script('const a = document.querySelector(' . json_encode($css) . ');
+            const b = document.querySelector(' . json_encode($other) . ');
+            if (!a || !b) {
+                return "Missing element: " + (a ? ' . json_encode($other) . ' : ' . json_encode($css) . ');
+            }
+            if (!a.checked || b.checked) {
+                return "Expected the first control checked and the second unchecked";
+            }
+            const cs = getComputedStyle(a);
+            if ((cs.appearance || cs.webkitAppearance) !== "none") {
+                return "";
+            }
+            const va = cs.backgroundColor + " " + cs.backgroundImage;
+            const vb = getComputedStyle(b).backgroundColor + " " + getComputedStyle(b).backgroundImage;
+            return va === vb ? "Restyled control: checked and unchecked both have background " + va : "";');
+    }
+
+    /**
      * Check that two elements differ visibly: colours, borders, outline, shadow or background image.
      *
      * @Then /^the "(?P<css>[^"]*)" element should look different from the "(?P<other>[^"]*)" element$/
@@ -431,7 +457,8 @@ class behat_local_accessibility extends behat_base {
             }
             names.forEach((n) => document.documentElement.style.setProperty(n, "initial"));
             const probe = getComputedStyle(document.documentElement).getPropertyValue("--bs-primary");
-            if (!names.has("--bs-primary") || probe !== "") {
+            // On a real Bootstrap 4 theme (Moodle 4.5) --bs-primary is never declared, so there is nothing to remove.
+            if (probe !== "") {
                 return "Could not undefine the Bootstrap 5 properties (found " + names.size + ", --bs-primary: " + probe + ")";
             }
             return "";');
