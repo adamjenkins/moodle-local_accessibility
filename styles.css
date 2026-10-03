@@ -102,11 +102,12 @@ html[data-a11y-font] body :where(*:not(.fa, .icon, [class*="fa-"], code, pre, kb
 
 /* 4. Spacing: three independent values in em; maths excluded (MathJax positions glyphs from measured widths), and
    so are the spacing options' previews (.la-sample), which show their own value.
-   Paragraph spacing follows line height (D4): 1.5 gives 2em, the WCAG 1.4.12 value. */
+   Paragraph spacing follows line height (D4): 1.5 gives 2em, the WCAG 1.4.12 value. The panel follows the line height
+   but not the paragraph spacing, which would only add empty space under its own lines. */
 html[data-a11y-lineheight] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *, .la-sample, .la-sample *)) {
     line-height: var(--a11y-lh) !important; /* stylelint-disable-line declaration-no-important */
 }
-html[data-a11y-lineheight] body :where(p):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+html[data-a11y-lineheight] body :where(p):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
     margin-block-end: calc(var(--a11y-lh) * 1.33em) !important; /* stylelint-disable-line declaration-no-important */
 }
 html[data-a11y-letterspacing] body :where(p, li, dd, dt, td, th, blockquote, label, span, a, div):where(:not(.MathJax, .MathJax *, mjx-container, mjx-container *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *, .la-sample, .la-sample *)) {
