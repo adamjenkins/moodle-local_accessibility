@@ -39,7 +39,7 @@ final class uninstall_test extends \advanced_testcase {
         preferences::set('size', '150');
         preferences::set_custom_scheme(colour\scheme::custom('#14202b', '#e8eef3', '#8cc8ff', false));
         $this->setUser($u2);
-        preferences::set('links', 'on');
+        preferences::set('links', 'outline');
         set_user_preference('local_accessibilityx', 'kept', $u2);
         set_user_preference('theme_boost_colourmode', 'dark', $u2);
         $like = $DB->sql_like('name', ':name');

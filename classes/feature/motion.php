@@ -17,13 +17,19 @@
 namespace local_accessibility\feature;
 
 /**
- * Stop motion and animation (spec §5).
+ * Stop motion and animation (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class motion extends base {
+    /** @var array<string, string> Option icons: running or stopped. */
+    protected const ICONS = [
+        'off' => 'fa-play',
+        'on' => 'fa-pause',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -34,7 +40,7 @@ class motion extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */

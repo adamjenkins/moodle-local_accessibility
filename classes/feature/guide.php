@@ -17,13 +17,20 @@
 namespace local_accessibility\feature;
 
 /**
- * Reading guide: ruler or mask (spec §5).
+ * Reading guide: ruler or mask (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class guide extends base {
+    /** @var array<string, string> Option icons. */
+    protected const ICONS = [
+        'off' => 'fa-ban',
+        'ruler' => 'fa-ruler-horizontal',
+        'mask' => 'fa-grip-lines',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -34,7 +41,7 @@ class guide extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */

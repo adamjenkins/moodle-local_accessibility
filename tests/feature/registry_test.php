@@ -25,31 +25,172 @@ namespace local_accessibility\feature;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \local_accessibility\feature\registry
  * @covers     \local_accessibility\feature\base
+ * @covers     \local_accessibility\feature\font
  */
 final class registry_test extends \advanced_testcase {
     /**
-     * The 13 features in display order (spec §5).
+     * The 16 features in display order (spec §3).
      */
     public function test_order(): void {
-        $this->assertSame(['size', 'font', 'spacing', 'align', 'colour', 'narrow', 'links', 'images',
-            'guide', 'motion', 'read', 'saturation', 'focus'], array_keys(registry::all()));
+        $this->assertSame(['size', 'font', 'lineheight', 'letterspacing', 'wordspacing', 'align', 'colour', 'narrow',
+            'links', 'images', 'guide', 'motion', 'read', 'saturation', 'focus', 'cursor'], array_keys(registry::all()));
     }
 
     /**
-     * Levels match the spec.
+     * Values match spec §3 exactly.
      */
     public function test_values(): void {
-        $this->assertSame(['100', '125', '150', '175', '200'], registry::get('size')->values());
-        $this->assertSame(['default', 'readable', 'dyslexic'], registry::get('font')->values());
-        $this->assertSame(['normal', 'wcag', 'extra'], registry::get('spacing')->values());
-        $this->assertSame(['off', '70', '60'], registry::get('narrow')->values());
+        $size = array_map('strval', array_merge(range(80, 120, 10), [125], range(130, 300, 10)));
+        $this->assertSame($size, registry::get('size')->values());
+        $this->assertSame(['default', 'sans', 'serif', 'mono', 'readable', 'lexend', 'dyslexic', 'comic', 'jagothic',
+            'jamincho', 'jakyokasho'], registry::get('font')->values());
+        $this->assertSame(['default', '120', '150', '180', '200', '250'], registry::get('lineheight')->values());
+        $this->assertSame(['default', '5', '10', '12', '16', '20', '30'], registry::get('letterspacing')->values());
+        $this->assertSame(['default', '10', '16', '24', '40', '60'], registry::get('wordspacing')->values());
+        $this->assertSame(['default', 'left', 'center', 'right', 'justify'], registry::get('align')->values());
+        $this->assertSame(['off', '90', '80', '70', '60', '50', '40'], registry::get('narrow')->values());
+        $this->assertSame(['off', 'underline', 'outline', 'highlight'], registry::get('links')->values());
+        $this->assertSame(['off', 'hide', 'dim'], registry::get('images')->values());
         $this->assertSame(['off', 'ruler', 'mask'], registry::get('guide')->values());
+        $this->assertSame(['off', 'on'], registry::get('motion')->values());
+        $this->assertSame(['off', 'on'], registry::get('read')->values());
         $this->assertSame(['off', 'low', 'grey', 'high'], registry::get('saturation')->values());
-        $this->assertSame(['off', 'ring', 'cursor'], registry::get('focus')->values());
+        $this->assertSame(['off', 'ring', 'thick'], registry::get('focus')->values());
+        $this->assertSame(['off', 'large', 'xlarge'], registry::get('cursor')->values());
         $this->assertSame(
             ['default', 'highcontrast', 'yellowblack', 'blackwhite', 'cream', 'dark', 'custom'],
             registry::get('colour')->values()
         );
+    }
+
+    /**
+     * Size defaults to 100 although its values ascend from 80 (D1); every default is one of its feature's values.
+     */
+    public function test_defaults(): void {
+        $this->assertSame('100', registry::get('size')->default());
+        foreach (registry::all() as $id => $f) {
+            $this->assertTrue(in_array($f->default(), $f->values(), true), $id);
+        }
+    }
+
+    /**
+     * Every option shows an icon or a preview, and a real label (spec §2).
+     */
+    public function test_every_option_has_icon_or_preview(): void {
+        foreach (registry::all() as $id => $f) {
+            $options = $f->options();
+            $this->assertSame($f->values(), array_column($options, 'value'), $id);
+            foreach ($options as $o) {
+                $this->assertTrue($o['icon'] !== null || $o['preview'] !== null, "$id {$o['value']}");
+                $this->assertNotSame('', trim($o['label']), "$id {$o['value']}");
+                $this->assertStringNotContainsString('[[', $o['label'], "$id {$o['value']}");
+                $this->assertSame($f->css_properties($o['value']), $o['css'], "$id {$o['value']}");
+                if ($o['icon'] !== null) {
+                    $this->assertMatchesRegularExpression('/^fa-[a-z-]+$/', $o['icon'], "$id {$o['value']}");
+                }
+            }
+        }
+    }
+
+    /**
+     * Drawer and detail kinds follow spec §3 (A and B).
+     */
+    public function test_kinds(): void {
+        $detail = ['size', 'font', 'lineheight', 'letterspacing', 'wordspacing', 'colour', 'narrow'];
+        foreach (registry::all() as $id => $f) {
+            $this->assertSame(in_array($id, $detail, true) ? 'detail' : 'drawer', $f->kind(), $id);
+        }
+    }
+
+    /**
+     * The three spacing features share one tile, which takes the place of the first of them.
+     */
+    public function test_tiles_group_spacing(): void {
+        $tiles = registry::tiles(array_keys(registry::all()));
+        $this->assertSame(['lineheight', 'letterspacing', 'wordspacing'], $tiles['spacing']);
+        $this->assertArrayNotHasKey('lineheight', $tiles);
+        $this->assertSame(['size', 'font', 'spacing', 'align', 'colour', 'narrow', 'links', 'images', 'guide', 'motion',
+            'read', 'saturation', 'focus', 'cursor'], array_keys($tiles));
+        $this->assertSame(['size'], $tiles['size']);
+        // Only the enabled members, at the position of the first enabled one (D6).
+        $expected = ['size' => ['size'], 'align' => ['align'], 'spacing' => ['wordspacing']];
+        $this->assertSame($expected, registry::tiles(['size', 'align', 'wordspacing']));
+    }
+
+    /**
+     * The spacing trio shares one lock; every other feature has its own.
+     */
+    public function test_lock_names(): void {
+        foreach (['lineheight', 'letterspacing', 'wordspacing'] as $id) {
+            $this->assertSame('lock_spacing', registry::get($id)->lock_name());
+            $this->assertSame('spacing', registry::get($id)->tile());
+        }
+        $this->assertSame('lock_size', registry::get('size')->lock_name());
+        $this->assertSame('lock_cursor', registry::get('cursor')->lock_name());
+    }
+
+    /**
+     * CSS custom properties: only for validated, non-default values, formatted from integers or constants.
+     *
+     * @dataProvider css_provider
+     * @param string $id
+     * @param string $value
+     * @param array $expected
+     */
+    public function test_css_properties(string $id, string $value, array $expected): void {
+        $this->assertSame($expected, registry::get($id)->css_properties($value));
+    }
+
+    /**
+     * Feature values and their CSS custom properties.
+     *
+     * @return array
+     */
+    public static function css_provider(): array {
+        $serif = '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif", "Liberation Serif", '
+            . '"Times New Roman", serif';
+        return [
+            'size 150' => ['size', '150', ['--a11y-size' => '150']],
+            'size 80' => ['size', '80', ['--a11y-size' => '80']],
+            'size 100 default' => ['size', '100', []],
+            'size injected' => ['size', '150;x', []],
+            'size exponent' => ['size', '1e2', []],
+            'size not offered' => ['size', '175', []],
+            'lineheight 150' => ['lineheight', '150', ['--a11y-lh' => '1.5']],
+            'lineheight 200' => ['lineheight', '200', ['--a11y-lh' => '2']],
+            'lineheight 120' => ['lineheight', '120', ['--a11y-lh' => '1.2']],
+            'lineheight default' => ['lineheight', 'default', []],
+            'letterspacing 5' => ['letterspacing', '5', ['--a11y-ls' => '0.05em']],
+            'letterspacing 30' => ['letterspacing', '30', ['--a11y-ls' => '0.3em']],
+            'wordspacing 60' => ['wordspacing', '60', ['--a11y-ws' => '0.6em']],
+            'wordspacing 16' => ['wordspacing', '16', ['--a11y-ws' => '0.16em']],
+            'narrow 40' => ['narrow', '40', ['--a11y-measure' => '40ch']],
+            'narrow off' => ['narrow', 'off', []],
+            'narrow injected' => ['narrow', '40ch;x', []],
+            'font serif' => ['font', 'serif', ['--a11y-font' => $serif]],
+            'font readable' => ['font', 'readable', ['--a11y-font' => 'local_accessibility_readable, system-ui, sans-serif']],
+            'font default' => ['font', 'default', []],
+            'font injected' => ['font', 'x;y', []],
+            'align center' => ['align', 'center', []],
+            'links outline' => ['links', 'outline', []],
+        ];
+    }
+
+    /**
+     * Every font id has a stack, and the stacks are spec §4's.
+     */
+    public function test_font_stacks(): void {
+        foreach (registry::get('font')->values() as $id) {
+            if ($id === 'default') {
+                $this->assertNull(font::stack($id));
+                continue;
+            }
+            $this->assertNotEmpty(font::stack($id), $id);
+            $this->assertDoesNotMatchRegularExpression('/[;{}<>\\\\]/', font::stack($id), $id);
+        }
+        $mono = 'ui-monospace, "Cascadia Mono", Consolas, Menlo, "Liberation Mono", "Noto Sans Mono", monospace';
+        $this->assertSame($mono, font::stack('mono'));
+        $this->assertNull(font::stack('nosuch'));
     }
 
     /**
@@ -58,10 +199,16 @@ final class registry_test extends \advanced_testcase {
     public function test_validate(): void {
         $this->resetAfterTest();
         $this->assertTrue(registry::get('size')->validate('150'));
+        $this->assertTrue(registry::get('size')->validate('125'));
+        $this->assertTrue(registry::get('size')->validate('80'));
+        $this->assertTrue(registry::get('size')->validate('300'));
+        $this->assertFalse(registry::get('size')->validate('175'));
+        $this->assertFalse(registry::get('size')->validate('310'));
         $this->assertFalse(registry::get('size')->validate('50'));
         $this->assertFalse(registry::get('size')->validate('150" onload="x'));
         $this->assertFalse(registry::get('colour')->validate('site_99'));
         $this->assertNull(registry::get('nonexistent'));
+        $this->assertNull(registry::get('spacing'));
     }
 
     /**
@@ -70,19 +217,29 @@ final class registry_test extends \advanced_testcase {
     public function test_attributes(): void {
         $this->assertSame([], registry::get('size')->html_attributes('100'));
         $this->assertSame(['data-a11y-size' => '150'], registry::get('size')->html_attributes('150'));
+        $this->assertSame(['data-a11y-size' => '80'], registry::get('size')->html_attributes('80'));
     }
 
     /**
-     * Every feature and value has a lang string.
+     * Every feature and every value has a real label.
      */
     public function test_strings_exist(): void {
         $sm = get_string_manager();
+        $this->assertTrue($sm->string_exists('feature_spacing', 'local_accessibility'));
         foreach (registry::all() as $id => $f) {
             $this->assertTrue($sm->string_exists("feature_$id", 'local_accessibility'), $id);
             foreach ($f->values() as $v) {
-                $this->assertTrue($sm->string_exists("feature_{$id}_{$v}", 'local_accessibility'), "$id $v");
+                $label = $f->value_label($v);
+                $this->assertNotSame('', trim($label), "$id $v");
+                $this->assertStringNotContainsString('[[', $label, "$id $v");
             }
         }
+        $this->assertSame('150%', registry::get('size')->value_label('150'));
+        $this->assertSame('40 characters', registry::get('narrow')->value_label('40'));
+        $this->assertSame('Full width', registry::get('narrow')->value_label('off'));
+        $this->assertSame('1.8', registry::get('lineheight')->value_label('180'));
+        $this->assertSame('0.12', registry::get('letterspacing')->value_label('12'));
+        $this->assertSame('Centre', registry::get('align')->value_label('center'));
     }
 
     /**

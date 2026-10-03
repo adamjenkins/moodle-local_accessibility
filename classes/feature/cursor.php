@@ -17,30 +17,36 @@
 namespace local_accessibility\feature;
 
 /**
- * Text spacing: line height, letter and word spacing (spec §5).
+ * Mouse pointer size: standard, large (64px) or extra large (96px) (spec §3).
  *
  * @package    local_accessibility
- * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class spacing extends base {
+class cursor extends base {
+    /** @var array<string, string> Option icons. */
+    protected const ICONS = [
+        'off' => 'fa-arrow-pointer',
+        'large' => 'fa-computer-mouse',
+        'xlarge' => 'fa-crosshairs',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
      * @return string
      */
     public function id(): string {
-        return 'spacing';
+        return 'cursor';
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */
     public function values(): array {
-        return ['normal', 'wcag', 'extra'];
+        return ['off', 'large', 'xlarge'];
     }
 
     /**
@@ -49,6 +55,6 @@ class spacing extends base {
      * @return string
      */
     public function icon(): string {
-        return 'fa-arrows-up-down';
+        return 'fa-arrow-pointer';
     }
 }

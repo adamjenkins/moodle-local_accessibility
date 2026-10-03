@@ -17,7 +17,7 @@
 namespace local_accessibility\feature;
 
 /**
- * Hidden images (spec §5).
+ * Images: shown, hidden with their alt text, or dimmed (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -25,6 +25,13 @@ namespace local_accessibility\feature;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class images extends base {
+    /** @var array<string, string> Option icons. */
+    protected const ICONS = [
+        'off' => 'fa-image',
+        'hide' => 'fa-eye-slash',
+        'dim' => 'fa-circle-half-stroke',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -35,12 +42,12 @@ class images extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */
     public function values(): array {
-        return ['off', 'on'];
+        return ['off', 'hide', 'dim'];
     }
 
     /**

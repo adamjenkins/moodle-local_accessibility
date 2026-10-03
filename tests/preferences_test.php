@@ -77,13 +77,22 @@ final class preferences_test extends \advanced_testcase {
      */
     public function test_locked_feature_uses_site_default(): void {
         $this->setUser($this->getDataGenerator()->create_user());
-        preferences::set('spacing', 'extra');
-        set_config('default_spacing', 'wcag', 'local_accessibility');
+        preferences::set('lineheight', '250');
+        preferences::set('letterspacing', '30');
+        set_config('default_lineheight', '150', 'local_accessibility');
         set_config('lock_spacing', 1, 'local_accessibility');
-        $this->assertSame('wcag', preferences::get('spacing'));
-        $this->assertSame('extra', get_user_preferences('local_accessibility_spacing'));
+        $this->assertTrue(preferences::is_locked('lineheight'));
+        $this->assertTrue(preferences::is_locked('letterspacing'));
+        $this->assertTrue(preferences::is_locked('wordspacing'));
+        $this->assertSame('150', preferences::get('lineheight'));
+        $this->assertSame('default', preferences::get('letterspacing'));
+        $this->assertSame('250', get_user_preferences('local_accessibility_lineheight'));
         set_config('lock_spacing', 0, 'local_accessibility');
-        $this->assertSame('extra', preferences::get('spacing'));
+        $this->assertSame('250', preferences::get('lineheight'));
+        $this->assertSame('30', preferences::get('letterspacing'));
+        // A per-feature lock name that is not the tile's has no effect.
+        set_config('lock_lineheight', 1, 'local_accessibility');
+        $this->assertFalse(preferences::is_locked('lineheight'));
     }
 
     /**
@@ -116,10 +125,74 @@ final class preferences_test extends \advanced_testcase {
      */
     public function test_guest_cookie(): void {
         $this->setGuestUser();
-        $_COOKIE[preferences::COOKIE] = json_encode(['size' => '175', 'links' => 'on']);
+        $_COOKIE[preferences::COOKIE] = json_encode(['size' => '180', 'links' => 'outline']);
         $this->assertTrue(preferences::uses_cookie());
-        $this->assertSame('175', preferences::get('size'));
-        $this->assertSame('on', preferences::get('links'));
+        $this->assertSame('180', preferences::get('size'));
+        $this->assertSame('outline', preferences::get('links'));
+    }
+
+    /**
+     * A guest cookie written by a 3.0 development site is read through the legacy-value map (spec §6).
+     */
+    public function test_guest_cookie_legacy_values(): void {
+        $this->setGuestUser();
+        $_COOKIE[preferences::COOKIE] = json_encode(['spacing' => 'extra', 'links' => 'on', 'align' => 'on',
+            'size' => '175', 'focus' => 'cursor']);
+        $this->assertSame('180', preferences::get('lineheight'));
+        $this->assertSame('16', preferences::get('letterspacing'));
+        $this->assertSame('24', preferences::get('wordspacing'));
+        $this->assertSame('outline', preferences::get('links'));
+        $this->assertSame('left', preferences::get('align'));
+        $this->assertSame('180', preferences::get('size'));
+        $this->assertSame('ring', preferences::get('focus'));
+        $this->assertSame('large', preferences::get('cursor'));
+    }
+
+    /**
+     * A tampered cookie value never reaches a CSS custom property or an attribute.
+     */
+    public function test_tampered_cookie_emits_no_variable(): void {
+        $this->setGuestUser();
+        $_COOKIE[preferences::COOKIE] = json_encode(['size' => '150;background:url(x)', 'font' => 'x;y',
+            'lineheight' => '1e2']);
+        $attrs = preferences::html_attributes();
+        $this->assertArrayNotHasKey('style', $attrs);
+        $this->assertArrayNotHasKey('data-a11y-size', $attrs);
+        $this->assertArrayNotHasKey('data-a11y-font', $attrs);
+        $this->assertArrayNotHasKey('data-a11y-lineheight', $attrs);
+    }
+
+    /**
+     * Feature variables and the colour scheme's properties share one style attribute (scheme first).
+     */
+    public function test_style_combines_scheme_and_variables(): void {
+        $this->setUser($this->getDataGenerator()->create_user());
+        preferences::set_custom_scheme(scheme::custom('#14202b', '#e8eef3', '#8cc8ff', false));
+        preferences::set('size', '150');
+        preferences::set('lineheight', '180');
+        preferences::set('font', 'mono');
+        $attrs = preferences::html_attributes();
+        $this->assertCount(1, array_filter(array_keys($attrs), fn($k) => $k === 'style'));
+        $style = $attrs['style'];
+        $this->assertStringStartsWith('--a11y-page:#', $style);
+        $this->assertStringContainsString('--a11y-size: 150', $style);
+        $this->assertStringContainsString('--a11y-lh: 1.8', $style);
+        $this->assertStringContainsString('--a11y-font: ui-monospace, ', $style);
+        $this->assertLessThan(strpos($style, '--a11y-lh'), strpos($style, '--a11y-size'));
+        $this->assertStringNotContainsString(';;', $style);
+        $this->assertSame('150', $attrs['data-a11y-size']);
+        $this->assertSame('180', $attrs['data-a11y-lineheight']);
+    }
+
+    /**
+     * Without a colour scheme, the style attribute carries only the feature variables.
+     */
+    public function test_style_without_scheme(): void {
+        $this->setUser($this->getDataGenerator()->create_user());
+        $this->assertArrayNotHasKey('style', preferences::html_attributes());
+        preferences::set('narrow', '50');
+        preferences::set('wordspacing', '40');
+        $this->assertSame('--a11y-ws: 0.4em; --a11y-measure: 50ch', preferences::html_attributes()['style']);
     }
 
     /**
@@ -148,7 +221,7 @@ final class preferences_test extends \advanced_testcase {
     public function test_disabled_feature_ignored(): void {
         global $DB;
         $this->setUser($this->getDataGenerator()->create_user());
-        preferences::set('links', 'on');
+        preferences::set('links', 'outline');
         $DB->set_field('local_accessibility_widgets', 'enabled', 0, ['name' => 'links']);
         \cache::make('local_accessibility', 'enabled')->purge();
         $this->assertArrayNotHasKey('data-a11y-links', preferences::html_attributes());
@@ -176,7 +249,7 @@ final class preferences_test extends \advanced_testcase {
         $this->assertSame([], preferences::enabled_ids());
         preferences::sync_features_table();
         $this->assertSame(array_keys(\local_accessibility\feature\registry::all()), preferences::enabled_ids());
-        $this->assertCount(13, preferences::enabled_ids());
+        $this->assertCount(16, preferences::enabled_ids());
     }
 
     /**

@@ -24,9 +24,9 @@ namespace local_accessibility\feature;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class registry {
-    /** @var string[] Display order (spec §5 and panel-final.html). */
-    private const ORDER = ['size', 'font', 'spacing', 'align', 'colour', 'narrow', 'links', 'images',
-        'guide', 'motion', 'read', 'saturation', 'focus'];
+    /** @var string[] Display order (spec §3). */
+    private const ORDER = ['size', 'font', 'lineheight', 'letterspacing', 'wordspacing', 'align', 'colour', 'narrow',
+        'links', 'images', 'guide', 'motion', 'read', 'saturation', 'focus', 'cursor'];
 
     /**
      * All features.
@@ -53,5 +53,23 @@ final class registry {
      */
     public static function get(string $id): ?base {
         return self::all()[$id] ?? null;
+    }
+
+    /**
+     * Group feature ids into panel tiles. A tile takes the position of its first member in the given order and
+     * lists only the given members (plan D6).
+     *
+     * @param string[] $ids feature ids, e.g. the enabled ids in admin order; unknown ids are skipped
+     * @return array<string, string[]> tile id => member feature ids
+     */
+    public static function tiles(array $ids): array {
+        $tiles = [];
+        foreach ($ids as $id) {
+            $f = self::get((string) $id);
+            if ($f !== null) {
+                $tiles[$f->tile()][] = $f->id();
+            }
+        }
+        return $tiles;
     }
 }

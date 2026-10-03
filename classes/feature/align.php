@@ -17,7 +17,7 @@
 namespace local_accessibility\feature;
 
 /**
- * Left-aligned text (spec §5).
+ * Text alignment in page content (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -25,6 +25,15 @@ namespace local_accessibility\feature;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class align extends base {
+    /** @var array<string, string> Option icons; the site default shows "undo". */
+    protected const ICONS = [
+        'default' => 'fa-rotate-left',
+        'left' => 'fa-align-left',
+        'center' => 'fa-align-center',
+        'right' => 'fa-align-right',
+        'justify' => 'fa-align-justify',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -35,12 +44,12 @@ class align extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */
     public function values(): array {
-        return ['off', 'on'];
+        return ['default', 'left', 'center', 'right', 'justify'];
     }
 
     /**

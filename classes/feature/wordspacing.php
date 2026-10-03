@@ -17,30 +17,30 @@
 namespace local_accessibility\feature;
 
 /**
- * Text size: scales the root font size (spec §3).
+ * Word spacing: extra space between words (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class size extends base {
+class wordspacing extends base {
     /**
      * Stable id, stored in preferences.
      *
      * @return string
      */
     public function id(): string {
-        return 'size';
+        return 'wordspacing';
     }
 
     /**
-     * Allowed values, ascending: 80 to 300 in steps of 10, plus 125 (spec §3, plan D1).
+     * Allowed values: the site default, then hundredths of an em (spec §3).
      *
      * @return string[]
      */
     public function values(): array {
-        return array_map('strval', array_merge(range(80, 120, 10), [125], range(130, 300, 10)));
+        return ['default', '10', '16', '24', '40', '60'];
     }
 
     /**
@@ -49,16 +49,16 @@ class size extends base {
      * @return string
      */
     public function icon(): string {
-        return 'fa-text-height';
+        return 'fa-arrows-left-right';
     }
 
     /**
-     * Default value: 100%, which is not the first value (plan D1).
+     * Shown on the Spacing tile with the other two spacing features (spec §3).
      *
      * @return string
      */
-    public function default(): string {
-        return '100';
+    public function tile(): string {
+        return 'spacing';
     }
 
     /**
@@ -71,31 +71,31 @@ class size extends base {
     }
 
     /**
-     * Options preview the text at their size.
+     * Options preview sample text with the spacing applied.
      *
      * @return string|null
      */
     public function preview(): ?string {
-        return 'size';
+        return 'spacing';
     }
 
     /**
-     * Label of one value: a percentage.
+     * Label of one value: "Site default" or the value as a decimal in em.
      *
      * @param string $value
      * @return string
      */
     public function value_label(string $value): string {
-        return get_string('percent', 'local_accessibility', $value);
+        return $value === 'default' ? parent::value_label($value) : format_float((int) $value / 100, 2);
     }
 
     /**
-     * The root font size as a percentage.
+     * The word spacing custom property.
      *
      * @param string $value
      * @return array<string, string>
      */
     public function css_properties(string $value): array {
-        return $this->is_numeric_choice($value) ? ['--a11y-size' => (string) (int) $value] : [];
+        return $this->is_numeric_choice($value) ? ['--a11y-ws' => self::hundredths((int) $value) . 'em'] : [];
     }
 }

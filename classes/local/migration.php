@@ -161,16 +161,18 @@ final class migration {
      */
     public static function rename_widget_rows(): void {
         global $DB;
-        $rename = ['fontsize' => 'size', 'fontface' => 'font', 'lineheight' => 'spacing', 'letterspacing' => 'spacing',
-            'fontkerning' => 'spacing', 'textalignment' => 'align', 'textcolour' => 'colour',
-            'backgroundcolour' => 'colour', 'paragraphwidth' => 'narrow', 'linkhighlight' => 'links',
+        $rename = ['fontsize' => 'size', 'fontface' => 'font', 'lineheight' => 'lineheight',
+            'letterspacing' => 'letterspacing', 'fontkerning' => 'letterspacing', 'textalignment' => 'align',
+            'textcolour' => 'colour', 'backgroundcolour' => 'colour', 'paragraphwidth' => 'narrow', 'linkhighlight' => 'links',
             'imagevisibility' => 'images'];
         foreach ($rename as $old => $new) {
             if (!$DB->record_exists('local_accessibility_widgets', ['name' => $new])) {
                 $DB->set_field('local_accessibility_widgets', 'name', $new, ['name' => $old]);
             }
         }
-        $DB->delete_records_list('local_accessibility_widgets', 'name', self::OLD_WIDGETS);
+        // Old widget names that are also feature ids (lineheight, letterspacing) are feature rows now: keep them.
+        $gone = array_diff(self::OLD_WIDGETS, array_keys(\local_accessibility\feature\registry::all()));
+        $DB->delete_records_list('local_accessibility_widgets', 'name', $gone);
         \local_accessibility\preferences::sync_features_table();
         \cache::make('local_accessibility', 'enabled')->purge();
     }

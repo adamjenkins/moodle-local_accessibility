@@ -19,6 +19,7 @@ namespace local_accessibility;
 use local_accessibility\colour\contrast;
 use local_accessibility\colour\scheme;
 use local_accessibility\feature\registry;
+use local_accessibility\local\legacy;
 use moodle_exception;
 use invalid_parameter_exception;
 
@@ -98,13 +99,14 @@ final class preferences {
     }
 
     /**
-     * Whether the admin locked a feature.
+     * Whether the admin locked a feature. Features that share a tile share its lock (spacing).
      *
      * @param string $id
      * @return bool
      */
     public static function is_locked(string $id): bool {
-        return (bool) get_config('local_accessibility', 'lock_' . $id);
+        $f = registry::get($id);
+        return $f !== null && (bool) get_config('local_accessibility', $f->lock_name());
     }
 
     /**
@@ -120,7 +122,7 @@ final class preferences {
     }
 
     /**
-     * The guest cookie, decoded, or an empty array.
+     * The guest cookie, decoded and with 3.0 development values mapped (spec §6), or an empty array.
      *
      * @return array
      */
@@ -130,7 +132,7 @@ final class preferences {
             return [];
         }
         $d = json_decode($raw, true);
-        return is_array($d) ? $d : [];
+        return is_array($d) ? legacy::map_values($d) : [];
     }
 
     /**
@@ -251,14 +253,25 @@ final class preferences {
     }
 
     /**
-     * Attributes for the html tag (spec §6.5, §7.1).
+     * Attributes for the html tag (spec §6.5, §7.1). The colour scheme's properties and the features' CSS custom
+     * properties share one style attribute: the scheme's first, then the features' in registry order.
      *
      * @return array<string, string>
      */
     public static function html_attributes(): array {
         $attrs = [];
-        foreach (self::all() as $id => $value) {
-            $attrs += registry::get($id)->html_attributes($value);
+        $properties = [];
+        $values = self::all();
+        foreach (registry::all() as $id => $f) {
+            if (!isset($values[$id])) {
+                continue;
+            }
+            $value = $values[$id];
+            $attrs += $f->html_attributes($value);
+            // Each feature validates its value again and formats only integers or constants (spec §7).
+            foreach ($f->css_properties($value) as $name => $v) {
+                $properties[] = $name . ': ' . $v;
+            }
         }
         $colour = $attrs['data-a11y-colour'] ?? null;
         if ($colour !== null) {
@@ -278,11 +291,14 @@ final class preferences {
                     // it in the browser: name the scheme's own mode so that script cannot flip data-bs-theme.
                     $attrs['data-colourmode'] = $s->mode;
                 }
-                $attrs['style'] = $s->css_properties();
+                array_unshift($properties, rtrim($s->css_properties(), ';'));
                 if ($s->exact && ($s->worst_text() < contrast::AAA || $s->worst_link() < contrast::AAA)) {
                     $attrs['data-a11y-lowcontrast'] = '1';
                 }
             }
+        }
+        if ($properties) {
+            $attrs['style'] = implode('; ', $properties);
         }
         return $attrs;
     }

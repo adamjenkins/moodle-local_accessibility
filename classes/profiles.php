@@ -29,9 +29,10 @@ final class profiles {
     /** @var array Shipped profiles (spec §7.3); each name is a lang string identifier. */
     public const DEFAULTS = [
         'dyslexia' => ['name' => 'profile_dyslexia',
-            'values' => ['font' => 'dyslexic', 'spacing' => 'extra', 'colour' => 'cream', 'guide' => 'ruler']],
+            'values' => ['font' => 'dyslexic', 'lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24',
+                'colour' => 'cream', 'guide' => 'ruler']],
         'lowvision' => ['name' => 'profile_lowvision',
-            'values' => ['size' => '175', 'colour' => 'highcontrast', 'links' => 'on', 'focus' => 'ring']],
+            'values' => ['size' => '180', 'colour' => 'highcontrast', 'links' => 'outline', 'focus' => 'ring']],
         'focus' => ['name' => 'profile_focus', 'values' => ['motion' => 'on', 'narrow' => '70']],
         'seizuresafe' => ['name' => 'profile_seizuresafe', 'values' => ['motion' => 'on', 'saturation' => 'low']],
     ];

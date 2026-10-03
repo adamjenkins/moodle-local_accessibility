@@ -34,9 +34,16 @@ final class profiles_test extends \advanced_testcase {
         $p = profiles::all();
         $this->assertSame(['dyslexia', 'lowvision', 'focus', 'seizuresafe'], array_keys($p));
         $this->assertSame(
-            ['font' => 'dyslexic', 'spacing' => 'extra', 'colour' => 'cream', 'guide' => 'ruler'],
+            ['font' => 'dyslexic', 'lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24',
+                'colour' => 'cream', 'guide' => 'ruler'],
             $p['dyslexia']['values']
         );
+        $lowvision = ['size' => '180', 'colour' => 'highcontrast', 'links' => 'outline', 'focus' => 'ring'];
+        $this->assertSame($lowvision, $p['lowvision']['values']);
+        // Every shipped value survives validation.
+        foreach (profiles::DEFAULTS as $id => $d) {
+            $this->assertSame($d['values'], $p[$id]['values'], $id);
+        }
         $this->assertSame(get_string('profile_dyslexia', 'local_accessibility'), $p['dyslexia']['name']);
     }
 
@@ -47,10 +54,10 @@ final class profiles_test extends \advanced_testcase {
         $this->resetAfterTest();
         set_config(
             'profiles',
-            json_encode(['x' => ['name' => 'X', 'values' => ['size' => '999', 'links' => 'on', 'nosuch' => 'on']]]),
+            json_encode(['x' => ['name' => 'X', 'values' => ['size' => '999', 'links' => 'outline', 'nosuch' => 'on']]]),
             'local_accessibility'
         );
-        $this->assertSame(['links' => 'on'], profiles::all()['x']['values']);
+        $this->assertSame(['links' => 'outline'], profiles::all()['x']['values']);
     }
 
     /**
@@ -71,7 +78,7 @@ final class profiles_test extends \advanced_testcase {
         $this->resetAfterTest();
         $s = new admin\setting_profiles();
         $this->assertTrue($s->validate(''));
-        $this->assertTrue($s->validate('{"a":{"name":"A","values":{"links":"on"}}}'));
+        $this->assertTrue($s->validate('{"a":{"name":"A","values":{"links":"outline"}}}'));
         $this->assertNotTrue($s->validate('[]x'));
         $this->assertNotTrue($s->validate('{"a":"b"}'));
         $this->assertNotTrue($s->validate('{"a":{"name":"A"}}'));
@@ -89,8 +96,14 @@ final class profiles_test extends \advanced_testcase {
         $DB->set_field('local_accessibility_widgets', 'enabled', 0, ['name' => 'colour']);
         \cache::make('local_accessibility', 'enabled')->purge();
         $t = array_column(profiles::for_template(), null, 'id');
-        $this->assertSame(['spacing' => 'extra', 'guide' => 'ruler'], json_decode($t['dyslexia']['values'], true));
-        $this->assertSame(['size' => '175', 'links' => 'on', 'focus' => 'ring'], json_decode($t['lowvision']['values'], true));
+        $dyslexia = ['lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24', 'guide' => 'ruler'];
+        $this->assertSame($dyslexia, json_decode($t['dyslexia']['values'], true));
+        $lowvision = ['size' => '180', 'links' => 'outline', 'focus' => 'ring'];
+        $this->assertSame($lowvision, json_decode($t['lowvision']['values'], true));
+        // One lock covers the three spacing features.
+        set_config('lock_spacing', 1, 'local_accessibility');
+        $t = array_column(profiles::for_template(), null, 'id');
+        $this->assertSame(['guide' => 'ruler'], json_decode($t['dyslexia']['values'], true));
         set_config(
             'profiles',
             json_encode(['only' => ['name' => 'Only', 'values' => ['font' => 'dyslexic']]]),

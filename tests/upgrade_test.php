@@ -145,7 +145,8 @@ final class upgrade_test extends \advanced_testcase {
 
         // Widget rows: renamed with their enabled flag and order, the rest appended, no old names left.
         $rows = $DB->get_records('local_accessibility_widgets', null, 'sequence', 'name, enabled, sequence');
-        $this->assertSame(['colour', 'size', 'spacing'], array_slice(array_keys($rows), 0, 3));
+        $this->assertSame(['colour', 'size', 'letterspacing', 'lineheight'], array_slice(array_keys($rows), 0, 4));
+        $this->assertArrayNotHasKey('spacing', $rows);
         $this->assertEquals(0, $rows['size']->enabled);
         $this->assertEqualsCanonicalizing(array_keys(feature\registry::all()), array_keys($rows));
         $this->assertFalse($cache->get('ids'));

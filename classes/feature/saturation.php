@@ -17,13 +17,21 @@
 namespace local_accessibility\feature;
 
 /**
- * Colour saturation (spec §5).
+ * Colour saturation (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class saturation extends base {
+    /** @var array<string, string> Option icons. */
+    protected const ICONS = [
+        'off' => 'fa-droplet',
+        'low' => 'fa-droplet-slash',
+        'grey' => 'fa-circle-half-stroke',
+        'high' => 'fa-palette',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -34,7 +42,7 @@ class saturation extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */

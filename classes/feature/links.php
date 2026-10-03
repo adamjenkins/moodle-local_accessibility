@@ -17,7 +17,7 @@
 namespace local_accessibility\feature;
 
 /**
- * Highlighted links (spec §5).
+ * Link highlighting: underline, outline or background highlight (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -25,6 +25,14 @@ namespace local_accessibility\feature;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class links extends base {
+    /** @var array<string, string> Option icons. */
+    protected const ICONS = [
+        'off' => 'fa-ban',
+        'underline' => 'fa-underline',
+        'outline' => 'fa-vector-square',
+        'highlight' => 'fa-highlighter',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -35,12 +43,12 @@ class links extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */
     public function values(): array {
-        return ['off', 'on'];
+        return ['off', 'underline', 'outline', 'highlight'];
     }
 
     /**

@@ -17,13 +17,19 @@
 namespace local_accessibility\feature;
 
 /**
- * Read aloud bar (spec §5).
+ * Read aloud bar (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class read extends base {
+    /** @var array<string, string> Option icons. */
+    protected const ICONS = [
+        'off' => 'fa-volume-xmark',
+        'on' => 'fa-volume-high',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -34,7 +40,7 @@ class read extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */

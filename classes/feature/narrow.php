@@ -17,7 +17,7 @@
 namespace local_accessibility\feature;
 
 /**
- * Narrow text column: limits paragraph width (spec §5).
+ * Line width: limits the length of content lines (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -35,12 +35,12 @@ class narrow extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values: full width, then line widths in characters (spec §3).
      *
      * @return string[]
      */
     public function values(): array {
-        return ['off', '70', '60'];
+        return ['off', '90', '80', '70', '60', '50', '40'];
     }
 
     /**
@@ -50,5 +50,43 @@ class narrow extends base {
      */
     public function icon(): string {
         return 'fa-arrows-left-right';
+    }
+
+    /**
+     * Options are chosen in a detail view (spec §3 "B").
+     *
+     * @return string
+     */
+    public function kind(): string {
+        return 'detail';
+    }
+
+    /**
+     * Options preview the line width as a bar.
+     *
+     * @return string|null
+     */
+    public function preview(): ?string {
+        return 'bar';
+    }
+
+    /**
+     * Label of one value: "Full width" or a number of characters.
+     *
+     * @param string $value
+     * @return string
+     */
+    public function value_label(string $value): string {
+        return $value === 'off' ? parent::value_label($value) : get_string('characters', 'local_accessibility', $value);
+    }
+
+    /**
+     * The content measure in characters.
+     *
+     * @param string $value
+     * @return array<string, string>
+     */
+    public function css_properties(string $value): array {
+        return $this->is_numeric_choice($value) ? ['--a11y-measure' => (int) $value . 'ch'] : [];
     }
 }

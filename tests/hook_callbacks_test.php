@@ -44,11 +44,12 @@ final class hook_callbacks_test extends \advanced_testcase {
         $this->resetAfterTest();
         preferences::sync_features_table();
         $this->setUser($this->getDataGenerator()->create_user());
-        preferences::set('size', '175');
+        preferences::set('size', '180');
         $PAGE->set_url('/');
         $hook = new \core\hook\output\before_html_attributes($PAGE->get_renderer('core'), ['lang' => 'en']);
         hook_callbacks::html_attributes($hook);
-        $this->assertSame('175', $hook->get_attributes()['data-a11y-size']);
+        $this->assertSame('180', $hook->get_attributes()['data-a11y-size']);
+        $this->assertStringContainsString('--a11y-size: 180', $hook->get_attributes()['style']);
         $this->assertSame('en', $hook->get_attributes()['lang']);
     }
 
@@ -219,7 +220,7 @@ final class hook_callbacks_test extends \advanced_testcase {
         $this->resetAfterTest();
         preferences::sync_features_table();
         $this->setUser($this->getDataGenerator()->create_user());
-        preferences::set('size', '175');
+        preferences::set('size', '180');
         unset_config('version', 'local_accessibility');
         $cache = \cache::make('local_accessibility', 'enabled');
         $cache->purge();

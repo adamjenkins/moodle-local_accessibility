@@ -17,13 +17,20 @@
 namespace local_accessibility\feature;
 
 /**
- * Focus indicator (spec §5).
+ * Focus ring: standard, strong or extra thick (spec §3).
  *
  * @package    local_accessibility
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class focus extends base {
+    /** @var array<string, string> Option icons. */
+    protected const ICONS = [
+        'off' => 'fa-ban',
+        'ring' => 'fa-circle-dot',
+        'thick' => 'fa-bullseye',
+    ];
+
     /**
      * Stable id, stored in preferences.
      *
@@ -34,12 +41,12 @@ class focus extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */
     public function values(): array {
-        return ['off', 'ring', 'cursor'];
+        return ['off', 'ring', 'thick'];
     }
 
     /**

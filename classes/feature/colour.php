@@ -19,7 +19,7 @@ namespace local_accessibility\feature;
 use local_accessibility\colour\scheme;
 
 /**
- * Colour scheme (spec §6). Values are preset ids, 'custom', or site preset ids.
+ * Colour scheme (spec §3). Values are preset ids, 'custom', or site preset ids.
  *
  * @package    local_accessibility
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -37,7 +37,7 @@ class colour extends base {
     }
 
     /**
-     * Allowed values in cycle order; the first is off/default.
+     * Allowed values in display order; the first is off/default.
      *
      * @return string[]
      */
@@ -52,6 +52,24 @@ class colour extends base {
      */
     public function icon(): string {
         return 'fa-palette';
+    }
+
+    /**
+     * Options are chosen in a detail view with named swatches and the custom editor (spec §3 "B").
+     *
+     * @return string
+     */
+    public function kind(): string {
+        return 'detail';
+    }
+
+    /**
+     * Options preview the scheme as a swatch.
+     *
+     * @return string|null
+     */
+    public function preview(): ?string {
+        return 'swatch';
     }
 
     /**
