@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Swatches and the custom colour editor (spec §6).
+ * The colour view's swatches and the custom colour editor (spec §6, choices spec §3 colour).
  *
  * @module     local_accessibility/colour
  * @copyright  2026 Adam Jenkins <adam@wisecat.net>
@@ -22,6 +22,7 @@
  */
 import {custom, normalise, ramp, worst, AAA} from 'local_accessibility/contrast';
 import {save, saveCustom, getConfig} from 'local_accessibility/store';
+import {check, isDisabled, tileOf} from 'local_accessibility/choices';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 
@@ -53,21 +54,47 @@ const applyScheme = (panel, s) => {
     panel.querySelectorAll('.la-warn').forEach((w) => {
         w.hidden = !isLow(s);
     });
-    panel.querySelectorAll('.la-swatch[data-scheme]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    // The saved Custom swatch is chosen when the page has one; otherwise no swatch is.
+    check(panel, 'colour', 'custom');
     document.dispatchEvent(new CustomEvent('local_accessibility:changed', {detail: {feature: 'colour', value: 'custom'}}));
 };
 
 /**
- * Initialise the colour tile and editor.
+ * Show a colour scheme's name as the colour tile's value.
+ *
+ * @param {HTMLElement} panel
+ * @param {string} name
+ */
+const showOnTile = (panel, name) => {
+    const tile = tileOf(panel, 'colour');
+    if (!tile) {
+        return;
+    }
+    tile.querySelector('.la-value').textContent = name;
+    tile.setAttribute('aria-label', tile.querySelector('.la-label').textContent.trim() + ', ' + name);
+    tile.setAttribute('data-active', 'true');
+};
+
+/**
+ * Initialise the colour view's swatches and editor.
  *
  * @param {HTMLElement} panel
  */
 export const init = (panel) => {
-    const editor = panel.querySelector('.la-editor');
-    const grid = panel.querySelector('.la-grid');
-    if (!editor || !grid) {
+    const view = panel.querySelector('.la-view[data-view="colour"]');
+    const editor = view?.querySelector('.la-editor');
+    if (!editor) {
         return;
     }
+    // What the editor replaces inside the view: the swatches and the Custom colours button.
+    const chooser = [view.querySelector('.la-swatches'), view.querySelector('[data-action="customcolours"]')?.closest('.la-row')]
+        .filter((el) => el);
+    const showEditor = (show) => {
+        editor.hidden = !show;
+        chooser.forEach((el) => {
+            el.hidden = show;
+        });
+    };
     const field = (n) => editor.querySelector(`[name="${n}"]`);
     const ratioEl = editor.querySelector('.la-ratio');
     const protest = editor.querySelector('.la-protest');
@@ -172,15 +199,16 @@ export const init = (panel) => {
     };
 
     /**
-     * Back to the grid, focus on the pen button. Unapplied edits are discarded.
+     * Back to the swatches. Unapplied edits are discarded.
+     *
+     * @param {boolean} focusPen whether focus goes to the Custom colours button
      */
-    const closeEditor = () => {
+    const closeEditor = (focusPen = true) => {
         clearTimeout(announceTimer);
-        editor.hidden = true;
-        grid.hidden = false;
+        showEditor(false);
         restoreInputs();
-        const pen = panel.querySelector('[data-action="customcolours"]');
-        if (pen) {
+        const pen = view.querySelector('[data-action="customcolours"]');
+        if (pen && focusPen) {
             pen.focus();
         }
     };
@@ -224,10 +252,7 @@ export const init = (panel) => {
         applyScheme(panel, final);
         // Matches what the server renders into the inputs on the next page load.
         applied = {bg: final.ramp.page, text: final.text, link: final.link, exact: final.exact};
-        const label = panel.querySelector('.la-colourlabel');
-        if (label) {
-            label.textContent = await getString('feature_colour_custom', 'local_accessibility');
-        }
+        showOnTile(panel, await getString('feature_colour_custom', 'local_accessibility'));
         closeEditor();
     };
 
@@ -241,7 +266,7 @@ export const init = (panel) => {
         pending.then(() => announce(0)).catch(Notification.exception);
     });
 
-    // Esc anywhere in the dialog (head and profiles included) closes the editor first, not the dialog.
+    // Esc anywhere in the dialog (the head included) closes the editor first, not the view or the dialog.
     // Capture phase on the panel runs before panel.js's bubbling Esc handler, and stopPropagation keeps it from it.
     panel.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !editor.hidden) {
@@ -251,36 +276,33 @@ export const init = (panel) => {
         }
     }, true);
 
-    // Each time the dialog opens it starts on the grid, with the applied colours.
-    document.addEventListener('local_accessibility:open', () => {
-        clearTimeout(announceTimer);
-        editor.hidden = true;
-        grid.hidden = false;
-        restoreInputs();
-    });
+    // Each time the dialog opens it starts on the grid, so the view shows its swatches when next opened.
+    document.addEventListener('local_accessibility:open', () => closeEditor(false));
 
     panel.addEventListener('click', async(e) => {
         try {
+            if (e.target.closest('[data-action="back"]') && view.contains(e.target)) {
+                // Going back to the grid leaves the editor too (local_accessibility/panel shows the grid).
+                closeEditor(false);
+                return;
+            }
             const swatch = e.target.closest('.la-swatch[data-scheme]');
             if (swatch) {
-                if (swatch.getAttribute('aria-disabled') === 'true') {
+                if (isDisabled(swatch)) {
                     return;
                 }
-                const pressed = [...panel.querySelectorAll('.la-swatch[data-scheme]')].map((b) => {
-                    const was = b.getAttribute('aria-pressed');
-                    b.setAttribute('aria-pressed', b === swatch ? 'true' : 'false');
-                    return [b, was];
-                });
+                const was = view.querySelector('.la-swatch[aria-checked="true"]')?.dataset.scheme || '';
+                check(panel, 'colour', swatch.dataset.scheme);
                 try {
                     await save('colour', swatch.dataset.scheme);
                 } catch (error) {
-                    // Put the pressed swatch back and say so in the dialog's live region (an error modal would
+                    // Put the chosen swatch back and say so in the dialog's live region (an error modal would
                     // open behind the dialog).
-                    pressed.forEach(([b, was]) => b.setAttribute('aria-pressed', was));
+                    check(panel, 'colour', was);
                     const live = panel.querySelector('.la-live');
                     if (live) {
                         live.textContent = await getString('savefailed', 'local_accessibility',
-                            swatch.closest('.la-colour')?.getAttribute('aria-label') || '');
+                            view.querySelector('.la-viewtitle')?.textContent.trim() || '');
                     }
                     return;
                 }
@@ -300,8 +322,7 @@ export const init = (panel) => {
                     return;
                 }
                 restoreInputs();
-                grid.hidden = true;
-                editor.hidden = false;
+                showEditor(true);
                 field('bg').focus();
                 await preview();
                 announce(0);

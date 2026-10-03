@@ -485,6 +485,7 @@ html[data-a11y-colour] .local-accessibility-panel {
 }
 .local-accessibility-panel .la-drawer[hidden],
 .local-accessibility-panel .la-view[hidden],
+.local-accessibility-panel .la-view [hidden],
 .local-accessibility-panel .la-grid[hidden],
 .local-accessibility-panel .la-profiles[hidden] {
     display: none;

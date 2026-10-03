@@ -113,14 +113,16 @@ const source = () => {
 /**
  * Initialise.
  *
- * @param {HTMLElement} panel the dialog. The Read tile is looked up inside it only: admin/features.php also has a
- *     table row with data-feature="read", earlier in the page.
+ * @param {HTMLElement} panel the dialog. The Read tile and drawer are looked up inside it only: admin/features.php
+ *     also has a table row with data-feature="read", earlier in the page.
  */
 export const init = (panel) => {
     const bar = document.querySelector('.la-readbar');
-    const tile = panel.querySelector('.la-tile[data-feature="read"]');
+    const tile = panel.querySelector('.la-tile[data-tile="read"]');
+    const drawer = panel.querySelector('#la-drawer-read');
     if (!('speechSynthesis' in window)) {
         tile?.remove();
+        drawer?.remove();
         return;
     }
     const message = bar?.querySelector('[data-read="message"]');
@@ -146,6 +148,10 @@ export const init = (panel) => {
         novoice = !voice();
         if (tile) {
             tile.hidden = novoice;
+        }
+        if (drawer && novoice && !drawer.hidden) {
+            drawer.hidden = true;
+            tile?.setAttribute('aria-expanded', 'false');
         }
         show();
     };

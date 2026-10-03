@@ -14,7 +14,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Accessibility dialog: open/close, focus trap, tile cycling (spec §4).
+ * Accessibility dialog: open/close, focus trap, choosing values in drawers and detail views (choices spec §2).
+ *
+ * The dialog's data-state (classes/output/panel.php) is the single source of every enabled feature's value, built-in
+ * default, tile, kind, lock and options, with the CSS custom properties each option sets.
  *
  * @module     local_accessibility/panel
  * @copyright  2023 Ponlawat Weerapanpisit <ponlawat_w@outlook.co.th>
@@ -24,6 +27,8 @@
 import {configure, save, reset} from 'local_accessibility/store';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
+import {check, closeDrawer, hideView, initKeys, isDisabled, loadFaces, replaceDrawer, showView, tileOf,
+    toggleDrawer} from 'local_accessibility/choices';
 import {init as initColour} from 'local_accessibility/colour';
 import {init as initGuide} from 'local_accessibility/guide';
 import {init as initImages} from 'local_accessibility/images';
@@ -36,26 +41,46 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 const EDITABLE = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
 const CONTROLS = '[aria-controls="local-accessibility-panel"]';
 
+// Spacing summary string per member, as SPACING_PARTS in classes/output/panel.php.
+const SPACING_PARTS = {lineheight: 'spacing_line', letterspacing: 'spacing_letter', wordspacing: 'spacing_word'};
+
 let panel;
 let opener = null;
+// Feature id => {value, default, tile, kind, locked, options: [{value, label, css}]}.
+let state = {};
+// Tile id => the number of its latest value-text update, so a slower earlier one cannot win.
+const tileUpdates = {};
 
 /**
- * Set a feature value on <html> and announce it.
+ * The option of a feature with a value.
  *
  * @param {string} feature
  * @param {string} value
- * @param {string} defaultValue
+ * @returns {Object|undefined} {value, label, css}
  */
-export const apply = (feature, value, defaultValue) => {
-    const attr = 'data-a11y-' + feature;
-    if (value === defaultValue) {
-        document.documentElement.removeAttribute(attr);
-    } else {
-        document.documentElement.setAttribute(attr, value);
-    }
-    document.dispatchEvent(new CustomEvent('local_accessibility:changed', {detail: {feature, value}}));
-};
+const optionOf = (feature, value) => state[feature]?.options.find((o) => o.value === value);
 
+/**
+ * Put a feature value on the page: the data-a11y-* attribute on <html> (absent for the default) and the CSS custom
+ * properties of its option (those of every other option removed), then tell the other modules.
+ *
+ * @param {string} feature
+ * @param {string} value
+ */
+const apply = (feature, value) => {
+    const s = state[feature];
+    const html = document.documentElement;
+    if (value === s.default) {
+        html.removeAttribute('data-a11y-' + feature);
+    } else {
+        html.setAttribute('data-a11y-' + feature, value);
+    }
+    s.options.forEach((o) => Object.keys(o.css || {}).forEach((p) => html.style.removeProperty(p)));
+    Object.entries(optionOf(feature, value)?.css || {}).forEach(([p, v]) => html.style.setProperty(p, v));
+    document.dispatchEvent(new CustomEvent('local_accessibility:changed', {detail: {feature, value}}));
+    // A new text size or spacing reflows the grid.
+    replaceDrawer(panel);
+};
 /**
  * Whether an element is visible (rendered), including position: fixed ones.
  *
@@ -110,7 +135,10 @@ const open = (from) => {
     opener = from || document.activeElement;
     panel.hidden = false;
     document.querySelectorAll(CONTROLS).forEach((b) => b.setAttribute('aria-expanded', 'true'));
-    // First, so colour.js puts the grid back (closing a colour editor left open) before focus is placed.
+    // Each opening starts on the grid: a view or drawer left open is closed, and colour.js closes its editor, before
+    // focus is placed.
+    hideView(panel, false);
+    closeDrawer(panel, false);
     document.dispatchEvent(new CustomEvent('local_accessibility:open'));
     const first = firstOperable(panel.querySelector('.la-grid')) || firstOperable(panel);
     if (first) {
@@ -142,47 +170,177 @@ const announce = (message) => {
 };
 
 /**
- * Show one of a tile's values: its label, pressed state, dots and the <html> attribute.
+ * A feature's name: its tile's, or its group's in a shared view (Line height in the Spacing view).
  *
- * @param {HTMLElement} tile
- * @param {number} index position in the tile's values
+ * @param {string} feature
+ * @returns {string}
  */
-const showValue = (tile, index) => {
-    const values = JSON.parse(tile.dataset.values);
-    const labels = JSON.parse(tile.dataset.labels);
-    tile.dataset.value = values[index];
-    tile.setAttribute('aria-label', tile.dataset.label + ', ' + labels[index]);
-    if (tile.hasAttribute('aria-pressed')) {
-        tile.setAttribute('aria-pressed', index > 0 ? 'true' : 'false');
+const featureLabel = (feature) => {
+    const group = panel.querySelector('#la-group-' + feature);
+    if (group) {
+        return group.textContent.trim();
     }
-    tile.querySelectorAll('.la-dots i').forEach((dot, i) => dot.classList.toggle('la-on', i < index));
-    apply(tile.dataset.feature, values[index], values[0]);
+    return tileOf(panel, state[feature].tile)?.querySelector('.la-label')?.textContent.trim() || feature;
 };
 
 /**
- * Advance a tile to its next value. The change shows at once; it is announced once saved, and put back and
- * announced as not saved when the save fails (offline, a lock set after the page loaded). The live region is used
- * rather than an error modal, which would open behind this dialog.
+ * Show a tile's current value in words, its accessible name and whether it differs from the default. The spacing
+ * tile summarises its non-default members as the server does (classes/output/panel.php spacing_summary()).
  *
- * @param {HTMLElement} tile
+ * @param {string} tileid
  */
-const cycle = async(tile) => {
-    if (tile.getAttribute('aria-disabled') === 'true') {
+const updateTile = async(tileid) => {
+    const tile = tileOf(panel, tileid);
+    if (!tile) {
         return;
     }
-    const values = JSON.parse(tile.dataset.values);
-    const labels = JSON.parse(tile.dataset.labels);
-    const before = Math.max(values.indexOf(tile.dataset.value), 0);
-    const next = (before + 1) % values.length;
-    showValue(tile, next);
+    const mine = (tileUpdates[tileid] || 0) + 1;
+    tileUpdates[tileid] = mine;
+    const members = Object.keys(state).filter((f) => state[f].tile === tileid);
+    const changed = members.filter((f) => state[f].value !== state[f].default);
+    let text;
+    if (tileid === 'spacing') {
+        const parts = await Promise.all(changed.filter((f) => SPACING_PARTS[f]).map((f) =>
+            getString(SPACING_PARTS[f], 'local_accessibility', optionOf(f, state[f].value)?.label || state[f].value)));
+        text = parts.length ? parts.join(' · ') : await getString('sitedefault', 'local_accessibility');
+    } else {
+        text = optionOf(members[0], state[members[0]].value)?.label || state[members[0]].value;
+    }
+    if (mine !== tileUpdates[tileid]) {
+        return;
+    }
+    tile.querySelector('.la-value').textContent = text;
+    tile.setAttribute('aria-label', tile.querySelector('.la-label').textContent.trim() + ', ' + text);
+    if (changed.length) {
+        tile.setAttribute('data-active', 'true');
+    } else {
+        tile.removeAttribute('data-active');
+    }
+};
+
+/**
+ * Show the size view's current value on its slider and value text.
+ *
+ * @param {string} value
+ */
+const showSize = (value) => {
+    const label = optionOf('size', value)?.label || value;
+    const range = panel.querySelector('.la-range[data-feature="size"]');
+    if (range) {
+        range.value = value;
+        range.setAttribute('aria-valuetext', label);
+    }
+    const shown = panel.querySelector('.la-sizevalue');
+    if (shown) {
+        shown.textContent = label;
+    }
+};
+
+/**
+ * Make a value current: the page, the options that offer it, the size controls and the tile.
+ *
+ * @param {string} feature
+ * @param {string} value
+ */
+const setValue = (feature, value) => {
+    state[feature].value = value;
+    apply(feature, value);
+    check(panel, feature, value);
+    if (feature === 'size') {
+        showSize(value);
+    }
+    updateTile(state[feature].tile).catch(Notification.exception);
+};
+
+/**
+ * Choose a value. The change shows at once; it is announced once saved, and put back and announced as not saved when
+ * the save fails (offline, a lock set after the page loaded). The live region is used rather than an error modal,
+ * which would open behind this dialog. A locked feature does nothing.
+ *
+ * @param {string} feature
+ * @param {string} value
+ */
+const choose = async(feature, value) => {
+    const s = state[feature];
+    if (!s || s.locked || !optionOf(feature, value)) {
+        return;
+    }
+    const before = s.value;
+    if (value === before) {
+        // Nothing to save; the slider's own preview may still need putting back.
+        setValue(feature, value);
+        return;
+    }
+    setValue(feature, value);
     try {
-        await save(tile.dataset.feature, values[next]);
+        await save(feature, value);
     } catch (error) {
-        showValue(tile, before);
-        announce(await getString('savefailed', 'local_accessibility', tile.dataset.label));
+        setValue(feature, before);
+        announce(await getString('savefailed', 'local_accessibility', featureLabel(feature)));
         return;
     }
-    announce(await getString('settingchanged', 'local_accessibility', {feature: tile.dataset.label, value: labels[next]}));
+    announce(await getString('settingchanged', 'local_accessibility',
+        {feature: featureLabel(feature), value: optionOf(feature, value).label}));
+};
+
+/**
+ * The size values in order, and the position of a size among them (the nearest one when it is not offered).
+ *
+ * @param {string|number} value
+ * @returns {{values: string[], index: number}}
+ */
+const sizeIndex = (value) => {
+    const values = state.size.options.map((o) => o.value);
+    let index = 0;
+    values.forEach((v, i) => {
+        if (Math.abs(Number(v) - Number(value)) < Math.abs(Number(values[index]) - Number(value))) {
+            index = i;
+        }
+    });
+    return {values, index};
+};
+
+/**
+ * The size control: Smaller and Larger walk every size in order (so 120, 125, 130); the slider previews while it moves
+ * and saves when it is let go, snapped to the nearest offered size.
+ */
+const initSize = () => {
+    const view = panel.querySelector('.la-view[data-view="size"]');
+    if (!view || !state.size) {
+        return;
+    }
+    view.addEventListener('click', (e) => {
+        const button = e.target.closest('[data-action="smaller"], [data-action="larger"]');
+        if (!button || state.size.locked) {
+            return;
+        }
+        const {values, index} = sizeIndex(state.size.value);
+        const next = values[Math.min(Math.max(index + (button.dataset.action === 'larger' ? 1 : -1), 0), values.length - 1)];
+        choose('size', next).catch(Notification.exception);
+    });
+    const range = view.querySelector('.la-range');
+    if (!range) {
+        return;
+    }
+    range.addEventListener('input', () => {
+        if (state.size.locked) {
+            range.value = state.size.value;
+            return;
+        }
+        const {values, index} = sizeIndex(range.value);
+        apply('size', values[index]);
+        const label = optionOf('size', values[index]).label;
+        range.setAttribute('aria-valuetext', label);
+        view.querySelector('.la-sizevalue').textContent = label;
+    });
+    range.addEventListener('change', () => {
+        if (state.size.locked) {
+            showSize(state.size.value);
+            return;
+        }
+        const {values, index} = sizeIndex(range.value);
+        choose('size', values[index]).catch(Notification.exception);
+    });
 };
 
 /**
@@ -207,25 +365,30 @@ const setForced = (els, on) => {
 };
 
 /**
- * Mark the colour, saturation and links controls as controlled by the device while forced colours are active,
- * and show "Controlled by your device" as the colour tile's label.
+ * Mark the colour, saturation and links controls as controlled by the device while forced colours are active, and
+ * show "Controlled by your device" as the colour tile's value.
  */
 const initForcedColours = async() => {
     const forced = window.matchMedia('(forced-colors: active)');
-    const label = panel.querySelector('.la-colourlabel');
+    const tile = tileOf(panel, 'colour');
+    const value = tile?.querySelector('.la-value');
     let original = '';
     let showing = false;
     const message = await getString('controlledbydevice', 'local_accessibility');
     const mark = () => {
-        setForced(panel.querySelectorAll('.la-colour .la-swatch, [data-feature="saturation"], [data-feature="links"]'),
-            forced.matches);
-        if (label && forced.matches && !showing) {
-            original = label.textContent;
-            label.textContent = message;
+        setForced(panel.querySelectorAll('.la-swatch, [data-action="customcolours"], .la-tile[data-tile="colour"], '
+            + '.la-tile[data-tile="saturation"], .la-tile[data-tile="links"], .la-option[data-feature="saturation"], '
+            + '.la-option[data-feature="links"]'), forced.matches);
+        if (value && forced.matches && !showing) {
+            original = value.textContent;
+            value.textContent = message;
             showing = true;
-        } else if (label && !forced.matches && showing) {
-            label.textContent = original;
+        } else if (value && !forced.matches && showing) {
+            value.textContent = original;
             showing = false;
+        }
+        if (value) {
+            tile.setAttribute('aria-label', tile.querySelector('.la-label').textContent.trim() + ', ' + value.textContent);
         }
     };
     mark();
@@ -233,46 +396,12 @@ const initForcedColours = async() => {
 };
 
 /**
- * Whether the server left a control operable: it did not render it as locked. Forced-colours disabling, set by this
- * script, is not a lock.
- *
- * @param {Element} el
- * @returns {boolean}
- */
-const unlocked = (el) => el.getAttribute('aria-disabled') !== 'true' || el.hasAttribute('data-la-forced');
-
-/**
- * The value a tile shows, and its first (off/default) value. The colour tile is a group of swatches with no cycle:
- * its value is the pressed swatch's scheme, or 'custom' when none is pressed.
- *
- * @param {HTMLElement} tile
- * @returns {{value: string, first: string}}
- */
-const tileState = (tile) => {
-    if (tile.classList.contains('la-colour')) {
-        const pressed = tile.querySelector('.la-swatch[data-scheme][aria-pressed="true"]');
-        return {value: pressed ? pressed.dataset.scheme : 'custom', first: 'default'};
-    }
-    return {value: tile.dataset.value, first: JSON.parse(tile.dataset.values)[0]};
-};
-
-/**
- * Whether the panel shows a feature as one the user may change: it has a tile (so it is enabled) and the server
- * did not render it as locked. The colour tile is changeable while any of its scheme swatches is.
+ * Whether the user may change a feature from the panel: it is enabled (it has state) and not locked.
  *
  * @param {string} feature
  * @returns {boolean}
  */
-const isChangeable = (feature) => {
-    const tile = panel.querySelector('.la-tile[data-feature="' + feature + '"]');
-    if (!tile) {
-        return false;
-    }
-    if (tile.classList.contains('la-colour')) {
-        return [...tile.querySelectorAll('.la-swatch[data-scheme]')].some(unlocked);
-    }
-    return unlocked(tile);
-};
+const isChangeable = (feature) => !!state[feature] && !state[feature].locked;
 
 /**
  * Apply a profile: confirm if the user has changed anything they could change, save every value, then reload.
@@ -280,10 +409,7 @@ const isChangeable = (feature) => {
  * @param {HTMLElement} profile the profile button
  */
 const applyProfile = async(profile) => {
-    const changed = [...panel.querySelectorAll('.la-tile[data-feature]')].some((t) => {
-        const state = tileState(t);
-        return isChangeable(t.dataset.feature) && state.value !== state.first;
-    });
+    const changed = Object.keys(state).some((f) => isChangeable(f) && state[f].value !== state[f].default);
     // A native confirm is deliberate: a Moodle modal would sit outside this dialog's focus trap.
     // eslint-disable-next-line no-alert
     if (changed && !window.confirm(await getString('profileoverwrite', 'local_accessibility'))) {
@@ -406,6 +532,11 @@ export const init = (config) => {
     if (!panel || window !== window.top) {
         return;
     }
+    try {
+        state = JSON.parse(panel.dataset.state || '{}');
+    } catch (e) {
+        state = {};
+    }
     document.addEventListener('click', (e) => {
         const launcher = e.target.closest('.local-accessibility-launcher, a[href$="#local-accessibility-panel"]');
         if (launcher) {
@@ -428,13 +559,30 @@ export const init = (config) => {
                 await applyProfile(profile);
                 return;
             }
-            // The colour tile is a group of swatches (colour.js), not a cycling tile.
-            const tile = e.target.closest('.la-tile[data-feature]:not(.la-colour)');
+            // A locked tile still opens its drawer or view, which show the options and their lock.
+            const tile = e.target.closest('.la-tile[data-tile]');
             if (tile) {
-                await cycle(tile);
+                if (tile.dataset.kind === 'drawer') {
+                    toggleDrawer(panel, tile);
+                } else {
+                    const view = showView(panel, tile);
+                    if (view && tile.dataset.tile === 'font') {
+                        loadFaces(view);
+                    }
+                }
                 return;
             }
-            if (e.target.closest('[data-action="close"]')) {
+            // Colour swatches are local_accessibility/colour's: choosing a scheme reloads the page.
+            const option = e.target.closest('.la-option[data-feature]:not(.la-swatch)');
+            if (option) {
+                if (!isDisabled(option)) {
+                    await choose(option.dataset.feature, option.dataset.value);
+                }
+                return;
+            }
+            if (e.target.closest('[data-action="back"]')) {
+                hideView(panel, true);
+            } else if (e.target.closest('[data-action="close"]')) {
                 close();
             } else if (e.target.closest('[data-action="reset"]')) {
                 await reset();
@@ -444,10 +592,14 @@ export const init = (config) => {
             Notification.exception(error);
         }
     });
+    initKeys(panel);
     panel.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            // One step back at a time: a view to the grid, an open drawer to its tile, then the dialog closes.
             e.preventDefault();
-            close();
+            if (!hideView(panel, true) && !closeDrawer(panel, true)) {
+                close();
+            }
             return;
         }
         if (e.key !== 'Tab') {
@@ -486,6 +638,8 @@ export const init = (config) => {
             launcher.classList.toggle('la-launcher-shifted', overlaps && !panel.contains(e.target) && e.target !== launcher);
         });
     }
+    window.addEventListener('resize', () => replaceDrawer(panel));
+    initSize();
     initColour(panel);
     initForcedColours().catch(Notification.exception);
     initGuide();
