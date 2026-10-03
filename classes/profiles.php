@@ -29,7 +29,7 @@ final class profiles {
     /** @var array Shipped profiles (spec §7.3); each name is a lang string identifier. */
     public const DEFAULTS = [
         'dyslexia' => ['name' => 'profile_dyslexia',
-            'values' => ['font' => 'dyslexic', 'lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24',
+            'values' => ['font' => 'dyslexic', 'lineheight' => 'default', 'letterspacing' => 'default', 'wordspacing' => 'default',
                 'colour' => 'cream', 'guide' => 'ruler']],
         'lowvision' => ['name' => 'profile_lowvision',
             'values' => ['size' => '180', 'colour' => 'highcontrast', 'links' => 'outline', 'focus' => 'ring']],

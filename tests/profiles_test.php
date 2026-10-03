@@ -34,7 +34,7 @@ final class profiles_test extends \advanced_testcase {
         $p = profiles::all();
         $this->assertSame(['dyslexia', 'lowvision', 'focus', 'seizuresafe'], array_keys($p));
         $this->assertSame(
-            ['font' => 'dyslexic', 'lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24',
+            ['font' => 'dyslexic', 'lineheight' => 'default', 'letterspacing' => 'default', 'wordspacing' => 'default',
                 'colour' => 'cream', 'guide' => 'ruler'],
             $p['dyslexia']['values']
         );
@@ -114,7 +114,8 @@ final class profiles_test extends \advanced_testcase {
         $DB->set_field('local_accessibility_widgets', 'enabled', 0, ['name' => 'colour']);
         \cache::make('local_accessibility', 'enabled')->purge();
         $t = array_column(profiles::for_template(), null, 'id');
-        $dyslexia = ['lineheight' => '180', 'letterspacing' => '16', 'wordspacing' => '24', 'guide' => 'ruler'];
+        // Dyslexia resets spacing to the site default rather than choosing values for the user.
+        $dyslexia = ['lineheight' => 'default', 'letterspacing' => 'default', 'wordspacing' => 'default', 'guide' => 'ruler'];
         $this->assertSame($dyslexia, json_decode($t['dyslexia']['values'], true));
         $lowvision = ['size' => '180', 'links' => 'outline', 'focus' => 'ring'];
         $this->assertSame($lowvision, json_decode($t['lowvision']['values'], true));
