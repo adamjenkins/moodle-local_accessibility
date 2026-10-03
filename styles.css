@@ -418,8 +418,8 @@ html[data-a11y-colour] .local-accessibility-panel {
 }
 .local-accessibility-panel .la-profiles {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.375rem;
-    overflow-x: auto;
     padding: 0.5rem 0.5rem 0;
 }
 .local-accessibility-panel .la-profile {
