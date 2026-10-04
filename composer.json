@@ -3,7 +3,7 @@
     "description": "A Moodle accessibility toolbar that lets every user adjust how Moodle looks and reads for them: text size, spacing, fonts, colours, motion and more",
     "type": "moodle-local",
     "require": {
-        "moodle/moodle": ">=4.5 <5.4",
+        "moodle/moodle": "^4.5 || ^5.0",
         "moodle/composer-installer": "^1.0"
     },
     "license": "GPL-3.0-or-later"
