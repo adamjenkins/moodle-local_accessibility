@@ -147,12 +147,18 @@ final class styles_test extends \advanced_testcase {
         $rules = self::rules_with($attr);
         $this->assertNotEmpty($rules, $attr);
         $excluded = array_column(self::excluded_provider(), 0);
-        foreach ($rules as [$selector]) {
+        foreach ($rules as [$selector, $body]) {
             foreach ($excluded as $other) {
                 if (str_contains($selector, $other)) {
                     // A combined rule (e.g. scheme plus link highlight) belongs to the excluded feature.
                     continue 2;
                 }
+            }
+            if ($attr === 'data-a11y-lineheight' && str_contains($body, 'margin-block-end')) {
+                // Paragraph spacing follows line height but stays out of the panel: it would only add empty space
+                // under the panel's own sample lines. The line height itself still applies there.
+                $this->assertStringContainsString('.local-accessibility-panel *', $selector, $selector);
+                continue;
             }
             $this->assertStringNotContainsString('.local-accessibility-panel *', $selector, $selector);
             $this->assertStringNotContainsString('.la-readbar *', $selector, $selector);
