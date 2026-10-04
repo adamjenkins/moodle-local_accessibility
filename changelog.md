@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.1] - 2026-10-04
+
+### Added
+- composer.json, so the plugin can be installed with Composer as `adamjenkins/moodle-local_accessibility`
+  (Moodle 4.5 to 5.3).
+
+### Fixed
+- The panel no longer gets paragraph spacing from the line height setting, which left a gap under the spacing
+  options' sample lines.
+
 ## [3.0.0] - 2026-10-03
 
 Rebuilt as a single plugin: the 11 accessibility widgets are built in, and existing users' settings are carried over
