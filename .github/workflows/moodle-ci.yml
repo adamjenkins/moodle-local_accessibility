@@ -11,14 +11,12 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-24.04
-    # moodle.git main rows are experimental: allowed to fail without failing the run.
-    continue-on-error: ${{ matrix.experimental == true }}
 
     services:
       postgres:
-        # Lowest version satisfying every stable branch in the matrix (4.5 needs >= 13,
-        # 5.2 needs >= 16; environment.xml). main/5.3 needs PostgreSQL >= 17, so its
-        # rows override the image via matrix.pgsql-image.
+        # Lowest version satisfying 4.5 and 5.2 (4.5 needs >= 13, 5.2 needs >= 16;
+        # environment.xml). MOODLE_503_STABLE needs PostgreSQL >= 17 (environment.xml
+        # 5.3 block), so its rows override the image via matrix.pgsql-image.
         image: ${{ matrix.database == 'pgsql' && (matrix.pgsql-image || 'postgres:16') || '' }}
         env:
           POSTGRES_USER: 'postgres'
@@ -28,8 +26,9 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
 
       mariadb:
-        # Lowest version satisfying every stable branch (4.5 needs >= 10.6.7, 5.2 needs
-        # >= 10.11). main/5.3 needs MariaDB >= 11.4, set via matrix.mariadb-image.
+        # Lowest version satisfying 4.5 and 5.2 (4.5 needs >= 10.6.7, 5.2 needs
+        # >= 10.11). MOODLE_503_STABLE needs MariaDB >= 11.4 (environment.xml 5.3
+        # block), set via matrix.mariadb-image.
         image: ${{ matrix.database == 'mariadb' && (matrix.mariadb-image || 'mariadb:10.11') || '' }}
         env:
           MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: '1'
@@ -41,18 +40,17 @@ jobs:
 
     strategy:
       fail-fast: false
-      # Moodle 4.5 and 5.2 (blocking) plus moodle.git main = 5.3beta (non-blocking,
-      # experimental). Each branch at its PHP floor and ceiling (4.5: 8.1-8.3,
-      # 5.2 and main: 8.3-8.4; environment.xml and core's push.yml), with the two
-      # database engines alternating so both are exercised.
+      # Moodle 4.5, 5.2 and 5.3, all blocking. Each branch at its PHP floor and
+      # ceiling (4.5: 8.1-8.3, 5.2 and 5.3: 8.3-8.4; environment.xml and core's
+      # push.yml), with the two database engines alternating so both are exercised.
       matrix:
         include:
           - {moodle-branch: MOODLE_405_STABLE, php: '8.1', database: pgsql}
           - {moodle-branch: MOODLE_405_STABLE, php: '8.3', database: mariadb}
           - {moodle-branch: MOODLE_502_STABLE, php: '8.3', database: mariadb}
           - {moodle-branch: MOODLE_502_STABLE, php: '8.4', database: pgsql}
-          - {moodle-branch: main, php: '8.4', database: pgsql, experimental: true, pgsql-image: 'postgres:17', mariadb-image: 'mariadb:11.4'}
-          - {moodle-branch: main, php: '8.3', database: mariadb, experimental: true, pgsql-image: 'postgres:17', mariadb-image: 'mariadb:11.4'}
+          - {moodle-branch: MOODLE_503_STABLE, php: '8.4', database: pgsql, pgsql-image: 'postgres:17', mariadb-image: 'mariadb:11.4'}
+          - {moodle-branch: MOODLE_503_STABLE, php: '8.3', database: mariadb, pgsql-image: 'postgres:17', mariadb-image: 'mariadb:11.4'}
 
     steps:
       - name: Check out repository code
