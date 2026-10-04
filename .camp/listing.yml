@@ -1,0 +1,38 @@
+# camp listing manifest — descriptive content for your plugin's page.
+# Edit freely and commit; camp ingests this file at each tagged release.
+# Schema: https://camp-registry.org/schema/listing.schema.json
+name: local_accessibility
+summary: "Lets every user adjust how Moodle looks and reads for them: text size, spacing, fonts, colours, motion and more."
+description: |
+  Accessibility adds a panel to every Moodle page where each user sets how
+  Moodle looks and reads for them. The settings follow them across the site,
+  and guests keep theirs in a cookie. Every option is shown and chosen
+  directly, with no hidden presets between users and their choices.
+
+  - Text size, line height, letter spacing and word spacing.
+  - Fonts, including Atkinson Hyperlegible, Lexend, OpenDyslexic Alta and
+    Japanese UD fonts, plus fonts uploaded by the administrator.
+  - Colour schemes and custom colours, adjusted to a 7:1 contrast ratio
+    unless the user keeps their exact colours.
+  - Alignment, line width, a reading ruler or mask, read aloud, link
+    highlighting, image dimming, stop motion, saturation, a stronger focus
+    ring and a large cursor.
+  - One-click Dyslexia, Low vision, Focus and Seizure-safe profiles.
+
+  The panel opens from a floating button, the user menu or Alt+A and works
+  entirely by keyboard. Administrators set site defaults, lock settings, add
+  colour schemes, profiles and fonts, and choose which features are offered.
+  Supports Moodle 4.5 to 5.3; upgrading from 2.x keeps users' settings, and
+  the separate accessibility_* widget plugins are no longer needed.
+labels:
+  # Required disclosure labels — pick all that apply (RFC §4.7):
+  #   fully-free | freemium | paid-service | external-account
+  #   donation-supported | commercial-support-available
+  #   requires-core-patch (needs modifications to Moodle core to work)
+  - fully-free
+# screenshots:
+#   - path: .camp/screenshots/overview.png
+#     caption: Main view
+# links:
+#   docs: https://…
+#   issues: https://…
