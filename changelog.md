@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.2] - 2026-10-04
+
+### Added
+- The GPL-3.0 licence text as `LICENSE` in the plugin root (the licence itself is unchanged, GPL-3.0-or-later).
+
+### Changed
+- composer.json uses a caret constraint for `moodle/moodle` (`^4.5 || ^5.0`, was `>=4.5 <5.4`), so new Moodle 5.x
+  releases are not excluded.
+- CI tests `MOODLE_503_STABLE` (blocking) instead of moodle.git `main`, now that Moodle 5.3 is released.
+
 ## [3.0.1] - 2026-10-04
 
 ### Added
