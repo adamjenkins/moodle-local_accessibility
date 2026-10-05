@@ -30,9 +30,23 @@ labels:
   #   donation-supported | commercial-support-available
   #   requires-core-patch (needs modifications to Moodle core to work)
   - fully-free
-# screenshots:
-#   - path: .camp/screenshots/overview.png
-#     caption: Main view
+screenshots:
+  - path: .camp/screenshots/01-panel.png
+    caption: 'The panel: every tile shows its current setting in words. Profiles at the top.'
+  - path: .camp/screenshots/02-drawer-alignment.png
+    caption: Short lists open in a drawer under the tile; every option has an icon and a label.
+  - path: .camp/screenshots/03-fonts.png
+    caption: 'Fonts, each previewed in itself: included fonts, device fonts, Japanese UD fonts and uploaded fonts.'
+  - path: .camp/screenshots/04-spacing.png
+    caption: Line height, letter spacing and word spacing with − and + buttons, a typed value and a live sample.
+  - path: .camp/screenshots/05-dyslexia-profile.png
+    caption: 'The Dyslexia profile: OpenDyslexic Alta, cream colours and the reading ruler.'
+  - path: .camp/screenshots/06-yellow-on-black.png
+    caption: 'Yellow on black at 130% text. The panel follows the user''s own colours and size.'
+  - path: .camp/screenshots/07-custom-colours.png
+    caption: 'Custom colours, adjusted to a 7:1 contrast ratio unless the user keeps their exact colours.'
+  - path: .camp/screenshots/08-admin-settings.png
+    caption: 'Administrator settings: where the panel opens, the shortcut, the fonts offered, and more.'
 # links:
 #   docs: https://…
 #   issues: https://…
