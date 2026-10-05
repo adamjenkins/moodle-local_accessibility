@@ -31,6 +31,8 @@ labels:
   #   requires-core-patch (needs modifications to Moodle core to work)
   - fully-free
 screenshots:
+  - path: .camp/screenshots/00-panel-overview.png
+    caption: 'The Accessibility panel: four profiles at the top and thirteen tiles, each showing its current setting.'
   - path: .camp/screenshots/01-panel.png
     caption: 'The panel: every tile shows its current setting in words. Profiles at the top.'
   - path: .camp/screenshots/02-drawer-alignment.png
