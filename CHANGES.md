@@ -1,8 +1,7 @@
-# 3.0.2
+# 3.0.3
 
-- The full GPL-3.0 licence text is now included as `LICENSE` in the plugin root. The plugin's licence is unchanged
-  (GPL-3.0-or-later).
-- Installing with Composer no longer caps the Moodle version: `composer.json` now requires `moodle/moodle`
-  `^4.5 || ^5.0` (was `>=4.5 <5.4`).
-- Continuous integration now tests against the released Moodle 5.3 (`MOODLE_503_STABLE`) instead of Moodle's
-  development branch.
+- No change to the plugin's code or behaviour.
+- Releases now also publish to the camp plugin registry: the repository carries the camp listing (`.camp/listing.yml`,
+  with screenshots) and its release workflow. These files are not included in the plugin download.
+- Release archives built from the git tag no longer include the development folders `tests/` and `.github/`
+  (`.gitattributes` export-ignore).

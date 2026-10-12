@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.3] - 2026-10-12
+
+### Added
+- camp registry publishing: the listing manifest `.camp/listing.yml` with screenshots, the `camp-release.yml`
+  workflow, and `.gitattributes` export-ignore rules that keep development files out of release archives. The
+  plugin's code and behaviour are unchanged.
+
+### Changed
+- Archives built from the git tag leave out `tests/`, `.github/`, `.camp/` and the git dotfiles.
+
 ## [3.0.2] - 2026-10-04
 
 ### Added
