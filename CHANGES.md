@@ -1,7 +1,7 @@
-# 3.0.3
+# 3.0.4
 
-- No change to the plugin's code or behaviour.
-- Releases now also publish to the camp plugin registry: the repository carries the camp listing (`.camp/listing.yml`,
-  with screenshots) and its release workflow. These files are not included in the plugin download.
-- Release archives built from the git tag no longer include the development folders `tests/` and `.github/`
-  (`.gitattributes` export-ignore).
+- The floating toolbar button now sits below chat and other docked panels (z-index 777, was 1050), so it no longer
+  covers them. The accessibility panel still opens above the button.
+- The floating toolbar button grows and shrinks with the user's text size, together with its icon and its distance
+  from the bottom of the screen. Before, it kept a fixed 44px size and position while the page around it grew. At the
+  default text size it looks and sits exactly as before.

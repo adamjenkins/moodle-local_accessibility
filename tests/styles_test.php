@@ -224,6 +224,31 @@ final class styles_test extends \advanced_testcase {
     }
 
     /**
+     * The floating launcher sits below chat and other docked panels (z-index 777) and is sized and placed in rem, so it
+     * grows with the user's text size and keeps its place above Boost's footer button, which is placed in rem too.
+     */
+    public function test_launcher_follows_text_size(): void {
+        $launcher = array_values(array_filter(self::rules(), fn($r) => $r[0] === '.btn.local-accessibility-launcher'));
+        $this->assertNotEmpty($launcher);
+        $body = $launcher[0][1];
+        $this->assertStringContainsString('z-index: 777;', $body);
+        foreach (['inset-block-end: 5rem;', 'inline-size: 2.75rem;', 'block-size: 2.75rem;', 'font-size: 1.25rem;'] as $rule) {
+            $this->assertStringContainsString($rule, $body);
+        }
+        foreach (self::rules_with('.local-accessibility-launcher') as [$selector, $declarations]) {
+            $this->assertDoesNotMatchRegularExpression(
+                '/(?<![-\w])(font-size|inline-size|block-size|inset-block-end):\s*\d+(\.\d+)?px/',
+                $declarations,
+                $selector
+            );
+        }
+        $icon = array_values(array_filter(self::rules(), fn($r) => $r[0] === '.btn.local-accessibility-launcher .icon'));
+        $this->assertNotEmpty($icon);
+        $this->assertStringContainsString('max-inline-size: none', $icon[0][1]);
+        $this->assertStringContainsString('max-block-size: none', $icon[0][1]);
+    }
+
+    /**
      * Icons in the plugin's UI grow with the text: Boost caps every .icon at 30px wide and 24px tall
      * (theme/boost/scss/moodle/icons.scss), which would let a rem-sized glyph overflow its box from 150% up.
      */

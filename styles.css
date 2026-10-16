@@ -810,28 +810,32 @@ html[data-a11y-colour] .local-accessibility-panel {
     }
 }
 
-/* 14. Launcher (px: a fixed-size target that stays put; .btn doubled for specificity over the theme's .btn). */
+/* 14. Launcher (.btn doubled for specificity over the theme's .btn). Sized and placed in rem so it grows with the
+   user's text size together with Boost's footer button (bottom: 2rem) under it, and keeps its place above that button
+   (44px, 80px from the bottom, at 100%). z-index 777 keeps it below chat and other docked panels. */
 .btn.local-accessibility-launcher {
     position: fixed;
-    inset-block-end: 80px;
+    inset-block-end: 5rem;
     inset-inline-end: 24px;
-    z-index: 1050;
-    inline-size: 44px;
-    block-size: 44px;
+    z-index: 777;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
     border-radius: 50%;
     padding: 0;
-    font-size: 20px;
+    font-size: 1.25rem;
     line-height: 1;
     cursor: pointer;
 }
 .btn.local-accessibility-launcher .icon {
     margin: 0;
-    font-size: 20px;
+    font-size: 1.25rem;
     inline-size: auto;
     block-size: auto;
+    max-inline-size: none;
+    max-block-size: none;
 }
 .btn.local-accessibility-launcher.la-launcher-shifted {
-    inset-block-end: 144px;
+    inset-block-end: 9rem;
 }
 /* The footer HTML lands inside #page (#region-main), so a sibling selector cannot match.
    Boost only docks the right drawer (315px) from the lg breakpoint; below it the drawer overlays. */

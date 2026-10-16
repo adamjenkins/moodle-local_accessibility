@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.4] - 2026-10-16
+
+### Changed
+- The floating toolbar button is sized and placed in rem (2.75rem, 5rem from the bottom; 9rem when it moves off the
+  focused element), so it scales with the user's text size; its icon is no longer capped by Boost's 30x24px icon
+  limit. At 100% it is unchanged (44px, 80px).
+
+### Fixed
+- The floating toolbar button appeared above chat panels: its z-index is now 777 (was 1050).
+
 ## [3.0.3] - 2026-10-12
 
 ### Added
