@@ -343,15 +343,16 @@ html[data-a11y-motion="on"] *::after {
     overflow: auto;
     font-size: 1rem;
     text-align: start;
-    background: var(--a11y-page, var(--bs-body-bg, #fff));
-    color: var(--a11y-text, var(--bs-body-color, #1d2125));
-    border: 1px solid var(--a11y-text, var(--bs-primary, #0f6cbf));
+    background: var(--a11y-page, var(--mds-bg-surface-default, var(--bs-body-bg, #fff)));
+    color: var(--a11y-text, var(--mds-text-default, var(--bs-body-color, #1d2125)));
+    border: 1px solid var(--a11y-text, var(--mds-border-interactive-primary-default, var(--bs-primary, #0f6cbf)));
     border-radius: 0.625rem;
     box-shadow: 0 4px 18px rgb(0 0 0 / 25%);
     /* Accent for selected states: the scheme's link colour (contrast-checked against its page), else primary. */
-    --la-accent: var(--a11y-link, var(--bs-primary, #0f6cbf));
-    /* Warning red per panel mode: 6.5:1 on the light panel, 6.4:1 on the dark one (Bootstrap's dark-mode danger text). */
-    --la-warn: #b3261e;
+    --la-accent: var(--a11y-link, var(--mds-border-interactive-primary-default, var(--bs-primary, #0f6cbf)));
+    /* Warning red per panel mode: 6.5:1 on the light panel, 6.4:1 on the dark one (Bootstrap's dark-mode danger text).
+       Moodle 5.3 supplies its own danger text token for each colour mode. */
+    --la-warn: var(--mds-text-feedback-danger, #b3261e);
 }
 .local-accessibility-panel[hidden] {
     display: none;
@@ -360,7 +361,7 @@ html[data-a11y-motion="on"] *::after {
     flex-shrink: 0;
 }
 html[data-bs-theme="dark"] .local-accessibility-panel {
-    --la-warn: #ea868f;
+    --la-warn: var(--mds-text-feedback-danger, #ea868f);
 }
 /* Under a scheme the warning uses the scheme's own text colour (with its icon), so it never drops below the scheme's
    contrast. */
@@ -433,7 +434,7 @@ html[data-a11y-colour] .local-accessibility-panel {
 }
 .local-accessibility-panel .la-profile {
     white-space: nowrap;
-    border: 1px solid var(--bs-border-color, #dee2e6);
+    border: 1px solid var(--a11y-text, var(--mds-border-default, var(--bs-border-color, #dee2e6)));
     border-radius: 1rem;
     background: transparent;
     color: inherit;
@@ -462,7 +463,7 @@ html[data-a11y-colour] .local-accessibility-panel {
     align-items: center;
     justify-content: center;
     gap: 0.125em;
-    border: 1px solid var(--bs-border-color, #dee2e6);
+    border: 1px solid var(--a11y-text, var(--mds-border-default, var(--bs-border-color, #dee2e6)));
     border-radius: 0.5em;
     background: transparent;
     color: inherit;
@@ -527,7 +528,7 @@ html[data-a11y-colour] .local-accessibility-panel {
     gap: 0.5em;
     min-block-size: 2.75em;
     padding: 0.25em 0.75em;
-    border: 1px solid var(--bs-border-color, #dee2e6);
+    border: 1px solid var(--a11y-text, var(--mds-border-default, var(--bs-border-color, #dee2e6)));
     border-radius: 0.5em;
     font-size: 0.875em;
     line-height: var(--a11y-lh, 1.25);
@@ -648,7 +649,7 @@ html[data-a11y-colour] .local-accessibility-panel {
 .local-accessibility-panel .la-stepsample {
     margin: 0;
     padding: 0.375em 0.625em;
-    border: 1px dashed var(--bs-border-color, #dee2e6);
+    border: 1px dashed var(--a11y-text, var(--mds-border-default, var(--bs-border-color, #dee2e6)));
     border-radius: 0.375em;
     overflow-wrap: anywhere;
 }
@@ -659,7 +660,7 @@ html[data-a11y-colour] .local-accessibility-panel {
 .local-accessibility-panel .la-sizepreview {
     margin: 0;
     padding: 0.625em;
-    border: 1px dashed var(--bs-border-color, #dee2e6);
+    border: 1px dashed var(--a11y-text, var(--mds-border-default, var(--bs-border-color, #dee2e6)));
     border-radius: 0.375em;
 }
 .local-accessibility-panel .la-row {
@@ -675,7 +676,7 @@ html[data-a11y-colour] .local-accessibility-panel {
 .local-accessibility-panel .la-view .btn:focus-visible,
 .local-accessibility-panel .la-viewtitle:focus-visible,
 .local-accessibility-panel .la-stepvalue:focus-visible {
-    outline: 3px solid var(--a11y-text, var(--bs-body-color, #1d2125));
+    outline: 3px solid var(--a11y-text, var(--mds-text-default, var(--bs-body-color, #1d2125)));
     outline-offset: 2px;
 }
 
@@ -747,7 +748,7 @@ html[data-a11y-colour] .local-accessibility-panel {
 .local-accessibility-panel .la-editor .la-preview {
     margin: 0;
     padding: 0.625rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
+    border: 1px solid var(--a11y-text, var(--mds-border-default, var(--bs-border-color, #dee2e6)));
     border-radius: 0.375rem;
     font-size: 0.875rem;
 }
@@ -872,9 +873,9 @@ html[data-a11y-colour] .local-accessibility-panel {
     padding: 0.375rem 0.625rem;
     font-size: 1rem;
     text-align: start;
-    background: var(--a11y-page, var(--bs-body-bg, #fff));
-    color: var(--a11y-text, var(--bs-body-color, #1d2125));
-    border: 1px solid var(--a11y-text, var(--bs-primary, #0f6cbf));
+    background: var(--a11y-page, var(--mds-bg-surface-default, var(--bs-body-bg, #fff)));
+    color: var(--a11y-text, var(--mds-text-default, var(--bs-body-color, #1d2125)));
+    border: 1px solid var(--a11y-text, var(--mds-border-interactive-primary-default, var(--bs-primary, #0f6cbf)));
     border-radius: 0.625rem;
 }
 .la-readbar[hidden],
