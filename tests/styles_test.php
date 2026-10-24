@@ -185,8 +185,9 @@ final class styles_test extends \advanced_testcase {
         $this->assertStringContainsString('clamp(380px, 50vw, 760px)', $body);
         $this->assertStringContainsString('min(80vh, calc(100vh - 120px))', $body);
         $this->assertStringContainsString('font-size: 1rem', $body);
-        $this->assertStringContainsString('var(--a11y-page, var(--bs-body-bg, #fff))', $body);
-        $this->assertStringContainsString('var(--a11y-text, var(--bs-body-color, #1d2125))', $body);
+        // The scheme's colour first, then the Moodle Design System token (5.3), then Bootstrap's, then Boost's value.
+        $this->assertStringContainsString('var(--a11y-page, var(--mds-bg-surface-default, var(--bs-body-bg, #fff)))', $body);
+        $this->assertStringContainsString('var(--a11y-text, var(--mds-text-default, var(--bs-body-color, #1d2125)))', $body);
         $head = array_values(array_filter(self::rules(), fn($r) => $r[0] === '.local-accessibility-panel .la-head'));
         $this->assertNotEmpty($head);
         $this->assertStringContainsString('position: sticky', $head[0][1]);
