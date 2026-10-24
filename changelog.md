@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.5] - 2026-10-24
+
+### Changed
+- The panel and read-aloud bar chrome (background, text, borders, accent and warning colours) use the Moodle Design
+  System tokens (`--mds-*`, Moodle 5.3) first, then the Bootstrap variables, then the previous fixed colours, so the
+  plugin's own UI follows Moodle 5.3's dark colour mode. Unchanged on Moodle 4.5-5.2, which define no `--mds-*` tokens.
+- Borders inside the panel follow the active colour scheme's text colour when a scheme is chosen.
+
 ## [3.0.4] - 2026-10-16
 
 ### Changed
