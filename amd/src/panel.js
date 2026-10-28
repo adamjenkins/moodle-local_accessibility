@@ -36,6 +36,7 @@ import {check, closeDrawer, hideView, initKeys, isDisabled, loadFaces, replaceDr
 import {init as initColour} from 'local_accessibility/colour';
 import {init as initGuide} from 'local_accessibility/guide';
 import {init as initImages} from 'local_accessibility/images';
+import {init as initInlineSize} from 'local_accessibility/inlinesize';
 import {init as initMotion} from 'local_accessibility/motion';
 import {init as initRead} from 'local_accessibility/read';
 
@@ -889,6 +890,7 @@ export const init = (config) => {
     initForcedColours().catch(Notification.exception);
     initGuide();
     initImages();
+    initInlineSize();
     initMotion();
     initRead(panel);
     // Last, so every listener above is attached before the first await.

@@ -88,9 +88,15 @@ final class styles_test extends \advanced_testcase {
         ) {
             $this->assertStringContainsString($new, $css, $new);
         }
-        $size = self::rules_with('html[data-a11y-size]');
+        $size = array_values(array_filter(self::rules_with('html[data-a11y-size]'), fn($r) => !str_contains($r[0], 'font[')));
         $this->assertCount(1, $size);
         $this->assertStringContainsString('font-size: calc(var(--a11y-size) * 1%)', $size[0][1]);
+        // Legacy <font size> 1-7 gets rem sizes, which follow the root (issue #2).
+        $fonts = array_filter(self::rules_with('html[data-a11y-size]'), fn($r) => str_contains($r[0], 'font['));
+        $this->assertCount(7, $fonts);
+        foreach ($fonts as [$selector, $declarations]) {
+            $this->assertMatchesRegularExpression('/^font-size: [\d.]+rem;?$/', trim($declarations), $selector);
+        }
         // Paragraph spacing follows line height (D4).
         $para = array_filter(self::rules_with('[data-a11y-lineheight]'), fn($r) => str_contains($r[1], 'margin-block-end'));
         $this->assertCount(1, $para);
@@ -317,6 +323,18 @@ final class styles_test extends \advanced_testcase {
         $js = file_get_contents(__DIR__ . '/../amd/src/images.js');
         $this->assertStringContainsString("'hide'", $js);
         $this->assertStringNotContainsString("=== 'on'", $js);
+    }
+
+    /**
+     * inlinesize.js scales fixed inline font sizes against --a11y-size and skips editable regions (issue #2).
+     */
+    public function test_inline_size_script(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/inlinesize.js');
+        $this->assertNotFalse($js);
+        $this->assertStringContainsString("' * var(--a11y-size, 100) / 100)'", $js);
+        $this->assertStringContainsString('[contenteditable]', $js);
+        $panel = file_get_contents(__DIR__ . '/../amd/src/panel.js');
+        $this->assertStringContainsString("from 'local_accessibility/inlinesize'", $panel);
     }
 
     /**

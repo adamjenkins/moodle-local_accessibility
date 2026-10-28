@@ -645,6 +645,17 @@ class behat_local_accessibility extends behat_base {
     }
 
     /**
+     * Add HTML at the end of the main region, as content loaded after the page would be.
+     *
+     * @When /^the HTML "(?P<html>[^"]*)" is added to the main region$/
+     * @param string $html
+     */
+    public function the_html_is_added_to_the_main_region(string $html): void {
+        $this->execute_script('document.getElementById("region-main").insertAdjacentHTML("beforeend", ' .
+            json_encode($html) . ');');
+    }
+
+    /**
      * Add a style sheet to the page, for example to stand in for a theme rule that is off on Behat sites.
      *
      * @Given /^the page has the extra style "(?P<css>[^"]*)"$/
