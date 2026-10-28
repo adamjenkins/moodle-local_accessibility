@@ -326,6 +326,24 @@ final class styles_test extends \advanced_testcase {
     }
 
     /**
+     * Authored colours give way to the scheme: inline colours and backgrounds (the shorthand too) and legacy colour
+     * attributes, in the main region and in authored text anywhere.
+     */
+    public function test_authored_colours_overridden(): void {
+        $rules = array_filter(self::rules(), fn($r) => str_contains($r[0], 'font[color]'));
+        $this->assertCount(1, $rules);
+        [$selector, $declarations] = reset($rules);
+        foreach (
+            ['#region-main', '.no-overflow', '.text_to_html', '.qtext', '[style*="color"]', '[style*="background"]',
+                '[bgcolor]', 'html[data-a11y-colour]'] as $part
+        ) {
+            $this->assertStringContainsString($part, $selector, $part);
+        }
+        $this->assertStringContainsString('color: var(--a11y-text) !important', $declarations);
+        $this->assertStringContainsString('background-color: transparent !important', $declarations);
+    }
+
+    /**
      * inlinesize.js scales fixed inline font sizes against --a11y-size and skips editable regions (issue #2).
      */
     public function test_inline_size_script(): void {
@@ -333,6 +351,11 @@ final class styles_test extends \advanced_testcase {
         $this->assertNotFalse($js);
         $this->assertStringContainsString("' * var(--a11y-size, 100) / 100)'", $js);
         $this->assertStringContainsString('[contenteditable]', $js);
+        // Line heights everywhere; box heights in authored text only, never on media (follow-up to issue #2).
+        $this->assertStringContainsString("'line-height': scaled(", $js);
+        $this->assertStringContainsString("const BOXES = ['height', 'min-height', 'max-height'];", $js);
+        $this->assertStringContainsString("const CONTENT = '.no-overflow, .text_to_html, .qtext';", $js);
+        $this->assertMatchesRegularExpression('/const MEDIA = .*\\bimg\\b.*\\biframe\\b/', $js);
         $panel = file_get_contents(__DIR__ . '/../amd/src/panel.js');
         $this->assertStringContainsString("from 'local_accessibility/inlinesize'", $panel);
     }

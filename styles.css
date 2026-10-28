@@ -222,8 +222,9 @@ html[data-a11y-narrow] #region-main :where(p, blockquote, dd, li:not([class]), .
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
     }
     /* Exclusions (spec §6.4): media, icons, maths and quiz state are never matched, via the :not() guard below. */
-    /* Pasted content colours lose to the scheme (spec §6.2, CSS only). */
-    html[data-a11y-colour] #region-main [style*="color"]:where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+    /* Pasted content colours lose to the scheme (spec §6.2, CSS only): inline colours and backgrounds (the shorthand
+       too) and legacy <font color> and bgcolor, in the main region and in authored text anywhere (HTML blocks). */
+    html[data-a11y-colour] :is(#region-main, .no-overflow, .text_to_html, .qtext) :is([style*="color"], [style*="background"], font[color], [bgcolor]):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
         background-color: transparent !important; /* stylelint-disable-line declaration-no-important */
     }
