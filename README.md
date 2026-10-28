@@ -21,7 +21,7 @@ It is one plugin with all features built in.
 
 | Setting | Choices |
 |---|---|
-| Text size | Any percentage up to 1000% (steps of 10; default 100%), with quick picks 100%, 125%, 150%, 200%, 250% and 300%. The whole page scales in proportion. |
+| Text size | Any percentage up to 1000% (steps of 10; default 100%), with quick picks 100%, 125%, 150%, 200%, 250% and 300%. The whole page scales in proportion, including text given a fixed size in the editor. |
 | Font | Site default; the device's sans-serif, serif and monospace fonts; Atkinson Hyperlegible, Lexend, OpenDyslexic Alta and Comic Neue (included); Japanese UD Gothic, Japanese UD Mincho and Japanese textbook (device fonts); fonts uploaded by the administrator. Each option is shown in its own font. |
 | Spacing: line height | Site default, or any value from 0 to 10 in steps of 0.1 (typed values to 0.01). Paragraph spacing follows the line height. |
 | Spacing: letter spacing | Site default, or any value from −5 to 5 em in steps of 0.01 em |
@@ -87,6 +87,8 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 
 - Line height, letter spacing and word spacing do not yet apply to headings.
 - Content inside iframes (including H5P) is not changed.
+- Text given a fixed size in the editor follows the text size by script, so for a moment after a page loads it can
+  show at its original size.
 - The Moodle mobile app does not load the plugin.
 - The colour contrast guarantee covers only the surfaces the plugin recolours. Content with its own
   colours, such as images or embedded media, is not guaranteed.

@@ -1,7 +1,10 @@
-# 3.0.5
+# 3.0.6
 
-- The accessibility panel and the read-aloud bar take their colours from Moodle's Design System where the theme provides
-  it (Moodle 5.3), so they follow 5.3's light and dark colour modes. Moodle 4.5 to 5.2 look the same as before.
-- Under a user's colour scheme, the borders inside the panel (cards, editor boxes and dashed outlines) now follow the
-  scheme's text colour instead of the theme's grey.
-- The colours the toolbar applies to the page itself are unchanged.
+- Text with a fixed size set in the editor (for example 8pt from TinyMCE or tiny_fontsize, or a pixel size in pasted
+  content) now grows and shrinks with the chosen text size, and so does a fixed line height. Before, only text without
+  its own size followed the setting (GitHub issue #2).
+- In authored text, a box with a fixed height grows with its text instead of cutting it off. Images, media and
+  embedded frames keep their size.
+- Colour schemes now also replace highlight backgrounds written as `background:`, old `<font color>` and table
+  `bgcolor` colours, and colours in authored text outside the main column, such as HTML blocks. Before, these could
+  leave light text on a pale highlight or dark text on a dark page.

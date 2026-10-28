@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.0.6] - 2026-10-28
+
+### Fixed
+- Authored text with a fixed inline font size (pt, px, pc, in, cm, mm, Q, as written by TinyMCE and tiny_fontsize) or
+  a keyword size (small, x-large...) did not follow the text size, which only scales the root font size (#2). While a
+  size other than the default is chosen, the new `local_accessibility/inlinesize` module rewrites such sizes to
+  `calc(<value> * var(--a11y-size, 100) / 100)` (keywords to rem), including content added to the page later. Fixed
+  inline line heights scale the same way; inside authored text (`.no-overflow`, `.text_to_html`, `.qtext`), so do fixed
+  inline heights, min-heights and max-heights, except on images, media, frames and maths. Editable regions and the
+  toolbar itself are left alone. Legacy `<font size>` 1-7 gets rem sizes in `styles.css`.
+- Colour schemes now override inline backgrounds written with the `background` shorthand, `<font color>` and `bgcolor`,
+  and inline colours in authored text outside `#region-main` (for example HTML blocks), which could leave light text on
+  a pale highlight or dark text on a dark page.
+
 ## [3.0.5] - 2026-10-24
 
 ### Changed
