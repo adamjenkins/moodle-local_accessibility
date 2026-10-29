@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.0.7] - 2026-10-29
+
+### Fixed
+- Images, Dimmed and Hidden, left photos drawn as an inline `background-image` at full strength, such as format_tiles
+  photo tiles and core's Dashboard course cards (#3); the rules matched only `img`, `picture` and `svg[role="img"]`.
+  Elements whose inline style sets a background with a `url(...)` now lose the image for "hide"; for "dim" they get an
+  inset `box-shadow` veil of the page colour at 60% (the same result as opacity 0.4 over the page), so the text on
+  them keeps its contrast. The veil lifts on hover and focus. Background images set in a stylesheet are not covered.
+
 ## [3.0.6] - 2026-10-28
 
 ### Fixed
