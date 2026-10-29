@@ -30,7 +30,7 @@ It is one plugin with all features built in.
 | Colours | Site default, High contrast, Yellow on black, Black on white, Cream, Dark, the site's own schemes, and Custom (your own background, text and link colours, adjusted to a 7:1 contrast ratio unless you keep your exact colours) |
 | Line width | Full width, or any width from 1 to 300 characters in steps of 5 |
 | Links | Off, Underlined, Underline and outline, Highlighted |
-| Images | Shown, Dimmed, Hidden (alt text shown) |
+| Images | Shown, Dimmed, Hidden (alt text shown); this includes photos shown as background images, such as Tiles course format tiles and Dashboard course cards |
 | Guide | Off, Reading ruler, Reading mask |
 | Motion | On, Stopped |
 | Read | Off, Read aloud bar shown (the browser's own voices, sentence by sentence; no visual highlight yet) |
@@ -89,6 +89,8 @@ Nothing is stored on the server for them. Logged-in users' settings are stored a
 - Content inside iframes (including H5P) is not changed.
 - Text given a fixed size in the editor follows the text size by script, so for a moment after a page loads it can
   show at its original size.
+- Images covers background images only when they are set in the page itself (as Tiles and the Dashboard course
+  cards do). A background image set in a theme's or plugin's stylesheet is not hidden or dimmed.
 - The Moodle mobile app does not load the plugin.
 - The colour contrast guarantee covers only the surfaces the plugin recolours. Content with its own
   colours, such as images or embedded media, is not guaranteed.

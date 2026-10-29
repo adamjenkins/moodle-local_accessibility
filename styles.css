@@ -257,15 +257,24 @@ html[data-a11y-colour][data-a11y-links="highlight"] body :where(a:not(.btn, .qnb
 
 /* 9. Images. "hide": hidden, with the alt text shown by images.js as a sibling span. "dim": faded, full opacity on
    hover and focus (of the image or of a link around it). "dim" leaves <picture> out: opacity multiplies down the tree,
-   so dimming it as well as its <img> would rest at 0.16. */
+   so dimming it as well as its <img> would rest at 0.16. A photo drawn as an inline background image (format_tiles
+   tiles, Dashboard course cards; issue #3) is dropped for "hide" and veiled in the page colour for "dim": an inset
+   shadow paints over the background but under the content, so the title on the tile keeps its full contrast, and the
+   veil at 60% gives the same result as opacity 0.4 over the page. */
 html[data-a11y-images="hide"] #page :where(img:not(.icon, .activityicon, .userpicture), picture, svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     visibility: hidden;
 }
 html[data-a11y-images="hide"] #page img:not(.icon, .activityicon, .userpicture):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     background-image: none !important; /* stylelint-disable-line declaration-no-important */
 }
+html[data-a11y-images="hide"] #page :where([style*="background" i][style*="url(" i]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+    background-image: none !important; /* stylelint-disable-line declaration-no-important */
+}
 html[data-a11y-images="dim"] #page :where(img:not(.icon, .activityicon, .userpicture), svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     opacity: 0.4;
+}
+html[data-a11y-images="dim"] #page :where([style*="background" i][style*="url(" i]):where(:not(:hover, :focus-within, a:hover *, a:focus *)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+    box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--a11y-page, var(--mds-bg-surface-default, var(--bs-body-bg, #fff))) 60%, transparent);
 }
 html[data-a11y-images="dim"] #page :where(img:not(.icon, .activityicon, .userpicture), svg[role="img"]):where(:hover, :focus, :focus-within):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)),
 html[data-a11y-images="dim"] #page :where(a:hover, a:focus) :where(img:not(.icon, .activityicon, .userpicture), svg[role="img"]):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {

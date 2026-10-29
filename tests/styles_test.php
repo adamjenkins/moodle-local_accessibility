@@ -314,6 +314,24 @@ final class styles_test extends \advanced_testcase {
     }
 
     /**
+     * Photos drawn as inline background images (format_tiles, issue #3) are dropped for "hide" and veiled, not faded,
+     * for "dim", so the text on them keeps its contrast; the veil lifts on hover and focus.
+     */
+    public function test_background_images(): void {
+        $bg = '[style*="background" i][style*="url(" i]';
+        $hide = array_filter(self::rules_with('data-a11y-images="hide"'), fn($r) => str_contains($r[0], $bg));
+        $this->assertCount(1, $hide);
+        $this->assertStringContainsString('background-image: none !important', reset($hide)[1]);
+        $dim = array_filter(self::rules_with('data-a11y-images="dim"'), fn($r) => str_contains($r[0], $bg));
+        $this->assertCount(1, $dim);
+        [$selector, $body] = reset($dim);
+        $this->assertStringContainsString(':not(:hover, :focus-within, a:hover *, a:focus *)', $selector);
+        $this->assertStringContainsString('box-shadow: inset 0 0 0 100vmax', $body);
+        $this->assertStringContainsString('var(--a11y-page,', $body);
+        $this->assertStringNotContainsString('opacity', $body);
+    }
+
+    /**
      * The extra-large cursor exists at 96px, and images.js adds alt text for the "hide" value.
      */
     public function test_cursor_and_images_script(): void {
