@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.0.8] - 2026-11-03
+
+### Changed
+- The panel stays open after choosing a colour scheme or a profile, Reset All, or the device note's Undo (#4): these
+  still reload the page, and the panel reopens on the same view with focus on the same control (sessionStorage).
+- "Site default" is the first button of every −/+ stepper, as the default is first in every list (#4).
+- Line width opens in a drawer under its tile, holding its stepper, instead of a detail view (#4).
+- Profiles replace the user's settings: every feature the user can change takes the profile's value, or the site
+  default when the profile leaves it out; a saved custom scheme is kept (#4). The confirmation is reworded.
+- The Links option "Off" is labelled "Standard" (#4).
+- The large cursor applies over every control except text entry (text-type inputs, textarea, contenteditable) (#4).
+
+### Fixed
+- Under a colour scheme, hovered, focused and current menu items and course tabs (Boost `.moremenu`, Moodle 5.3
+  `.mds-nav-pill`) kept the theme's near-white background behind the scheme's light link colour (#4).
+- With highlighted links, icons and a current item's underline inside a link kept a theme's white (#4).
+- Under a colour scheme, navbar controls and icons, the notification and message popovers, the messaging drawer and
+  page, conversation bubbles, unread notifications, text-field placeholders and active pills kept hard-coded light
+  colours. Rules that a theme overrides with weightier `!important` rules (Boost Union's coloured navbars, Moodle
+  5.3's dark mode) carry an id's weight.
+
 ## [3.0.7] - 2026-10-29
 
 ### Fixed
