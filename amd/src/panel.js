@@ -31,7 +31,8 @@ import {configure, save, reset} from 'local_accessibility/store';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 import Pending from 'core/pending';
-import {check, closeDrawer, hideView, initKeys, isDisabled, loadFaces, replaceDrawer, showView, tileOf,
+import {check, closeDrawer, hideView, initKeys, isDisabled, loadFaces, reloadKeepingOpen, replaceDrawer, showView,
+    takeReopen, tileOf,
     toggleDrawer} from 'local_accessibility/choices';
 import {init as initColour} from 'local_accessibility/colour';
 import {init as initGuide} from 'local_accessibility/guide';
@@ -640,7 +641,9 @@ const initForcedColours = async() => {
 const isChangeable = (feature) => !!state[feature] && !state[feature].locked;
 
 /**
- * Apply a profile: confirm if the user has changed anything they could change, save every value, then reload.
+ * Apply a profile: it replaces the user's settings (issue #4), so every feature the user can change takes the
+ * profile's value, or the site default when the profile leaves it out. Confirm first if the user has changed
+ * anything, save what differs, then reload with the dialog kept open.
  *
  * @param {HTMLElement} profile the profile button
  */
@@ -654,8 +657,12 @@ const applyProfile = async(profile) => {
     const values = JSON.parse(profile.dataset.values);
     let saved = 0;
     let failure = null;
-    for (const [feature, value] of Object.entries(values)) {
+    for (const feature of Object.keys(state)) {
         if (!isChangeable(feature)) {
+            continue;
+        }
+        const value = Object.prototype.hasOwnProperty.call(values, feature) ? values[feature] : state[feature].default;
+        if (value === state[feature].value) {
             continue;
         }
         try {
@@ -667,9 +674,34 @@ const applyProfile = async(profile) => {
         }
     }
     if (saved) {
-        window.location.reload();
+        reloadKeepingOpen(panel);
     } else if (failure) {
         Notification.exception(failure);
+    }
+};
+
+/**
+ * Reopen the dialog after a reload made from it (a scheme, a profile, Reset all), with its view and the control
+ * that had focus, so choosing one does not close the dialog (issue #4).
+ */
+const reopen = () => {
+    const data = takeReopen();
+    if (!data) {
+        return;
+    }
+    open(null);
+    const tile = typeof data.view === 'string' ? tileOf(panel, data.view) : null;
+    if (tile) {
+        const view = showView(panel, tile);
+        if (view && data.view === 'font') {
+            loadFaces(view);
+        }
+    }
+    if (Array.isArray(data.focus) && ['scheme', 'profile', 'action'].includes(data.focus[0])) {
+        const target = panel.querySelector('[data-' + data.focus[0] + '="' + CSS.escape(String(data.focus[1])) + '"]');
+        if (isVisible(target)) {
+            target.focus();
+        }
     }
 };
 
@@ -747,7 +779,7 @@ const initDeviceSettings = async(config) => {
             try {
                 // Reset keeps the initialised marker, so this does not re-apply the device settings.
                 await reset();
-                window.location.reload();
+                reloadKeepingOpen(panel);
             } catch (error) {
                 Notification.exception(error);
             }
@@ -832,7 +864,7 @@ export const init = (config) => {
                 close();
             } else if (e.target.closest('[data-action="reset"]')) {
                 await reset();
-                window.location.reload();
+                reloadKeepingOpen(panel);
             }
         } catch (error) {
             Notification.exception(error);
@@ -893,6 +925,7 @@ export const init = (config) => {
     initInlineSize();
     initMotion();
     initRead(panel);
+    reopen();
     // Last, so every listener above is attached before the first await.
     initDeviceSettings(config).catch(Notification.exception);
 };

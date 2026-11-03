@@ -75,8 +75,7 @@ class panel implements \renderable, \templatable {
             $tile = self::tile($tileid, $members, $values);
             $tiles[] = $tile;
             if ($tile['isdrawer']) {
-                $drawers[] = ['id' => $tileid, 'label' => $tile['label'], 'locked' => $tile['locked'],
-                    'options' => self::radios($first, $values[$first->id()])];
+                $drawers[] = self::drawer($first, $values[$first->id()], $tile);
             } else {
                 $views[] = self::view($tileid, $members, $values, $tile);
             }
@@ -148,6 +147,24 @@ class panel implements \renderable, \templatable {
     }
 
     /**
+     * One drawer: a short list of options, or a single stepper (line width), under its tile (issue #4).
+     *
+     * @param base $f the tile's feature
+     * @param string $value its current value
+     * @param array $tile the tile's context
+     * @return array
+     */
+    private static function drawer(base $f, string $value, array $tile): array {
+        $drawer = ['id' => $tile['id'], 'label' => $tile['label'], 'locked' => $tile['locked']];
+        if ($f instanceof numeric) {
+            $drawer['stepper'] = self::stepper($f, $value, $tile['locked'], 'la-drawer-' . $tile['id'] . '-label');
+        } else {
+            $drawer['options'] = self::radios($f, $value);
+        }
+        return $drawer;
+    }
+
+    /**
      * One detail view (spec §2 "Rich features").
      *
      * @param string $tileid
@@ -169,9 +186,6 @@ class panel implements \renderable, \templatable {
                 foreach ($members as $id) {
                     $view['steppers'][] = self::stepper(registry::get($id), $values[$id], $tile['locked']);
                 }
-                break;
-            case 'narrow':
-                $view['stepper'] = self::stepper($f, $values['narrow'], $tile['locked'], 'la-view-narrow-title');
                 break;
             case 'colour':
                 $view['options'] = self::swatches($values['colour'], $tile['locked']);

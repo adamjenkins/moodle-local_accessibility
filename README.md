@@ -9,15 +9,18 @@ It is one plugin with all features built in.
   "Font, OpenDyslexic Alta". Open the panel with the floating button, the user menu entry or the keyboard
   shortcut Alt+A.
 - Every option is shown and can be chosen directly, each with an icon or a preview and a label. Short lists
-  open in a drawer under the tile; longer ones (text size, font, spacing, line width, colours) open a detail
-  view. Arrow keys move between options and Enter or Space chooses one.
+  and line width open in a drawer under the tile; longer ones (text size, font, spacing, colours) open a
+  detail view. The site default always comes first. Arrow keys move between options and Enter or Space
+  chooses one. The panel stays open while you try settings, including colour schemes and profiles.
 - Text size, line height, letter spacing, word spacing and line width have no fixed list of values. Each has
-  − and + buttons (hold one to keep stepping), a field where you can type a number and press Enter, and a
-  _Site default_ button. Changes show at once and are saved a moment after the last one.
+  a _Site default_ button, − and + buttons (hold one to keep stepping) and a field where you can type a
+  number and press Enter. Changes show at once and are saved a moment after the last one.
 - The panel follows your own text size, font, spacing and colours. Alignment, line width, link and image
   options and the reading guide are not applied to the panel itself.
-- Profiles: one-click bundles of settings (Dyslexia, Focus, Low vision, Seizure-safe).
+- Profiles: one-click bundles of settings (Dyslexia, Focus, Low vision, Seizure-safe). A profile replaces
+  your settings: anything it does not set goes back to the site default.
 - Settings can start from the device's reduced-motion and contrast preferences.
+- Works with the Boost theme and with Boost Union, including its coloured navbars.
 
 | Setting | Choices |
 |---|---|
@@ -29,7 +32,7 @@ It is one plugin with all features built in.
 | Alignment | Site default, Left, Centre, Right, Justified |
 | Colours | Site default, High contrast, Yellow on black, Black on white, Cream, Dark, the site's own schemes, and Custom (your own background, text and link colours, adjusted to a 7:1 contrast ratio unless you keep your exact colours) |
 | Line width | Full width, or any width from 1 to 300 characters in steps of 5 |
-| Links | Off, Underlined, Underline and outline, Highlighted |
+| Links | Standard, Underlined, Underline and outline, Highlighted |
 | Images | Shown, Dimmed, Hidden (alt text shown); this includes photos shown as background images, such as Tiles course format tiles and Dashboard course cards |
 | Guide | Off, Reading ruler, Reading mask |
 | Motion | On, Stopped |

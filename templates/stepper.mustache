@@ -16,8 +16,9 @@
 {{!
     @template local_accessibility/stepper
 
-    A −/+ stepper for a numeric setting (numeric steppers brief): Smaller/Less and Larger/More buttons that repeat
-    while held, a field that takes a typed number, the unit, a "Site default" button and the setting's preview.
+    A −/+ stepper for a numeric setting (numeric steppers brief): a "Site default" button first, as the default comes
+    first in every list (issue #4), then Smaller/Less and Larger/More buttons that repeat while held around a field that
+    takes a typed number, the unit, and the setting's preview.
     Behaviour is in local_accessibility/panel.
 
     Context variables required for this template:
@@ -41,6 +42,9 @@
 <div class="la-group la-stepper" role="group" aria-labelledby="{{labelid}}" data-feature="{{feature}}"{{#locked}} aria-disabled="true"{{/locked}}>
     {{#showlabel}}<h4 class="la-grouplabel" id="{{labelid}}">{{label}}</h4>{{/showlabel}}
     <div class="la-stepcontrols">
+        <button type="button" class="btn la-stepdefault" data-action="stepdefault" data-feature="{{feature}}"{{#locked}} aria-disabled="true"{{/locked}}>
+            <i class="icon fa fa-rotate-left" aria-hidden="true"></i>{{#str}} sitedefault, local_accessibility {{/str}}
+        </button>
         <button type="button" class="btn la-step" data-action="stepdown" data-feature="{{feature}}"{{#mindisabled}} aria-disabled="true"{{/mindisabled}}>
             <i class="icon fa fa-minus" aria-hidden="true"></i>{{#issize}}{{#str}} sizesmaller, local_accessibility {{/str}}{{/issize}}{{^issize}}{{#str}} stepless, local_accessibility {{/str}}{{/issize}}
         </button>
@@ -52,9 +56,6 @@
         </span>
         <button type="button" class="btn la-step" data-action="stepup" data-feature="{{feature}}"{{#maxdisabled}} aria-disabled="true"{{/maxdisabled}}>
             <i class="icon fa fa-plus" aria-hidden="true"></i>{{#issize}}{{#str}} sizelarger, local_accessibility {{/str}}{{/issize}}{{^issize}}{{#str}} stepmore, local_accessibility {{/str}}{{/issize}}
-        </button>
-        <button type="button" class="btn la-stepdefault" data-action="stepdefault" data-feature="{{feature}}"{{#locked}} aria-disabled="true"{{/locked}}>
-            <i class="icon fa fa-rotate-left" aria-hidden="true"></i>{{#str}} sitedefault, local_accessibility {{/str}}
         </button>
     </div>
     {{#sample}}<p class="la-sample la-stepsample" aria-hidden="true" style="{{samplestyle}}">{{sample}}</p>{{/sample}}

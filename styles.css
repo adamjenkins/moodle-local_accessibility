@@ -221,6 +221,85 @@ html[data-a11y-narrow] #region-main :where(p, blockquote, dd, li:not([class]), .
     html[data-a11y-colour] body :where(.text-muted, .text-secondary, .text-body-secondary, .dimmed_text, .categoryname, .progress-text, .collapsemenu-text, .mds-switch-label, .nav-link.active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
     }
+    /* Navigation menus (issue #4): Boost paints a hovered, focused or current item of its menus (.moremenu: the top
+       navbar and the course tabs) with a hard-coded light grey, which under a dark scheme left the scheme's link colour
+       on near-white. Moodle 5.3's course tabs (.mds-nav-pill) take the same scheme hover surface. */
+    html[data-a11y-colour] body :where(.moremenu .nav-link, .mds-nav-pill):where(:hover, :focus, .active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-hover) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Navbar controls (issue #4): themes with a coloured navbar (Boost Union) paint its links, icons, toggles, the user
+       menu and the current item's underline white (black when hovered), with !important. Under a scheme they take the
+       scheme's colours instead: links the link colour, other controls the text colour, icons their control's colour,
+       and the navbar's notification and message popovers are scheme surfaces. body:not(#la-weight) adds one id's
+       weight, so these !important rules outrank the theme's !important ones. */
+    html[data-a11y-colour] body:not(#la-weight) :where(.navbar a:not(.btn, .dropdown-item)):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        color: var(--a11y-link) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body:not(#la-weight) :where(.navbar :is(.popover-region-toggle:not(a), .btn, .usermenu .dropdown-toggle, .editmode-switch-form, .editmode-switch-form label)):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body:not(#la-weight) :where(.navbar :is(a, .popover-region-toggle, .btn) .icon):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        color: inherit !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body:not(#la-weight) :where(.moremenu .nav-link.active, .navbar .nav-link.active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        border-bottom-color: currentcolor !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body:not(#la-weight) :where(.popover-region-container, .popover-region-header-container, .popover-region-footer-container):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-surface1) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body:not(#la-weight) :where(.popover-region-container :is(a, .btn-link)):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        color: var(--a11y-link) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body:not(#la-weight) :where(.popover-region-container :is(a, .btn-link) .icon):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        color: inherit !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Messaging and notifications (issue #4): the messaging drawer (.message-app), its search button and an unread
+       notification have hard-coded light backgrounds, which left the scheme's light text on them under a dark scheme.
+       Unread notifications keep a surface of their own so they still stand out. The full Messages page's panel is also
+       .bg-light, which Moodle 5.3's dark mode paints with an !important rule of more weight, hence the id's weight. */
+    html[data-a11y-colour] body:not(#la-weight) :where(.message-app):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-surface1) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.message-app .btn-submit):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-field) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.content-item-container.unread):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Conversation bubbles: received on surface2, sent on the hover surface, each tail (a border triangle) in its
+       bubble's colour, and the day heading and the bubbles' times and icons in the scheme's text colour. */
+    html[data-a11y-colour] body :where(.message-app .message.received):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.message-app .message.received .tail):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        border-bottom-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.message-app .message.send):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-hover) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.message-app .message.send .tail):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        border-bottom-color: var(--a11y-hover) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    html[data-a11y-colour] body :where(.message-app :is(.day, .message .time, .message .icon)):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* An active pill (messaging's Contacts/Requests and other .nav-pills) keeps its filled look but in the scheme's
+       colours, inverted: text colour behind page colour, which is at least 7:1 under every scheme (the theme's primary
+       blue left the scheme's text on it at 3:1 under Cream). */
+    html[data-a11y-colour] body :where(.nav-pills .nav-link.active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+        color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Placeholders in text fields take the scheme's text colour, slightly faded so they still read as hints. */
+    html[data-a11y-colour] body :where(input, textarea)::placeholder {
+        color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+        opacity: 0.8;
+    }
     /* Exclusions (spec §6.4): media, icons, maths and quiz state are never matched, via the :not() guard below. */
     /* Pasted content colours lose to the scheme (spec §6.2, CSS only): inline colours and backgrounds (the shorthand
        too) and legacy <font color> and bgcolor, in the main region and in authored text anywhere (HTML blocks). */
@@ -249,6 +328,15 @@ html[data-a11y-links="highlight"] body :where(a:not(.btn, .qnbutton)):where(:not
     text-underline-offset: 0.2em;
     background-color: var(--a11y-link-bg, #fff3b0) !important; /* stylelint-disable-line declaration-no-important */
     color: #1d2125 !important; /* stylelint-disable-line declaration-no-important */
+}
+/* Inside a highlighted link, icons follow the link's text colour, and a current navigation item's underline is drawn
+   in it too (issue #4): themes with a coloured navbar (Boost Union) paint both white, which on the highlight is white on
+   pale yellow. body:not(#la-weight) outranks the theme's !important rules, as for the scheme's navbar rules. */
+html[data-a11y-links="highlight"] body:not(#la-weight) :where(a:not(.btn, .qnbutton) .icon):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+    color: inherit !important; /* stylelint-disable-line declaration-no-important */
+}
+html[data-a11y-links="highlight"] body:not(#la-weight) :where(a.nav-link:is(.active, [aria-current="true"], [aria-current="page"])):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
+    border-bottom-color: currentcolor !important; /* stylelint-disable-line declaration-no-important */
 }
 html[data-a11y-colour][data-a11y-links="highlight"] body :where(a:not(.btn, .qnbutton)):where(:not(.local-accessibility-panel, .local-accessibility-panel *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-readbar, .la-readbar *, .la-guide, .la-guide *)) {
     background-color: var(--a11y-surface2) !important; /* stylelint-disable-line declaration-no-important */
@@ -323,13 +411,14 @@ html[data-a11y-focus="thick"] :focus-visible {
     }
 }
 
-/* 11b. Cursor: "large" 48px, "xlarge" 96px (browsers cap CSS cursors at 128px). Text entry keeps its own cursor. */
+/* 11b. Cursor: "large" 48px, "xlarge" 96px (browsers cap CSS cursors at 128px). Only text entry keeps its own (text)
+   cursor: checkboxes, radios, selects, sliders and buttons get the large one too (issue #4). */
 html[data-a11y-cursor="large"],
-html[data-a11y-cursor="large"] :where(*:not(input, textarea, select, [contenteditable], input *, textarea *, select *, [contenteditable] *)) {
+html[data-a11y-cursor="large"] :where(*:not(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="button"], [type="submit"], [type="reset"], [type="image"]), textarea, [contenteditable]:not([contenteditable="false"]), [contenteditable]:not([contenteditable="false"]) *)) {
     cursor: url(../../../../local/accessibility/pix/cursor.svg) 4 4, auto !important; /* stylelint-disable-line declaration-no-important */
 }
 html[data-a11y-cursor="xlarge"],
-html[data-a11y-cursor="xlarge"] :where(*:not(input, textarea, select, [contenteditable], input *, textarea *, select *, [contenteditable] *)) {
+html[data-a11y-cursor="xlarge"] :where(*:not(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="button"], [type="submit"], [type="reset"], [type="image"]), textarea, [contenteditable]:not([contenteditable="false"]), [contenteditable]:not([contenteditable="false"]) *)) {
     cursor: url(../../../../local/accessibility/pix/cursor-xlarge.svg) 8 8, auto !important; /* stylelint-disable-line declaration-no-important */
 }
 

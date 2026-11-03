@@ -67,8 +67,8 @@ abstract class base {
     }
 
     /**
-     * How the options are chosen (spec §2): 'drawer' for a short list under the tile, 'detail' for a view that
-     * replaces the grid.
+     * How the options are chosen (spec §2): 'drawer' for a short list, or a single stepper, under the tile;
+     * 'detail' for a view that replaces the grid.
      *
      * @return string
      */

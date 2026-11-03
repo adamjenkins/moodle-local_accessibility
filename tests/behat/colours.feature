@@ -17,7 +17,7 @@ Feature: Colour schemes
     And I wait until the page is ready
     Then the page root should have attribute "data-a11y-colour" with value "yellowblack"
     And the page root should have attribute "data-bs-theme" with value "dark"
-    And I click on "Accessibility settings" "button"
+    And "[data-view='colour'] .la-swatches" "css_element" should be visible
     And "Colours, Yellow on black" "button" should exist
 
   Scenario: A swatch can be chosen by keyboard
@@ -29,6 +29,7 @@ Feature: Colour schemes
     And I press the enter key
     And I wait until the page is ready
     Then the page root should have attribute "data-a11y-colour" with value "blackwhite"
+    And the focused element is "[data-view='colour'] [data-scheme='blackwhite']" "css_element"
 
   Scenario: Custom colours are auto-adjusted to 7:1
     When I click on "Custom colours" "button"

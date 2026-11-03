@@ -24,7 +24,8 @@
     * id - the feature id; the drawer element id is la-drawer- followed by it (the tile's aria-controls)
     * label - the feature name, which labels the radio group
     * locked - whether the admin locked the feature
-    * options - radio options (see local_accessibility/option)
+    * options - radio options (see local_accessibility/option), or
+    * stepper - the −/+ stepper of a numeric feature shown instead (line width; see local_accessibility/stepper)
 
     Example context (json):
     {"id": "align", "label": "Alignment", "locked": false, "options": [
@@ -38,7 +39,10 @@
 }}
 <div class="la-drawer" id="la-drawer-{{id}}" data-drawer="{{id}}" hidden>
     <p class="la-grouplabel" id="la-drawer-{{id}}-label">{{label}}</p>
+    {{#stepper}}{{> local_accessibility/stepper }}{{/stepper}}
+    {{^stepper}}
     <div class="la-options" role="radiogroup" aria-labelledby="la-drawer-{{id}}-label" {{#locked}}aria-disabled="true"{{/locked}}>
         {{#options}}{{> local_accessibility/option }}{{/options}}
     </div>
+    {{/stepper}}
 </div>

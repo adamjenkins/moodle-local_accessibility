@@ -121,10 +121,10 @@ final class registry_test extends \advanced_testcase {
     }
 
     /**
-     * Drawer and detail kinds follow spec §3 (A and B).
+     * Drawer and detail kinds follow spec §3 (A and B); line width's single stepper is a drawer (issue #4).
      */
     public function test_kinds(): void {
-        $detail = ['size', 'font', 'lineheight', 'letterspacing', 'wordspacing', 'colour', 'narrow'];
+        $detail = ['size', 'font', 'lineheight', 'letterspacing', 'wordspacing', 'colour'];
         foreach (registry::all() as $id => $f) {
             $this->assertSame(in_array($id, $detail, true) ? 'detail' : 'drawer', $f->kind(), $id);
         }

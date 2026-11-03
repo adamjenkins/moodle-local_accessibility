@@ -332,6 +332,64 @@ final class styles_test extends \advanced_testcase {
     }
 
     /**
+     * Issue #4: under a scheme, the theme's hard-coded light grey on hovered, focused and current menu items gives way
+     * to the scheme's hover surface, and navbar controls and their icons take the scheme's colours; a highlighted link's
+     * icons and current-item underline follow its text; the large cursor applies over every control but text entry.
+     */
+    public function test_issue4_rules(): void {
+        $rules = self::rules_with('data-a11y-colour');
+        $menu = array_filter($rules, fn($r) => str_contains($r[0], ':where(.moremenu .nav-link, .mds-nav-pill):where(:hover'));
+        $this->assertCount(1, $menu);
+        [$selector, $body] = reset($menu);
+        $this->assertStringContainsString(':where(:hover, :focus, .active)', $selector);
+        $this->assertStringContainsString('background-color: var(--a11y-hover) !important', $body);
+        $icons = array_filter($rules, fn($r) => str_contains($r[0], '.navbar :is(a, .popover-region-toggle, .btn) .icon'));
+        $this->assertCount(1, $icons);
+        $this->assertStringContainsString('color: inherit !important', reset($icons)[1]);
+        $toggles = array_filter($rules, fn($r) => str_contains($r[0], '.navbar :is(.popover-region-toggle:not(a), .btn,'));
+        $this->assertStringContainsString('color: var(--a11y-text) !important', reset($toggles)[1]);
+        // Themes mark their navbar colours !important (Boost Union), so the navbar rules carry an id's weight.
+        foreach (array_merge($icons, $toggles) as [$selector]) {
+            $this->assertStringContainsString('body:not(#la-weight)', $selector);
+        }
+
+        // Messaging and notifications: the drawer, bubbles (with their tails), unread notifications and active pills.
+        $bodies = [];
+        foreach ($rules as [$selector, $body]) {
+            $bodies[$selector] = $body;
+        }
+        $expect = ['.message-app)' => 'var(--a11y-surface1)', '.message-app .message.received)' => 'var(--a11y-surface2)',
+            '.message-app .message.received .tail)' => 'border-bottom-color: var(--a11y-surface2)',
+            '.message-app .message.send .tail)' => 'border-bottom-color: var(--a11y-hover)',
+            '.content-item-container.unread)' => 'var(--a11y-surface2)',
+            '.nav-pills .nav-link.active)' => 'color: var(--a11y-page)'];
+        foreach ($expect as $target => $declaration) {
+            $match = array_filter(array_keys($bodies), fn($selector) => str_contains($selector, ':where(' . $target));
+            $this->assertCount(1, $match, $target);
+            $this->assertStringContainsString($declaration, $bodies[reset($match)], $target);
+        }
+
+        $highlight = self::rules_with('data-a11y-links="highlight"');
+        $icon = array_filter($highlight, fn($r) => str_contains($r[0], 'a:not(.btn, .qnbutton) .icon'));
+        $this->assertCount(1, $icon);
+        $this->assertStringContainsString('color: inherit !important', reset($icon)[1]);
+        $underline = array_filter($highlight, fn($r) => str_contains($r[0], 'a.nav-link:is(.active'));
+        $this->assertStringContainsString('border-bottom-color: currentcolor !important', reset($underline)[1]);
+
+        foreach (['large', 'xlarge'] as $size) {
+            $rules = self::rules_with('data-a11y-cursor="' . $size . '"');
+            $cursor = array_values(array_filter($rules, fn($r) => str_contains($r[1], 'cursor:')));
+            $this->assertCount(1, $cursor, $size);
+            $selector = $cursor[0][0];
+            // Text entry keeps its cursor; select, checkbox and radio are no longer excluded.
+            $this->assertStringContainsString('textarea', $selector);
+            $this->assertStringContainsString('[type="checkbox"]', $selector);
+            $this->assertStringNotContainsString('select', $selector);
+            $this->assertStringNotContainsString('*:not(input,', $selector);
+        }
+    }
+
+    /**
      * The extra-large cursor exists at 96px, and images.js adds alt text for the "hide" value.
      */
     public function test_cursor_and_images_script(): void {

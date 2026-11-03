@@ -22,7 +22,7 @@
  */
 import {custom, normalise, ramp, worst, AAA} from 'local_accessibility/contrast';
 import {save, saveCustom, getConfig} from 'local_accessibility/store';
-import {check, isDisabled, tileOf} from 'local_accessibility/choices';
+import {check, isDisabled, reloadKeepingOpen, tileOf} from 'local_accessibility/choices';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 
@@ -313,7 +313,7 @@ export const init = (panel) => {
                     document.cookie = 'theme_boost_colourmode=' + (swatch.dataset.scheme === 'dark' ? 'dark' : 'light')
                         + config.cookieattributes;
                 }
-                window.location.reload();
+                reloadKeepingOpen(panel);
                 return;
             }
             const pen = e.target.closest('[data-action="customcolours"]');

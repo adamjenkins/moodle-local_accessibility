@@ -35,7 +35,7 @@ Feature: Choosing any value from a drawer or a detail view
   Scenario: Clicking an open drawer's tile again closes it
     Given I log in as "student1"
     And I click on "Accessibility settings" "button"
-    When I click on "Links, Off" "button"
+    When I click on "Links, Standard" "button"
     Then "#la-drawer-links" "css_element" should be visible
     When I click on "Focus ring, Standard" "button"
     Then "#la-drawer-links" "css_element" should not be visible

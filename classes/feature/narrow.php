@@ -71,15 +71,6 @@ class narrow extends numeric {
     }
 
     /**
-     * Options are chosen in a detail view (spec §3 "B").
-     *
-     * @return string
-     */
-    public function kind(): string {
-        return 'detail';
-    }
-
-    /**
      * Options preview the line width as a bar.
      *
      * @return string|null

@@ -26,7 +26,7 @@
     * state - JSON: per enabled feature its value, default, tile, kind, locked and options (value, label, css)
     * tiles - one per tile (see local_accessibility/tile)
     * drawers - one per enabled short-list feature (see local_accessibility/drawer)
-    * views - one per rich tile, with a flag naming its partial: issize, isfont, isspacing, isnarrow or iscolour
+    * views - one per rich tile, with a flag naming its partial: issize, isfont, isspacing or iscolour
     * profiles - preset profiles: id, name, values (JSON of feature values)
     * custom - the user's custom scheme, or null
     * lowcontrast - whether the current scheme is exact and under 7:1 (shows the colour tile's warning icon)
@@ -102,7 +102,6 @@
         {{#issize}}{{> local_accessibility/view_size }}{{/issize}}
         {{#isfont}}{{> local_accessibility/view_font }}{{/isfont}}
         {{#isspacing}}{{> local_accessibility/view_spacing }}{{/isspacing}}
-        {{#isnarrow}}{{> local_accessibility/view_narrow }}{{/isnarrow}}
         {{#iscolour}}{{> local_accessibility/view_colour }}{{/iscolour}}
     {{/views}}
     <div class="la-live la-visually-hidden" aria-live="polite"></div>

@@ -31,7 +31,7 @@ Feature: Accessibility panel
       | forcelogin | 0 |
     And I am on site homepage
     When I click on "Accessibility settings" "button"
-    And I click on "Links, Off" "button"
+    And I click on "Links, Standard" "button"
     And I click on "[data-feature='links'][data-value='outline']" "css_element"
     And I reload the page
     Then the page root should have attribute "data-a11y-links" with value "outline"
@@ -63,6 +63,35 @@ Feature: Accessibility panel
     Then the page root should have attribute "data-a11y-colour" with value "highcontrast"
     And the page root should have attribute "data-a11y-size" with value "180"
     And the page root should have attribute "data-a11y-links" with value "outline"
+    And "#local-accessibility-panel" "css_element" should be visible
+    And the focused element is "Low vision" "button"
+
+  Scenario: A profile replaces the user's settings and the panel stays open
+    Given the following "user preferences" exist:
+      | user     | preference                 | value |
+      | student1 | local_accessibility_font   | serif |
+      | student1 | local_accessibility_cursor | large |
+    And I log in as "student1"
+    And the page root should have attribute "data-a11y-font" with value "serif"
+    And I click on "Accessibility settings" "button"
+    And the page accepts confirmations
+    When I click on "Focus" "button" in the ".la-profiles" "css_element"
+    Then the page root should have attribute "data-a11y-motion" with value "on"
+    And the page root should have attribute "data-a11y-narrow" with value "70"
+    And the page root should not have attribute "data-a11y-font"
+    And the page root should not have attribute "data-a11y-cursor"
+    And "#local-accessibility-panel" "css_element" should be visible
+    And the focused element is "Focus" "button" in the ".la-profiles" "css_element"
+
+  Scenario: Choosing a colour scheme keeps the panel open on the colour view
+    Given I log in as "student1"
+    And I click on "Accessibility settings" "button"
+    And I click on "Colours, Site default" "button"
+    When I click on "[data-view='colour'] [data-scheme='cream']" "css_element"
+    Then the page root should have attribute "data-a11y-colour" with value "cream"
+    And "#local-accessibility-panel" "css_element" should be visible
+    And "#la-view-colour" "css_element" should be visible
+    And the focused element is "[data-view='colour'] [data-scheme='cream']" "css_element"
 
   Scenario: Without an on-device voice a saved Read aloud does not leave the read bar on screen
     Given the following "user preferences" exist:

@@ -77,7 +77,9 @@ Feature: Numeric settings change by any amount with − and + steppers
     Given I log in as "student1"
     And I click on "Accessibility settings" "button"
     When I click on "Line width, Full width" "button"
-    Then the "aria-disabled" attribute of ".la-stepper[data-feature='narrow'] [data-action='stepup']" "css_element" should contain "true"
+    Then "#la-drawer-narrow" "css_element" should be visible
+    And the focused element is "#la-field-narrow" "css_element"
+    And the "aria-disabled" attribute of ".la-stepper[data-feature='narrow'] [data-action='stepup']" "css_element" should contain "true"
     When I click on "Less" "button" in the ".la-stepper[data-feature='narrow']" "css_element"
     Then the page root should have attribute "data-a11y-narrow" with value "90"
     And "Line width, 90 characters" "button" should exist

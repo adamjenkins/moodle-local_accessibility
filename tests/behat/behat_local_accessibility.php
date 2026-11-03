@@ -664,6 +664,16 @@ class behat_local_accessibility extends behat_base {
     }
 
     /**
+     * Answer the page's next confirm() prompts with OK. A native dialog that opens inside a click step stops WebDriver
+     * before a following "I accept the currently displayed dialog" step can run.
+     *
+     * @Given the page accepts confirmations
+     */
+    public function the_page_accepts_confirmations(): void {
+        $this->execute_script('window.confirm = () => true;');
+    }
+
+    /**
      * Add a style sheet to the page, for example to stand in for a theme rule that is off on Behat sites.
      *
      * @Given /^the page has the extra style "(?P<css>[^"]*)"$/

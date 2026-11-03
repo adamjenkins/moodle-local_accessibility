@@ -105,8 +105,19 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
+     * One drawer by id.
+     *
+     * @param array $context
+     * @param string $id
+     * @return array|null
+     */
+    private static function drawer(array $context, string $id): ?array {
+        return array_column($context['drawers'], null, 'id')[$id] ?? null;
+    }
+
+    /**
      * Every radio group in the context: drawers, the size quick picks and the font and colour views. Size, spacing and
-     * line width are steppers.
+     * line width (a drawer) are steppers.
      *
      * @param array $context
      * @return array<string, array> group name => options
@@ -114,7 +125,9 @@ final class panel_test extends \advanced_testcase {
     private static function radiogroups(array $context): array {
         $groups = [];
         foreach ($context['drawers'] as $drawer) {
-            $groups['drawer ' . $drawer['id']] = $drawer['options'];
+            if (isset($drawer['options'])) {
+                $groups['drawer ' . $drawer['id']] = $drawer['options'];
+            }
         }
         foreach ($context['views'] as $view) {
             if (isset($view['options'])) {
@@ -199,20 +212,21 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
-     * Short lists open a drawer under the tile; rich features open a detail view.
+     * Short lists, and line width's single stepper (issue #4), open a drawer under the tile; rich features open a
+     * detail view.
      */
     public function test_kinds(): void {
         $this->setup_user();
         $context = self::context();
-        $drawers = ['align', 'links', 'images', 'guide', 'motion', 'read', 'saturation', 'focus', 'cursor'];
+        $drawers = ['align', 'narrow', 'links', 'images', 'guide', 'motion', 'read', 'saturation', 'focus', 'cursor'];
         $this->assertSame($drawers, array_column($context['drawers'], 'id'));
-        $this->assertSame(['size', 'font', 'spacing', 'colour', 'narrow'], array_column($context['views'], 'id'));
+        $this->assertSame(['size', 'font', 'spacing', 'colour'], array_column($context['views'], 'id'));
         foreach ($context['tiles'] as $tile) {
             $drawer = in_array($tile['id'], array_column($context['drawers'], 'id'), true);
             $this->assertSame($drawer ? 'drawer' : 'detail', $tile['kind'], $tile['id']);
             $this->assertSame($drawer, $tile['isdrawer'], $tile['id']);
         }
-        foreach (['size', 'font', 'spacing', 'colour', 'narrow'] as $id) {
+        foreach (['size', 'font', 'spacing', 'colour'] as $id) {
             $view = self::view($context, $id);
             $this->assertTrue($view['is' . $id], $id);
             $this->assertNotSame('', $view['label'], $id);
@@ -222,11 +236,14 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('100', $size['stepper']['fieldvalue']);
         $this->assertSame('%', $size['stepper']['unit']);
         $this->assertSame('la-view-size-title', $size['stepper']['labelid']);
-        $narrow = self::view($context, 'narrow')['stepper'];
+        $narrow = self::drawer($context, 'narrow')['stepper'];
         $this->assertSame(['', 'Full width', 100], [$narrow['fieldvalue'], $narrow['placeholder'], $narrow['bar']]);
         // Full width is already the widest, so + does nothing there; − is available.
         $this->assertSame([false, true], [$narrow['mindisabled'], $narrow['maxdisabled']]);
-        $this->assertArrayNotHasKey('options', self::view($context, 'narrow'));
+        // The drawer's label names the stepper.
+        $this->assertSame(['la-drawer-narrow-label', false], [$narrow['labelid'], $narrow['showlabel']]);
+        $this->assertArrayNotHasKey('options', self::drawer($context, 'narrow'));
+        $this->assertNull(self::view($context, 'narrow'));
     }
 
     /**
@@ -491,7 +508,7 @@ final class panel_test extends \advanced_testcase {
         $this->assertTrue($steppers['wordspacing']['maxdisabled']);
         $this->assertSame(['', 'Site default', 'line-height: normal'], [$steppers['lineheight']['fieldvalue'],
             $steppers['lineheight']['placeholder'], $steppers['lineheight']['samplestyle']]);
-        $this->assertSame(67, self::view($context, 'narrow')['stepper']['bar']);
+        $this->assertSame(67, self::drawer($context, 'narrow')['stepper']['bar']);
         $this->assertSame('Letter -5 · Word 10', self::tile($context, 'spacing')['valuetext']);
         $this->assertSame('60 characters', self::tile($context, 'narrow')['valuetext']);
 
@@ -510,6 +527,17 @@ final class panel_test extends \advanced_testcase {
         $this->assertDoesNotMatchRegularExpression('/data-action="stepdown" data-feature="letterspacing" aria-disabled/', $html);
         $this->assertDoesNotMatchRegularExpression('/<input type="range"/', $html);
         $this->assertStringNotContainsString('[[', $html);
+        // Line width's stepper sits in its drawer, named by the drawer's label (issue #4).
+        $drawer = '/<div class="la-drawer" id="la-drawer-narrow"[^>]*>\s*'
+            . '<p class="la-grouplabel" id="la-drawer-narrow-label">Line width<\/p>\s*'
+            . '<div class="la-group la-stepper" role="group" aria-labelledby="la-drawer-narrow-label" data-feature="narrow"/';
+        $this->assertMatchesRegularExpression($drawer, $html);
+        // The site default button comes first in every stepper, as the default does in every list (issue #4).
+        foreach (['size', 'lineheight', 'letterspacing', 'wordspacing', 'narrow'] as $id) {
+            $first = '/<div class="la-stepcontrols">\s*<button type="button" class="btn la-stepdefault" '
+                . 'data-action="stepdefault" data-feature="' . $id . '"/';
+            $this->assertMatchesRegularExpression($first, $html, $id);
+        }
 
         // Restricted to non-negative values, minus is disabled at the minimum.
         set_config('numericlimits', 'nonnegative', 'local_accessibility');

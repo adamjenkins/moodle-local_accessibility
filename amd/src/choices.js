@@ -222,7 +222,9 @@ export const toggleDrawer = (panel, tile) => {
     place(panel, drawer, tile);
     drawer.hidden = false;
     tile.setAttribute('aria-expanded', 'true');
-    const target = drawer.querySelector(OPTION + '[tabindex="0"]') || drawer.querySelector(OPTION);
+    // A stepper drawer (line width) has no options: its value field takes focus.
+    const target = drawer.querySelector(OPTION + '[tabindex="0"]') || drawer.querySelector(OPTION)
+        || drawer.querySelector('.la-stepper input');
     if (target) {
         target.focus();
     }
@@ -331,4 +333,45 @@ export const loadFaces = (view) => {
             }
         });
     });
+};
+
+/** @type {string} sessionStorage key that carries the open panel across a reload. */
+const REOPEN = 'local_accessibility_reopen';
+
+/**
+ * Reload the page, keeping the dialog open (issue #4): its open view and the control in focus come back after the
+ * reload. A scheme, a profile and Reset all are applied by the server, so they reload; without storage the dialog
+ * simply closes, as it did before.
+ *
+ * @param {HTMLElement} panel
+ */
+export const reloadKeepingOpen = (panel) => {
+    const view = openView(panel);
+    const focused = panel.contains(document.activeElement) ? document.activeElement : null;
+    const key = focused ? ['scheme', 'profile', 'action'].find((k) => focused.dataset[k]) : undefined;
+    try {
+        window.sessionStorage.setItem(REOPEN, JSON.stringify({
+            view: view ? view.dataset.view : null,
+            focus: key ? [key, focused.dataset[key]] : null,
+        }));
+    } catch (e) {
+        // Storage unavailable (a privacy mode): the reload closes the dialog.
+    }
+    window.location.reload();
+};
+
+/**
+ * Take what reloadKeepingOpen() left, once.
+ *
+ * @returns {{view: (string|null), focus: (Array|null)}|null}
+ */
+export const takeReopen = () => {
+    try {
+        const raw = window.sessionStorage.getItem(REOPEN);
+        window.sessionStorage.removeItem(REOPEN);
+        const data = raw ? JSON.parse(raw) : null;
+        return data && typeof data === 'object' ? data : null;
+    } catch (e) {
+        return null;
+    }
 };
