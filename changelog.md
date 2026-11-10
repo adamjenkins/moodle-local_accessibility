@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.0.9] - 2026-11-10
+
+### Fixed
+- Under a colour scheme, Boost's course section summary (`.course-content .summarytext`, `var(--bs-gray-600)`) kept
+  its grey, 3.99:1 on Cream's surface; it is added to the muted-text rule and takes `--a11y-text`.
+- Under a colour scheme on Moodle 5.3, the square section list item (`.course-section:has(> .section-item)`) showed
+  the scheme surface past the rounded corners of its section card; it is now transparent.
+- Under a colour scheme on Moodle 5.3, the course tab bar (`.secondarynav-tabbar`) and its `.secondary-navigation`
+  wrapper showed a lighter band behind the tabs; both now take `--a11y-page`.
+- New test `test_course_page_scheme_rules` in `tests/styles_test.php` covers the three rules and their order after the
+  surface rules they override.
+
 ## [3.0.8] - 2026-11-03
 
 ### Changed
