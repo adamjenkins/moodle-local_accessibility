@@ -454,4 +454,34 @@ final class styles_test extends \advanced_testcase {
             }
         }
     }
+
+    /**
+     * Moodle 5.3 course page under a scheme (2026-11-05 screenshots): the section summary takes the scheme's text colour
+     * instead of Boost's grey, the square section item behind a rounded card stays transparent, and the course tab bar
+     * and its wrapper sit on the page colour, after (so over) the mop-up surface rules they would otherwise get.
+     */
+    public function test_course_page_scheme_rules(): void {
+        $rules = self::rules_with('data-a11y-colour');
+        $index = fn(string $needle) => array_keys(array_filter($rules, fn($r) => str_contains($r[0], $needle)));
+
+        $muted = $index('.text-muted, .text-secondary');
+        $this->assertCount(1, $muted);
+        $this->assertStringContainsString('.course-content .summarytext', $rules[$muted[0]][0]);
+        $this->assertStringContainsString('color: var(--a11y-text) !important', $rules[$muted[0]][1]);
+
+        $mopup = $index(':where(#page, #page-wrapper, .drawer');
+        $this->assertCount(1, $mopup);
+        $band = $index(':where(.drawer, .navbar, .secondary-navigation)');
+        $this->assertCount(1, $band);
+
+        $card = $index(':where(.course-content .course-section:has(> .section-item))');
+        $this->assertCount(1, $card);
+        $this->assertStringContainsString('background-color: transparent !important', $rules[$card[0]][1]);
+        $this->assertGreaterThan($mopup[0], $card[0]);
+
+        $tabs = $index(':where(.secondary-navigation:has(.secondarynav-tabbar), .secondarynav-tabbar)');
+        $this->assertCount(1, $tabs);
+        $this->assertStringContainsString('background-color: var(--a11y-page) !important', $rules[$tabs[0]][1]);
+        $this->assertGreaterThan($band[0], $tabs[0]);
+    }
 }

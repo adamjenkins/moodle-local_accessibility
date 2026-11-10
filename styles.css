@@ -217,9 +217,20 @@ html[data-a11y-narrow] #region-main :where(p, blockquote, dd, li:not([class]), .
     html[data-a11y-colour] body :where(.btn-secondary, .btn-light, .btn-outline-secondary, .btn-outline-primary, .btn-icon, .btn-footer-popover, .icons-collapse-expand, .mds-nav-pill--selected, .mds-nav-pill.active):where(:hover, :focus, .active, [aria-expanded="true"]):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
         background-color: var(--a11y-hover) !important; /* stylelint-disable-line declaration-no-important */
     }
-    /* Hardcoded theme text colours (Task 22): muted text and the active navigation item. */
-    html[data-a11y-colour] body :where(.text-muted, .text-secondary, .text-body-secondary, .dimmed_text, .categoryname, .progress-text, .collapsemenu-text, .mds-switch-label, .nav-link.active):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+    /* Hardcoded theme text colours (Task 22): muted text and the active navigation item. Boost's course section summary
+       (.course-content .summarytext) is var(--bs-gray-600), 3.99:1 on Cream's surface (5.3, 2026-11-05). */
+    html[data-a11y-colour] body :where(.text-muted, .text-secondary, .text-body-secondary, .dimmed_text, .categoryname, .progress-text, .collapsemenu-text, .mds-switch-label, .nav-link.active, .course-content .summarytext):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
         color: var(--a11y-text) !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Course section cards (5.3 screenshots, 2026-11-05): the card (.section-item) has rounded corners, so the
+       square section list item around it stays transparent instead of showing the surface past the corners. */
+    html[data-a11y-colour] body :where(.course-content .course-section:has(> .section-item)):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: transparent !important; /* stylelint-disable-line declaration-no-important */
+    }
+    /* Moodle 5.3's course tab bar (.secondarynav-tabbar) sits on the page colour in Boost (body-bg); under a scheme it
+       and its .secondary-navigation wrapper take the page colour too, so no lighter band shows behind the tabs. */
+    html[data-a11y-colour] body :where(.secondary-navigation:has(.secondarynav-tabbar), .secondarynav-tabbar):where(:not(img, video, picture, svg, canvas, iframe, .activityiconcontainer, .activityiconcontainer *, .mediaplugin, .mediaplugin *, .MathJax, .MathJax *, mjx-container, mjx-container *, .qnbutton, .qnbutton *, .filemanager-thumbnail, .la-sample, .la-sample *, .la-swatch, .la-swatch *, .la-preview, .la-preview *, .local-accessibility-launcher, .local-accessibility-launcher *, .la-guide, .la-guide *)) {
+        background-color: var(--a11y-page) !important; /* stylelint-disable-line declaration-no-important */
     }
     /* Navigation menus (issue #4): Boost paints a hovered, focused or current item of its menus (.moremenu: the top
        navbar and the course tabs) with a hard-coded light grey, which under a dark scheme left the scheme's link colour
